@@ -1,52 +1,325 @@
 {
   "id": "kontak",
   "ad": "Kontak",
-  "kullanici_adi": "kontak",
-  "logo_url": "/brands/kontak/logo.png",
-  "tanim": "Türkiye'de motosiklet kültürü üzerine kurulu tanışma ve topluluk uygulaması",
-  "hedef_kitle": "20-40 yaş arası, hafta sonu sürüşe çıkan, yeni sürüş arkadaşı ve topluluk arayan motorcular",
+  "tanim": "Türkiye'de motosiklet kültürünü güvenli tanışma, birlikte sürüş ve yerel buluşmalar etrafında birleştiren tanışma ve topluluk uygulaması.",
+  "hedef_kitle": "Türkiye'de 18 yaş ve üzeri; yeni başlayanından deneyimlisine, scooter dahil farklı motosiklet türlerini kullanan, sürüş arkadaşı ve yerel topluluk arayan kişiler.",
   "ton_kurallari": [
-    "Samimi ama abartısız: motorcu gibi konuş, reklamcı gibi değil",
-    "Güvenliği her zaman ön planda tut: kasksız, ekipmansız sürüş gösterme",
-    "Kimseyi küçümseme: scooter da motordur",
-    "Emojiyi ölçülü kullan, en fazla 2"
+    "Türkçe, samimi ve doğal konuş; motosiklet kültürünü tanı ama gereksiz teknik jargon veya reklam dili kullanma.",
+    "Yeni başlayanları ve deneyimli sürücüleri eşit karşıla; motosiklet türü, motor hacmi, cinsiyet veya deneyim üzerinden küçümseme yapma.",
+    "Scooter ve küçük hacimli motosikletleri de topluluğun parçası olarak kapsa.",
+    "Güvenliği varsayılan tut: kask ve uygun koruyucu ekipman göster; hız, tehlikeli manevra, trafikte çekim veya ekipmansız sürüşü özendirme.",
+    "Tanışma ve buluşma çağrılarını açık, karşılıklı ve baskısız kur; eşleşme, ilişki veya güvenlik sonucu hakkında garanti verme.",
+    "Rota, mesafe, etkinlik tarihi, ürün özelliği ve sayısal iddia uydurma; yalnızca girdide desteklenen bilgiyi kullan.",
+    "Kısa ve konuşma diline yakın yaz; emoji kullanımı en fazla 2 olsun ve hashtagleri konuyla sınırlı tut."
   ],
   "vurgu_rengi": "#0000A8",
   "sutunlar": [
     {
-      "ad": "Topluluk",
+      "ad": "Topluluk ve birlikte sürüş",
       "oran": 30
     },
     {
-      "ad": "Rota",
+      "ad": "Tanışma ve sürüş arkadaşlığı",
       "oran": 25
     },
     {
-      "ad": "Tanışma",
+      "ad": "Rotalar ve buluşma noktaları",
       "oran": 25
     },
     {
-      "ad": "Güvenlik",
+      "ad": "Güvenli sürüş ve ekipman",
       "oran": 20
     }
   ],
   "izlenecek": {
     "tiktok_hashtagler": [
       "motosiklet",
+      "motorsiklet",
       "motorcu",
       "motovlog",
-      "motorcuyuz",
-      "istanbulmotor"
+      "motosikletgezisi",
+      "grupsürüşü",
+      "kadınmotorcu",
+      "güvenlisürüş",
+      "enduro"
     ],
     "instagram_hashtagler": [
       "motosiklet",
       "motorcu",
+      "motovlog",
+      "motosikletgezisi",
+      "grupsürüşü",
       "motosikletkulübü",
-      "motorcukafe",
-      "sürüş"
+      "motosiklettutkusu",
+      "ikiteker",
+      "güvenlisürüş",
+      "enduro"
     ],
-    "hesaplar": []
+    "hesaplar": [
+      "@motosikletfederasyonu_tmf",
+      "@motobikeistanbul",
+      "@turkiyemotosikletplatformu",
+      "@osmanlimotosikletkuluburesmi",
+      "@rotasizmotorcularturkiye",
+      "@turkiyetheateam",
+      "@enduroordu",
+      "@sagirlarmotosikletdernegi",
+      "@motosiklethayranlari",
+      "@motosikletcilerinsesi",
+      "@motoseyyahilergrubu",
+      "@zompcularenduro"
+    ],
+    "hashtag_gerekceleri": [
+      {
+        "etiket": "motosiklet",
+        "platform": "ikisi",
+        "neden": "Türkiye'deki motosiklet paylaşımlarının geniş tabanlı ana etiketi olduğu için temel gündem örneklemini oluşturur.",
+        "dayanak_url": [
+          "https://www.tiktok.com/tag/motosiklet",
+          "https://www.instagram.com/explore/tags/motosiklet/"
+        ]
+      },
+      {
+        "etiket": "motorsiklet",
+        "platform": "tiktok",
+        "neden": "Yaygın yazım varyantı ayrı bir TikTok akışında kullanıldığı için standart yazımı kaçıran paylaşımları yakalar.",
+        "dayanak_url": [
+          "https://www.tiktok.com/tag/motorsiklet"
+        ]
+      },
+      {
+        "etiket": "motorcu",
+        "platform": "ikisi",
+        "neden": "Sürücülerin gündelik topluluk dilini, ekipman ve sürüş deneyimi paylaşımlarını bulmaya yarar.",
+        "dayanak_url": [
+          "https://www.tiktok.com/tag/motorcu",
+          "https://www.instagram.com/explore/tags/motorcu/"
+        ]
+      },
+      {
+        "etiket": "motovlog",
+        "platform": "ikisi",
+        "neden": "POV, yol hikâyesi ve sürüş deneyimi formatlarını model ve ürün etiketlerinden ayrı izlemeyi sağlar.",
+        "dayanak_url": [
+          "https://www.tiktok.com/tag/motovlog",
+          "https://www.instagram.com/explore/tags/motovlog/"
+        ]
+      },
+      {
+        "etiket": "motosikletgezisi",
+        "platform": "ikisi",
+        "neden": "Gezi rotaları, mola noktaları ve birlikte yolculuk anlatıları Kontak'ın rota sütunuyla doğrudan örtüşür.",
+        "dayanak_url": [
+          "https://www.tiktok.com/tag/motosikletgezisi",
+          "https://www.instagram.com/motoseyyahilergrubu/"
+        ]
+      },
+      {
+        "etiket": "grupsürüşü",
+        "platform": "ikisi",
+        "neden": "Grup sürüşü ve sürüş öncesi buluşma içeriklerini doğrudan yakaladığı için Kontak'ın topluluk kullanımına en yakın etiketlerden biridir.",
+        "dayanak_url": [
+          "https://www.tiktok.com/tag/grups%C3%BCr%C3%BC%C5%9F%C3%BC",
+          "https://www.instagram.com/turkiyemotosikletplatformu/"
+        ]
+      },
+      {
+        "etiket": "kadınmotorcu",
+        "platform": "tiktok",
+        "neden": "Kadın sürücülerin deneyim ve dayanışma içeriklerini görünür kılar ve izleme setine kapsayıcı bir topluluk kesiti ekler.",
+        "dayanak_url": [
+          "https://www.tiktok.com/tag/kad%C4%B1nmotorcu"
+        ]
+      },
+      {
+        "etiket": "güvenlisürüş",
+        "platform": "ikisi",
+        "neden": "Güvenlik, ekipman ve bilinçli sürüş temaları Kontak'ın marka kurallarıyla uyumludur.",
+        "dayanak_url": [
+          "https://www.tiktok.com/@direksiyonrehberi06/video/7531707182685900039",
+          "https://www.instagram.com/explore/tags/ikiteker/"
+        ]
+      },
+      {
+        "etiket": "motosikletkulübü",
+        "platform": "instagram",
+        "neden": "Kulüp ve derneklerin duyuru, etkinlik ve sürüş paylaşımlarını bireysel içeriklerden ayırır.",
+        "dayanak_url": [
+          "https://www.instagram.com/explore/tags/motosikletkulubu/",
+          "https://www.instagram.com/sagirlarmotosikletdernegi/"
+        ]
+      },
+      {
+        "etiket": "motosiklettutkusu",
+        "platform": "instagram",
+        "neden": "Motosiklet kültürü, etkinlik ve topluluk anlatılarını yakalamak için genel motor model etiketlerini tamamlar.",
+        "dayanak_url": [
+          "https://www.instagram.com/explore/tags/motosiklettutkusu/",
+          "https://www.instagram.com/reel/DXePvlpAgga/"
+        ]
+      },
+      {
+        "etiket": "ikiteker",
+        "platform": "instagram",
+        "neden": "Motosiklet ve iki tekerli mobilite paylaşımlarını genişletirken daha küçük hacimli motor kullanıcılarını da kapsar.",
+        "dayanak_url": [
+          "https://www.instagram.com/explore/tags/ikiteker/"
+        ]
+      },
+      {
+        "etiket": "enduro",
+        "platform": "ikisi",
+        "neden": "Enduro ve arazi toplulukları Türkiye motosiklet kültürünün ayrı bir dalını ve etkinlik akışını temsil eder.",
+        "dayanak_url": [
+          "https://www.tiktok.com/tag/enduro",
+          "https://www.instagram.com/enduroordu/"
+        ]
+      }
+    ],
+    "hesap_gerekceleri": [
+      {
+        "hesap": "@motosikletfederasyonu_tmf",
+        "ad": "TMF Motosiklet Federasyonu",
+        "platform": "instagram",
+        "kategori": "Federasyon / yarış ve spor medyası",
+        "profil_url": "https://www.instagram.com/motosikletfederasyonu_tmf/",
+        "dayanak_url": [
+          "https://www.tmf.org.tr/",
+          "https://www.tmf.org.tr/takvim-calendar//"
+        ],
+        "neden": "Federasyonun resmi profili yarış takvimi, sporcu ve organizasyon duyurularıyla Türkiye motosiklet spor gündemini izlemeye yarar."
+      },
+      {
+        "hesap": "@motobikeistanbul",
+        "ad": "Motobike Istanbul",
+        "platform": "instagram",
+        "kategori": "Fuar ve etkinlik organizatörü",
+        "profil_url": "https://www.instagram.com/motobikeistanbul/",
+        "dayanak_url": [
+          "https://motobike-istanbul.tr.messefrankfurt.com/istanbul/en.html"
+        ],
+        "neden": "Messe Frankfurt'un resmi fuar hesabı, Türkiye'deki motosiklet fuarı ile sektör ve topluluk etkinliklerini duyurur."
+      },
+      {
+        "hesap": "@turkiyemotosikletplatformu",
+        "ad": "Türkiye Motosiklet Platformu | TMP",
+        "platform": "instagram",
+        "kategori": "Ulusal motosiklet topluluğu / platform",
+        "profil_url": "https://www.instagram.com/turkiyemotosikletplatformu/",
+        "dayanak_url": [
+          "https://tmp.gen.tr/"
+        ],
+        "neden": "Resmi TMP sitesi profili kendi sosyal hesabı olarak bağlıyor ve platformu kulüpleri ile motosiklet kullanıcılarını buluşturan bir topluluk olarak tanımlıyor."
+      },
+      {
+        "hesap": "@osmanlimotosikletkuluburesmi",
+        "ad": "Osmanlı Motosiklet Kulübü",
+        "platform": "instagram",
+        "kategori": "Motosiklet kulübü",
+        "profil_url": "https://www.instagram.com/osmanlimotosikletkuluburesmi/",
+        "dayanak_url": [
+          "https://www.osmanlimotosikletkulubu.com.tr/"
+        ],
+        "neden": "Kamuya açık kulüp profili sürüş, yardımlaşma ve teknik paylaşım içerikleriyle örgütlü motosiklet topluluğunu temsil eder."
+      },
+      {
+        "hesap": "@rotasizmotorcularturkiye",
+        "ad": "Rotasız Motorcular Türkiye",
+        "platform": "instagram",
+        "kategori": "Motosiklet kulübü / topluluk",
+        "profil_url": "https://www.instagram.com/rotasizmotorcularturkiye/",
+        "dayanak_url": [
+          "https://www.instagram.com/p/DITKi3QMpi8/"
+        ],
+        "neden": "Balıkesir merkezli grup sürüşleri ve yerel buluşma paylaşımları bölgesel motosiklet topluluğu hareketini görünür kılar."
+      },
+      {
+        "hesap": "@turkiyetheateam",
+        "ad": "Türkiye The A Team",
+        "platform": "instagram",
+        "kategori": "Motosiklet kulübü",
+        "profil_url": "https://www.instagram.com/turkiyetheateam/",
+        "dayanak_url": [
+          "https://ateamturkiye.com/sss.php?lang=de",
+          "https://yereltorbali.com/turkiye-the-a-team-motosiklet-kulubu-kulup-evini-aciyor-h244529.html"
+        ],
+        "neden": "Kulübün resmi sitesi aynı Instagram hesabını bağlayıp güvenli sürüş, ekipman, rota ve topluluk etkinliklerini doğrular."
+      },
+      {
+        "hesap": "@enduroordu",
+        "ad": "Enduro Ordu Motor Sporları Kulübü",
+        "platform": "instagram",
+        "kategori": "Enduro / motor sporları kulübü",
+        "profil_url": "https://www.instagram.com/enduroordu/",
+        "dayanak_url": [
+          "https://www.enduroordu.org/",
+          "https://www.tmf.org.tr/kulupler/kuluplerimizin-listesi/"
+        ],
+        "neden": "Ordu merkezli kulüp, enduro rotaları, festival ve sürüş topluluğu içerikleriyle bölgesel motosiklet kültürünü izlemeye yarar."
+      },
+      {
+        "hesap": "@sagirlarmotosikletdernegi",
+        "ad": "Sağırlar Motosiklet Derneği | SM",
+        "platform": "instagram",
+        "kategori": "Motosiklet derneği / kapsayıcı topluluk",
+        "profil_url": "https://www.instagram.com/sagirlarmotosikletdernegi/",
+        "dayanak_url": [
+          "https://smd.org.tr/",
+          "https://smd.org.tr/tuzuk/"
+        ],
+        "neden": "Derneğin resmi sitesi profili doğruluyor ve güvenli sürüş, dayanışma ile erişilebilir motosiklet topluluğu faaliyetlerini anlatıyor."
+      },
+      {
+        "hesap": "@motosiklethayranlari",
+        "ad": "Motosiklet Hayranları",
+        "platform": "instagram",
+        "kategori": "Motosiklet içerik sayfası",
+        "profil_url": "https://www.instagram.com/motosiklethayranlari/",
+        "dayanak_url": [
+          "https://www.instagram.com/motosiklethayranlari/",
+          "https://www.bizevdeyokuz.com/turkiyedeki-motosiklet-kulupleri-ve-gruplari/"
+        ],
+        "neden": "Kamuya açık Türkiye odaklı içerik sayfası, farklı motosiklet fotoğraf ve videolarıyla geniş kültürel akışı tamamlar."
+      },
+      {
+        "hesap": "@motosikletcilerinsesi",
+        "ad": "Motosikletçilerin Sesi",
+        "platform": "instagram",
+        "kategori": "Motosiklet topluluğu / haber ve içerik sayfası",
+        "profil_url": "https://www.instagram.com/motosikletcilerinsesi/",
+        "dayanak_url": [
+          "https://www.instagram.com/p/DdVt_M7CuPG/"
+        ],
+        "neden": "Profil açıklaması haber, inceleme ve güvenli sürüş odağını belirttiği için topluluk gündemini konu ve içerik türü bazında izlemeye uygundur."
+      },
+      {
+        "hesap": "@motoseyyahilergrubu",
+        "ad": "Moto Seyyahiler Kulübü",
+        "platform": "instagram",
+        "kategori": "Motosiklet gezi topluluğu",
+        "profil_url": "https://www.instagram.com/motoseyyahilergrubu/",
+        "dayanak_url": [
+          "https://www.instagram.com/motoseyyahilergrubu/",
+          "https://yandex.com.tr/maps/org/moto_seyyahiler_kulubu/12127396760/"
+        ],
+        "neden": "Şehir bazlı topluluk başlıkları ve gezi paylaşımları farklı bölgelerdeki rota ve buluşma eğilimlerini yansıtır."
+      },
+      {
+        "hesap": "@zompcularenduro",
+        "ad": "Zompçular Enduro",
+        "platform": "tiktok",
+        "kategori": "Enduro kulübü / topluluk",
+        "profil_url": "https://www.tiktok.com/@zompcularenduro",
+        "dayanak_url": [
+          "https://www.tiktok.com/@zompcularenduro/video/7565904846692289809",
+          "https://www.tiktok.com/@zompcularenduro/video/7491415733663059216"
+        ],
+        "neden": "Osmaniye konumunu ve enduro kulübü kimliğini açıkça belirten herkese açık TikTok hesabı bölgesel grup sürüşü içerikleri üretir."
+      }
+    ]
   },
+  "kullanici_adi": "kontak",
+  "logo_url": "/brands/kontak/logo.png",
   "sinirlar": {
     "konu_alani": "Türkiye motosiklet kültürü: sürüş, rota, topluluk, ekipman, güvenlik",
     "yasak_konular": [

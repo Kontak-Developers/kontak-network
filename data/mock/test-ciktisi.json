@@ -1,0 +1,158 @@
+{
+  "test_kaydi": {
+    "sentetik_veri": true,
+    "calisma_zamani": "2026-10-12T08:00:00+03:00",
+    "gonderi_sayisi": 20,
+    "not": "Hesap adları ve example.com bağlantıları test için uydurulmuştur; gerçek TikTok veya Instagram verisi değildir. Önceki 7 gün karşılaştırması verilmediği için ivmeler yalnızca örneklem içi puandır."
+  },
+  "analiz_girdisi": {
+    "calisma_zamani": "2026-10-12T08:00:00+03:00",
+    "gecmis_karsilastirma": [],
+    "gonderiler": [
+      {"platform":"tiktok","link":"https://example.com/kontak-test/p01","hesap":"@ornek_surus_01","aciklama":"POV: Şile yönüne sakin tempoda sabah sürüşü; buluşma noktasında tanışıp rotayı önceden konuştuk. #motosiklet #grupsürüşü #şile","izlenme":87000,"begeniler":8100,"yorumlar":420,"paylasimlar":1400,"ses_adi":"Yol Arkadaşı - sakin lo-fi (sentetik test sesi)","tarih":"2026-10-12T07:50:00+03:00","icerik_formati":"kask kamerası POV kısa video"},
+      {"platform":"tiktok","link":"https://example.com/kontak-test/p02","hesap":"@ornek_topluluk_02","aciklama":"İlk kez grupla çıktım; yola çıkmadan herkesle tanışıp tempoyu konuştuk. #grupsürüşü #ilkgrupsürüşüm #motorcu","izlenme":51600,"begeniler":4750,"yorumlar":670,"paylasimlar":1300,"ses_adi":null,"tarih":"2026-10-12T07:20:00+03:00","icerik_formati":"kısa video"},
+      {"platform":"instagram","link":"https://example.com/kontak-test/p03","hesap":"@ornek_gezgin_03","aciklama":"POV: Polonezköy yolunda sonbahar renkleri ve kısa bir mola. #motosikletgezisi #sonbahar #motovlog","izlenme":41000,"begeniler":3200,"yorumlar":260,"paylasimlar":760,"ses_adi":"Yol Arkadaşı - sakin lo-fi (sentetik test sesi)","tarih":"2026-10-12T06:50:00+03:00","icerik_formati":"Instagram Reels, kask kamerası POV"},
+      {"platform":"instagram","link":"https://example.com/kontak-test/p04","hesap":"@ornek_rota_04","aciklama":"Sonbahar için üç rota fikri: Şile, Polonezköy ve sahil molası; kaydet, yola çıkmadan koşulları kontrol et. #motosikletgezisi #rota #motosiklet","izlenme":37600,"begeniler":2850,"yorumlar":180,"paylasimlar":1550,"ses_adi":null,"tarih":"2026-10-12T06:20:00+03:00","icerik_formati":"Instagram carousel"},
+      {"platform":"tiktok","link":"https://example.com/kontak-test/p05","hesap":"@ornek_ekip_05","aciklama":"Kask kamerasından ilk grup sürüşüm: buluşma, kısa rota ve kahve molası. #grupsürüşü #ilkgrupsürüşüm #motovlog","izlenme":78300,"begeniler":6900,"yorumlar":850,"paylasimlar":1800,"ses_adi":"Yol Arkadaşı - sakin lo-fi (sentetik test sesi)","tarih":"2026-10-12T05:50:00+03:00","icerik_formati":"kask kamerası POV kısa video"},
+      {"platform":"instagram","link":"https://example.com/kontak-test/p06","hesap":"@ornek_bulusma_06","aciklama":"Yeni sürücüler için pazar buluşması: önce tanışma, sonra herkesin temposuna uygun kısa sürüş. #grupsürüşü #motorcu #buluşma","izlenme":29400,"begeniler":2400,"yorumlar":390,"paylasimlar":800,"ses_adi":"Yol Arkadaşı - sakin lo-fi (sentetik test sesi)","tarih":"2026-10-11T23:45:00+03:00","icerik_formati":"Instagram Reels"},
+      {"platform":"tiktok","link":"https://example.com/kontak-test/p07","hesap":"@ornek_guvenlik_07","aciklama":"Yağış ihtimali varsa ekipmanı ve görünürlüğü yola çıkmadan kontrol ediyoruz; koşullar uygun değilse sürüşü erteliyoruz. #güvenlisürüş #motosiklet","izlenme":26200,"begeniler":2100,"yorumlar":350,"paylasimlar":1250,"ses_adi":"Orijinal konuşma","tarih":"2026-10-11T22:55:00+03:00","icerik_formati":"kısa bilgilendirici video"},
+      {"platform":"tiktok","link":"https://example.com/kontak-test/p08","hesap":"@ornek_yeni_08","aciklama":"POV: İlk kez tanıştığım grupla buluşma noktasında selamlaştık, planı konuştuk ve birlikte çıktık. #grupsürüşü #motorcu #motosiklet","izlenme":67200,"begeniler":5800,"yorumlar":720,"paylasimlar":1600,"ses_adi":"Yol Arkadaşı - sakin lo-fi (sentetik test sesi)","tarih":"2026-10-11T22:15:00+03:00","icerik_formati":"kask kamerası POV kısa video"},
+      {"platform":"instagram","link":"https://example.com/kontak-test/p09","hesap":"@ornek_rotalar_09","aciklama":"Sonbahar sürüşünde rota paylaşımı: Şile ve Polonezköy çevresinden iki manzara, bir mola fikri. #motosikletgezisi #sonbaharrotası","izlenme":34700,"begeniler":2750,"yorumlar":220,"paylasimlar":1350,"ses_adi":null,"tarih":"2026-10-11T21:45:00+03:00","icerik_formati":"Instagram carousel"},
+      {"platform":"tiktok","link":"https://example.com/kontak-test/p10","hesap":"@ornek_pov_10","aciklama":"Kask kamerası POV: sonbahar yolunda sakin sürüş ve planlı mola. #motovlog #motosikletgezisi #grupsürüşü","izlenme":58400,"begeniler":4900,"yorumlar":310,"paylasimlar":900,"ses_adi":"Yol Arkadaşı - sakin lo-fi (sentetik test sesi)","tarih":"2026-10-11T21:05:00+03:00","icerik_formati":"kask kamerası POV kısa video"},
+      {"platform":"instagram","link":"https://example.com/kontak-test/p11","hesap":"@ornek_pov_11","aciklama":"POV: Buluşmaya vardık; motorlar parkta, ekipman tamam, sırada kahve molası var. #motosiklet #motovlog #ikiteker","izlenme":31200,"begeniler":2450,"yorumlar":190,"paylasimlar":690,"ses_adi":"Yol Arkadaşı - sakin lo-fi (sentetik test sesi)","tarih":"2026-10-11T19:35:00+03:00","icerik_formati":"Instagram Reels, kask kamerası POV"},
+      {"platform":"tiktok","link":"https://example.com/kontak-test/p12","hesap":"@ornek_elisareti_12","aciklama":"Grup sürüşü öncesi işaretleri park halinde konuşuyoruz; yolda dikkat dağınıklığı yok. #grupsürüşü #güvenlisürüş","izlenme":33800,"begeniler":2900,"yorumlar":410,"paylasimlar":1180,"ses_adi":"Orijinal konuşma","tarih":"2026-10-11T17:50:00+03:00","icerik_formati":"kısa bilgilendirici video"},
+      {"platform":"tiktok","link":"https://example.com/kontak-test/p13","hesap":"@ornek_ekipman_13","aciklama":"Yağmurlu gün için çıkış öncesi ekipman kontrolü; hava ve yol koşulları uygun değilse planı değiştiriyoruz. #güvenlisürüş #motorcu","izlenme":21400,"begeniler":1680,"yorumlar":210,"paylasimlar":820,"ses_adi":"Yağmur ambiyansı (sentetik)","tarih":"2026-10-11T15:30:00+03:00","icerik_formati":"kısa bilgilendirici video"},
+      {"platform":"instagram","link":"https://example.com/kontak-test/p14","hesap":"@ornek_kulup_14","aciklama":"İlk kez katılacaklara buluşma notu: tanışma, rota ve mola planı yola çıkmadan konuşulur. #grupsürüşü #motosikletkulübü","izlenme":25600,"begeniler":2010,"yorumlar":240,"paylasimlar":1100,"ses_adi":null,"tarih":"2026-10-11T13:00:00+03:00","icerik_formati":"Instagram carousel"},
+      {"platform":"tiktok","link":"https://example.com/kontak-test/p15","hesap":"@ornek_surus_15","aciklama":"Yeni sürücülerle ilk grup turumuz; durakları ve tempoyu önceden konuştuk. #grupsürüşü #motorcu #motosiklet","izlenme":60400,"begeniler":5250,"yorumlar":920,"paylasimlar":2100,"ses_adi":"Yol Arkadaşı - sakin lo-fi (sentetik test sesi)","tarih":"2026-10-11T10:45:00+03:00","icerik_formati":"kısa video"},
+      {"platform":"instagram","link":"https://example.com/kontak-test/p16","hesap":"@ornek_road_16","aciklama":"Sonbahar için rota kartları: Şile, Polonezköy ve yol üstü mola fikri; güncel koşulları kontrol et. #motosikletgezisi #ikiteker","izlenme":28300,"begeniler":2270,"yorumlar":190,"paylasimlar":980,"ses_adi":null,"tarih":"2026-10-11T08:30:00+03:00","icerik_formati":"Instagram carousel"},
+      {"platform":"tiktok","link":"https://example.com/kontak-test/p17","hesap":"@ornek_kafe_17","aciklama":"Sürüş sonrası kafe molasında yeni yol arkadaşlarıyla tanıştık; sıradaki rotayı birlikte seçiyoruz. #motorcu #grupsürüşü","izlenme":42000,"begeniler":3500,"yorumlar":360,"paylasimlar":1050,"ses_adi":"Yol Arkadaşı - sakin lo-fi (sentetik test sesi)","tarih":"2026-10-10T21:00:00+03:00","icerik_formati":"kısa video"},
+      {"platform":"instagram","link":"https://example.com/kontak-test/p18","hesap":"@ornek_yeni_18","aciklama":"Ehliyeti yeni aldım, ilk grup sürüşümde herkesle tanışıp sakin bir rota seçtik. #grupsürüşü #ilkgrupsürüşüm #motosiklet","izlenme":20500,"begeniler":1760,"yorumlar":410,"paylasimlar":1440,"ses_adi":null,"tarih":"2026-10-10T18:40:00+03:00","icerik_formati":"Instagram gönderi"},
+      {"platform":"tiktok","link":"https://example.com/kontak-test/p19","hesap":"@ornek_sahil_19","aciklama":"Kask kamerası POV: sonbahar sahil yolu, güvenli mesafe ve kısa mola. #motosikletgezisi #motovlog #motosiklet","izlenme":49700,"begeniler":4200,"yorumlar":260,"paylasimlar":890,"ses_adi":"Yol Arkadaşı - sakin lo-fi (sentetik test sesi)","tarih":"2026-10-10T13:10:00+03:00","icerik_formati":"kask kamerası POV kısa video"},
+      {"platform":"instagram","link":"https://example.com/kontak-test/p20","hesap":"@ornek_hava_20","aciklama":"Yağışta sürüş planı değişebilir; buluşmada görünür ekipmanı kontrol edip koşullar uygun değilse erteledik. #güvenlisürüş #motosiklet","izlenme":23600,"begeniler":1840,"yorumlar":310,"paylasimlar":940,"ses_adi":null,"tarih":"2026-10-10T09:20:00+03:00","icerik_formati":"Instagram Reels"}
+    ]
+  },
+  "analiz_ciktisi": {
+    "ozet": "20 sentetik gönderide grup sürüşü ve kask kamerası POV öne çıktı; önceki hafta kıyası olmadığı için ivmeler gerçek büyüme kanıtı değil, örneklem içi sinyal puanıdır.",
+    "gundem": [
+      {"id":"t1","tip":"hashtag","baslik":"grupsürüşü","aciklama":"Etiket 11 farklı gönderide ve iki platformda, farklı hesapların ilk buluşma ve grup sürüşü anlatılarında kullanıldı; bu yalnızca 48 saatlik sentetik örneklem içi sinyaldir.","platform":"ikisi","ivme":66,"ornek_linkler":["https://example.com/kontak-test/p01","https://example.com/kontak-test/p05","https://example.com/kontak-test/p14"]},
+      {"id":"t2","tip":"format","baslik":"Kask kamerası POV ve rota molası","aciklama":"Yedi farklı gönderi, TikTok ve Instagram'da sürücünün gözünden rota ile buluşma anını birleştiriyor; önceki hafta karşılaştırması bulunmadığından yükseliş doğrulanmış değildir.","platform":"ikisi","ivme":66,"ornek_linkler":["https://example.com/kontak-test/p01","https://example.com/kontak-test/p03","https://example.com/kontak-test/p19"]},
+      {"id":"t3","tip":"konu","baslik":"Yeni sürücüler için ilk grup buluşması","aciklama":"Yedi gönderi yeni katılanların tanışma, rota ve tempo konuşmasını öne çıkarıyor; etkileşim sinyali farklı hesaplarda görülse de puan önceki haftayla büyümeyi kanıtlamaz.","platform":"ikisi","ivme":65,"ornek_linkler":["https://example.com/kontak-test/p02","https://example.com/kontak-test/p06","https://example.com/kontak-test/p18"]},
+      {"id":"t4","tip":"ses","baslik":"Yol Arkadaşı - sakin lo-fi (sentetik test sesi)","aciklama":"Aynı sentetik ses adı 10 gönderide ve iki platformda tekrarlandı; bu testte ses kullanımının tutarlılığı ölçülüyor, gerçek bir müzik trendi iddiası değildir.","platform":"ikisi","ivme":65,"ornek_linkler":["https://example.com/kontak-test/p01","https://example.com/kontak-test/p08","https://example.com/kontak-test/p17"]},
+      {"id":"t5","tip":"konu","baslik":"Sonbahar rotalarını mola fikriyle paylaşma","aciklama":"Altı gönderi Şile ve Polonezköy çevresindeki sonbahar rota anlatılarını ve mola planlarını bir araya getiriyor; konumlar yalnızca sentetik test metninde geçiyor.","platform":"ikisi","ivme":65,"ornek_linkler":["https://example.com/kontak-test/p03","https://example.com/kontak-test/p04","https://example.com/kontak-test/p16"]},
+      {"id":"t6","tip":"konu","baslik":"Yağışta ekipman ve sürüşü erteleme kararı","aciklama":"Üç gönderi hava ve yol koşullarını değerlendirme, görünür ekipman ve uygun değilse planı erteleme temasını işliyor; bu güvenlik teması örneklem içi sinyaldir.","platform":"ikisi","ivme":47,"ornek_linkler":["https://example.com/kontak-test/p07","https://example.com/kontak-test/p13","https://example.com/kontak-test/p20"]}
+    ]
+  },
+  "uretim_girdisi": {
+    "gundem": {
+      "ozet": "20 sentetik gönderide grup sürüşü ve kask kamerası POV öne çıktı; önceki hafta kıyası olmadığı için ivmeler gerçek büyüme kanıtı değil, örneklem içi sinyal puanıdır.",
+      "gundem": [
+        {"id":"t1","tip":"hashtag","baslik":"grupsürüşü","aciklama":"Etiket 11 farklı gönderide ve iki platformda, farklı hesapların ilk buluşma ve grup sürüşü anlatılarında kullanıldı; bu yalnızca 48 saatlik sentetik örneklem içi sinyaldir.","platform":"ikisi","ivme":66,"ornek_linkler":["https://example.com/kontak-test/p01","https://example.com/kontak-test/p05","https://example.com/kontak-test/p14"]},
+        {"id":"t2","tip":"format","baslik":"Kask kamerası POV ve rota molası","aciklama":"Yedi farklı gönderi, TikTok ve Instagram'da sürücünün gözünden rota ile buluşma anını birleştiriyor; önceki hafta karşılaştırması bulunmadığından yükseliş doğrulanmış değildir.","platform":"ikisi","ivme":66,"ornek_linkler":["https://example.com/kontak-test/p01","https://example.com/kontak-test/p03","https://example.com/kontak-test/p19"]},
+        {"id":"t3","tip":"konu","baslik":"Yeni sürücüler için ilk grup buluşması","aciklama":"Yedi gönderi yeni katılanların tanışma, rota ve tempo konuşmasını öne çıkarıyor; etkileşim sinyali farklı hesaplarda görülse de puan önceki haftayla büyümeyi kanıtlamaz.","platform":"ikisi","ivme":65,"ornek_linkler":["https://example.com/kontak-test/p02","https://example.com/kontak-test/p06","https://example.com/kontak-test/p18"]},
+        {"id":"t4","tip":"ses","baslik":"Yol Arkadaşı - sakin lo-fi (sentetik test sesi)","aciklama":"Aynı sentetik ses adı 10 gönderide ve iki platformda tekrarlandı; bu testte ses kullanımının tutarlılığı ölçülüyor, gerçek bir müzik trendi iddiası değildir.","platform":"ikisi","ivme":65,"ornek_linkler":["https://example.com/kontak-test/p01","https://example.com/kontak-test/p08","https://example.com/kontak-test/p17"]},
+        {"id":"t5","tip":"konu","baslik":"Sonbahar rotalarını mola fikriyle paylaşma","aciklama":"Altı gönderi Şile ve Polonezköy çevresindeki sonbahar rota anlatılarını ve mola planlarını bir araya getiriyor; konumlar yalnızca sentetik test metninde geçiyor.","platform":"ikisi","ivme":65,"ornek_linkler":["https://example.com/kontak-test/p03","https://example.com/kontak-test/p04","https://example.com/kontak-test/p16"]},
+        {"id":"t6","tip":"konu","baslik":"Yağışta ekipman ve sürüşü erteleme kararı","aciklama":"Üç gönderi hava ve yol koşullarını değerlendirme, görünür ekipman ve uygun değilse planı erteleme temasını işliyor; bu güvenlik teması örneklem içi sinyaldir.","platform":"ikisi","ivme":47,"ornek_linkler":["https://example.com/kontak-test/p07","https://example.com/kontak-test/p13","https://example.com/kontak-test/p20"]}
+      ]
+    },
+    "marka": {
+      "id":"kontak",
+      "ad":"Kontak",
+      "tanim":"Türkiye'de motosiklet kültürünü güvenli tanışma, birlikte sürüş ve yerel buluşmalar etrafında birleştiren tanışma ve topluluk uygulaması.",
+      "hedef_kitle":"Türkiye'de 18 yaş ve üzeri; yeni başlayanından deneyimlisine, scooter dahil farklı motosiklet türlerini kullanan, sürüş arkadaşı ve yerel topluluk arayan kişiler.",
+      "ton_kurallari":[
+        "Türkçe, samimi ve doğal konuş; motosiklet kültürünü tanı ama gereksiz teknik jargon veya reklam dili kullanma.",
+        "Yeni başlayanları ve deneyimli sürücüleri eşit karşıla; motosiklet türü, motor hacmi, cinsiyet veya deneyim üzerinden küçümseme yapma.",
+        "Scooter ve küçük hacimli motosikletleri de topluluğun parçası olarak kapsa.",
+        "Güvenliği varsayılan tut: kask ve uygun koruyucu ekipman göster; hız, tehlikeli manevra, trafikte çekim veya ekipmansız sürüşü özendirme.",
+        "Tanışma ve buluşma çağrılarını açık, karşılıklı ve baskısız kur; eşleşme, ilişki veya güvenlik sonucu hakkında garanti verme.",
+        "Rota, mesafe, etkinlik tarihi, ürün özelliği ve sayısal iddia uydurma; yalnızca girdide desteklenen bilgiyi kullan.",
+        "Kısa ve konuşma diline yakın yaz; emoji kullanımı en fazla 2 olsun ve hashtagleri konuyla sınırlı tut."
+      ],
+      "vurgu_rengi":"#0000A8",
+      "sutunlar":[
+        {"ad":"Topluluk ve birlikte sürüş","oran":30},
+        {"ad":"Tanışma ve sürüş arkadaşlığı","oran":25},
+        {"ad":"Rotalar ve buluşma noktaları","oran":25},
+        {"ad":"Güvenli sürüş ve ekipman","oran":20}
+      ],
+      "izlenecek":{
+        "tiktok_hashtagler":["motosiklet","motorsiklet","motorcu","motovlog","motosikletgezisi","grupsürüşü","kadınmotorcu","güvenlisürüş","enduro"],
+        "instagram_hashtagler":["motosiklet","motorcu","motovlog","motosikletgezisi","grupsürüşü","motosikletkulübü","motosiklettutkusu","ikiteker","güvenlisürüş","enduro"],
+        "hesaplar":["@motosikletfederasyonu_tmf","@motobikeistanbul","@turkiyemotosikletplatformu","@osmanlimotosikletkuluburesmi","@rotasizmotorcularturkiye","@turkiyetheateam","@enduroordu","@sagirlarmotosikletdernegi","@motosiklethayranlari","@motosikletcilerinsesi","@motoseyyahilergrubu","@zompcularenduro"]
+      }
+    },
+    "calisma_tarihi": "2026-10-12",
+    "son_30_gun_sutun_sayilari": [
+      {"sutun":"Topluluk ve birlikte sürüş","adet":8},
+      {"sutun":"Tanışma ve sürüş arkadaşlığı","adet":6},
+      {"sutun":"Rotalar ve buluşma noktaları","adet":7},
+      {"sutun":"Güvenli sürüş ve ekipman","adet":4}
+    ]
+  },
+  "uretim_ciktisi": [
+    {
+      "trend_id": "t6",
+      "platform": "tiktok",
+      "format": "kisa_video",
+      "baslik": "Yağışta çıkmadan önce planı birlikte yap",
+      "kanca": "Koşullar uygun değilse ertelemek de iyi bir sürüş kararıdır.",
+      "senaryo": [
+        "Sahne 1 (0-2 sn): Park halindeki iki motosiklet ve tam ekipmanlı, yüzü görünmeyen sürücüler; ekranda sonradan eklenecek kısa kanca.",
+        "Sahne 2 (2-6 sn): Sürücüler motorlar kapalıyken hava ve rota planını birlikte kontrol eder.",
+        "Sahne 3 (6-10 sn): Yakın planda kask ve görünür dış katman; sürüş sırasında telefon kullanılmaz.",
+        "Sahne 4 (10-15 sn): Grup uygun değilse buluşmayı ileri tarihe alır; Kontak'ta planı birlikte kurmaya çağrı."
+      ],
+      "aciklama_metni": "Örneklerde yağışta ekipman ve görünürlük konuşuluyor. Yola çıkmadan hava ve yol durumunu değerlendirin; koşullar uygun değilse ertelemeyi seçin. Sürüş planını Kontak'ta arkadaşlarınla kur.",
+      "hashtagler": ["#güvenlisürüş", "#motosiklet", "#grupsürüşü", "#ekipman", "#kontak"],
+      "gorsel_prompt": "Create a vertical 1080x1350 editorial image of two fully helmeted, anonymous motorcycle riders making a calm ride-or-postpone decision beside parked motorcycles at a café meeting point; visible protective gear and reflective accents, soft rainy-day light, a small deep navy blue #0000A8 accent on a route card, no identifiable human faces, no logos or brand marks, no visible text, no moving-traffic scene, no speeding or risky behavior."
+    },
+    {
+      "trend_id": "t3",
+      "platform": "instagram",
+      "format": "carousel",
+      "baslik": "İlk grup sürüşünde önce tanış",
+      "kanca": "İlk kez katıldığın grupla yola çıkmadan önce tanışmak ister misin?",
+      "senaryo": [
+        "Kart 1: Kapak; park etmiş motosikletler ve başlık için boş alan.",
+        "Kart 2: Buluşma alanında kaskları kapalı sürücüler selamlaşır.",
+        "Kart 3: Motorlar kapalıyken rota, buluşma noktası ve herkesin rahat ettiği tempo konuşulur.",
+        "Kart 4: Güvenli takip mesafesini koruyan sakin grup sürüşünden yüz göstermeyen bir kare.",
+        "Kart 5: Kahve molası ve Kontak'ta sürüş arkadaşı bulma çağrısı."
+      ],
+      "aciklama_metni": "İlk grup sürüşünde planı ve tempoyu yola çıkmadan konuşmak iyi bir başlangıç. Yeni tanışacağın sürüş arkadaşlarını Kontak'ta bul; buluşma noktasında görüşürüz.",
+      "hashtagler": ["#grupsürüşü", "#ilkgrupsürüşüm", "#motorcu", "#motosiklet", "#kontak"],
+      "gorsel_prompt": "Create a vertical 1080x1350 editorial cover illustration of anonymous, fully helmeted motorcycle riders greeting each other beside safely parked bikes before a daytime group ride; inclusive protective gear and friendly body language, subtle deep navy #0000A8 accents, clear negative space for later layout, no identifiable human faces, no logos or brand marks, no visible text, no traffic or risky riding."
+    },
+    {
+      "trend_id": "t4",
+      "platform": "tiktok",
+      "format": "kisa_video",
+      "baslik": "Aynı ses, yeni yol arkadaşları",
+      "kanca": "Bir buluşma noktası, birkaç yeni tanışma ve sakin bir rota.",
+      "senaryo": [
+        "Sahne 1 (0-2 sn): Park halindeki motorların ve eldivenlerin yakın planı; sentetik test sesini kullan.",
+        "Sahne 2 (2-5 sn): Tam kasklı sürücüler buluşma alanında selamlaşır; ses ritmine uygun kısa kesmeler kullanılır.",
+        "Sahne 3 (5-10 sn): Sabitlenmiş kask kamerasından sakin rota görüntüsü ve güvenli takip mesafesi.",
+        "Sahne 4 (10-14 sn): Park edilmiş motorların yanında toplu kahve molası; aynı yöne gidecek sürücüler için Kontak çağrısı."
+      ],
+      "aciklama_metni": "Bu testte kullanılan ses adı sentetiktir; gerçek çalıştırmada yalnızca girdide adı bulunan ve platformda kullanımına izin verilen sesi seç. Aynı rotaya çıkacak sürüş arkadaşlarını Kontak'ta bul.",
+      "hashtagler": ["#motovlog", "#grupsürüşü", "#motosiklet", "#motorcu", "#kontak"],
+      "gorsel_prompt": "Create a vertical 1080x1350 cinematic but natural image of a friendly motorcycle community coffee stop after a calm ride; anonymous fully helmeted riders stand beside parked motorcycles, with no identifiable faces, a small deep navy #0000A8 accent in the scene, soft autumn daylight, no brand logos or readable text, no traffic, no speed or dangerous riding."
+    }
+  ],
+  "uretim_sutun_eslemesi": [
+    {"trend_id":"t6","sutun":"Güvenli sürüş ve ekipman"},
+    {"trend_id":"t3","sutun":"Tanışma ve sürüş arkadaşlığı"},
+    {"trend_id":"t4","sutun":"Topluluk ve birlikte sürüş"}
+  ],
+  "dogrulama": {
+    "analiz_girdisi_gonderi_sayisi": 20,
+    "analiz_gundem_maddesi_sayisi": 6,
+    "uretim_fikri_sayisi": 3,
+    "tum_trend_idleri_analiz_girdisinde_var": true,
+    "tum_gorsel_promptlari_ingilizce_ve_1080x1350": true,
+    "tum_gorsel_promptlarinda_vurgu_rengi": "#0000A8",
+    "gercek_yuz_ve_baska_marka_logosu_istenmiyor": true,
+    "not": "Sütun eşlemesi test denetim metaverisidir; üretim promptunun fikir dizisine eklenmez, böylece mevcut Idea API alanları korunur."
+  }
+}
