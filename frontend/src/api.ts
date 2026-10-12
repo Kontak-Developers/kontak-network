@@ -1,32 +1,54 @@
 import { mockRequest } from './mock'
 import type { Brand, Decision, Idea, IdeaStatus, Run, Series, Trend, WatchItem, WatchStatus, Weekly } from './types'
 
-// VITE_MOCK=1 ise hep sahte veri. Değilse gerçek API, erişilemezse sahte veriye düşer.
+// VITE_MOCK=1 ise hep sahte veri. Değilse her uç önce gerçek API'yi dener,
+// o uç erişilemezse yalnızca o uç sahte veriye düşer (backend parça parça gelebilir).
 // VITE_API_URL verilirse API başka bir adreste (ör. https://ajan-api.kontakdating.com).
 const FORCE_MOCK = import.meta.env.VITE_MOCK === '1'
 const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
-let usingMock = FORCE_MOCK
-const listeners = new Set<(mock: boolean) => void>()
 
-export function isUsingMock() {
-  return usingMock
+export type MockLevel = 'yok' | 'kismi' | 'tam'
+
+const live = new Set<string>()
+const mocked = new Set<string>()
+const listeners = new Set<(level: MockLevel) => void>()
+
+export function mockLevel(): MockLevel {
+  if (FORCE_MOCK) return 'tam'
+  if (!mocked.size) return 'yok'
+  return live.size ? 'kismi' : 'tam'
 }
 
-export function onMockChange(fn: (mock: boolean) => void) {
+export function mockedEndpoints() {
+  return [...mocked]
+}
+
+export function onMockChange(fn: (level: MockLevel) => void) {
   listeners.add(fn)
   return () => {
     listeners.delete(fn)
   }
 }
 
-function setMock(v: boolean) {
-  if (usingMock === v) return
-  usingMock = v
-  listeners.forEach((fn) => fn(v))
+// /api/ideas/i1 ve /api/ideas aynı uç sayılsın
+const endpointOf = (method: string, path: string) =>
+  `${method} ${path.split('?')[0].replace(/\/api\/(ideas|watchlist)\/.+$/, '/api/$1/:id')}`
+
+function mark(endpoint: string, ok: boolean) {
+  const before = mockLevel()
+  if (ok) {
+    live.add(endpoint)
+    mocked.delete(endpoint)
+  } else {
+    mocked.add(endpoint)
+  }
+  const after = mockLevel()
+  if (after !== before) listeners.forEach((fn) => fn(after))
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  if (usingMock) return (await mockRequest(method, path, body)) as T
+  if (FORCE_MOCK) return (await mockRequest(method, path, body)) as T
+  const ep = endpointOf(method, path)
   try {
     const res = await fetch(BASE + path, {
       method,
@@ -35,9 +57,10 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     })
     const isJson = res.headers.get('content-type')?.includes('application/json')
     if (!res.ok || !isJson) throw new Error(`${res.status}`)
+    mark(ep, true)
     return (await res.json()) as T
   } catch {
-    setMock(true)
+    mark(ep, false)
     return (await mockRequest(method, path, body)) as T
   }
 }

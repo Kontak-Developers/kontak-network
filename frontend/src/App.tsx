@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { isUsingMock, onMockChange } from './api'
+import { mockLevel, mockedEndpoints, onMockChange } from './api'
 import { StoreProvider, useStore } from './store'
 import Sidebar, { BottomNav, NAV } from './components/Sidebar'
 import type { Tab } from './components/Sidebar'
@@ -39,7 +39,7 @@ function useIsNarrow() {
 function Shell() {
   const { ready, brand, selectedId, select, toasts } = useStore()
   const [tab, setTab] = useState<Tab>(readTab)
-  const [mock, setMock] = useState(isUsingMock())
+  const [mock, setMock] = useState(mockLevel())
   const narrow = useIsNarrow()
 
   useEffect(() => {
@@ -81,9 +81,12 @@ function Shell() {
             <Avatar brand={brand} size={30} />
           </span>
           <h1>{TITLES[tab]}</h1>
-          {mock && (
-            <span className="mock" title="Backend'e ulaşılamadı, örnek veri gösteriliyor">
-              Örnek veri
+          {mock !== 'yok' && (
+            <span
+              className="mock"
+              title={mock === 'tam' ? "Backend'e ulaşılamadı, örnek veri gösteriliyor" : `Örnek veriden gelen uçlar:\n${mockedEndpoints().join('\n')}`}
+            >
+              {mock === 'tam' ? 'Örnek veri' : 'Kısmen örnek veri'}
             </span>
           )}
         </header>
