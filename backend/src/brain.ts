@@ -140,19 +140,22 @@ export type BrainYoklama =
   | { bitti: true; sonuc: unknown }
   | { bitti: true; hata: string };
 
+/**
+ * Manus varsa Manus'u başlatır; HATA FIRLATIR, yedeğe kendisi düşmez.
+ *
+ * ⚠️ Bir görev bittikten hemen sonra açılan ikinci görev "400
+ *    invalid_argument unexpected error from node server" alıyordu
+ *    (12 Ekim, analiz → üretim arası). Aynı istek birkaç saniye sonra
+ *    geçiyor. Bu yüzden Workflow bu adımı beklemeli yeniden dener,
+ *    ancak tükenince Workers AI'ye düşer.
+ */
 export async function brainBaslat(
   env: Env,
   ad: PromptAdi,
   girdi: unknown,
   baslik: string
 ): Promise<BrainBaslangic> {
-  if (env.MANUS_API_KEY) {
-    try {
-      return await manusBaslat(env, ad, girdi, baslik);
-    } catch (e) {
-      console.error('Manus başlatılamadı, Workers AI yedeği', e);
-    }
-  }
+  if (env.MANUS_API_KEY) return manusBaslat(env, ad, girdi, baslik);
   return { saglayici: 'workersai', sonuc: await workersAi(env, ad, girdi) };
 }
 
@@ -238,6 +241,8 @@ async function manusYokla(env: Env, taskId: string): Promise<BrainYoklama> {
 
   const yapisal = olaylar.find((o) => o?.type === 'structured_output_result');
   if (yapisal) {
+    // Sonuç alındı; görevi kapat ki sıradaki görev açılabilsin (yukarıdaki not).
+    await manus(env, '/task.stop', { task_id: taskId }).catch(() => undefined);
     const r = yapisal.structured_output_result;
     return r?.success ? { bitti: true, sonuc: r.value } : { bitti: true, hata: `Manus yapısal çıktı: ${r?.error ?? 'başarısız'}` };
   }

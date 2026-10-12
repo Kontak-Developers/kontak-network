@@ -21,8 +21,10 @@ preview_urls = false
 # Nida'nın dosyası yoksa yerleşik varsayılan kullanılır.
 [build]
 command = "node scripts/promptlari-al.mjs"
-# src izlenmez: betik src/promptlar.gen.ts yazıyor, izlenirse sonsuz yeniden başlatma.
-watch_dir = ["../prompts"]
+# src de izlenmeli: [build] varken wrangler YALNIZ watch_dir'i izliyor, src
+# yoksa kod değişikliği hiç yüklenmiyor (12 Ekim). Döngü olmuyor çünkü betik
+# promptlar.gen.ts'i yalnız içerik değişince yazıyor.
+watch_dir = ["../prompts", "src"]
 
 # Kemal'in paneli (frontend/dist). /api/* dışındaki her şey panele.
 [assets]

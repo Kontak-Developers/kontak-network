@@ -29,6 +29,11 @@ function yap<T>(step: WorkflowStep, ad: string, cfg: WorkflowStepConfig, fn: () 
 function yap(step: WorkflowStep, ad: string, a: any, b?: any): Promise<any> {
   return (b ? step.do(ad, a, b) : step.do(ad, a)) as Promise<any>;
 }
+// Manus görev açılışı: art arda görevde geçici 400 dönüyor, bekleyip dene.
+const MANUS_BASLAT = {
+  retries: { limit: 4, delay: '20 seconds' as const, backoff: 'linear' as const },
+  timeout: '2 minutes' as const,
+};
 const BITMIS_APIFY = new Set(['SUCCEEDED', 'FAILED', 'TIMED-OUT', 'ABORTED']);
 
 export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
@@ -227,7 +232,9 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
   /** Manus'u başlatır ve bekler; düşerse ya da süre dolarsa Workers AI. */
   private async beyin(step: WorkflowStep, runId: string, ad: PromptAdi, girdi: unknown): Promise<unknown> {
     const env = this.env;
-    const bas = await yap(step, `${ad}-baslat`, TEKRAR, async () => {
+    let bas: any;
+    try {
+      bas = await yap(step, `${ad}-baslat`, MANUS_BASLAT, async () => {
       const b = await brainBaslat(env, ad, girdi, `Kontak Network · ${ad} · ${runId}`);
       if (b.saglayici === 'manus') {
         // Sunumda kanıt: görev linkleri çalıştırmaya yazılır.
@@ -237,7 +244,11 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
         await env.DB.prepare('UPDATE runs SET manus_linkleri = ? WHERE id = ?').bind(JSON.stringify(linkler), runId).run();
       }
       return b as any;
-    });
+      });
+    } catch (e) {
+      console.error(`Manus ${ad} başlatılamadı, Workers AI yedeği:`, hataMetni(e));
+      return yap(step, `${ad}-yedek`, TEKRAR, () => workersAi(env, ad, girdi) as Promise<any>);
+    }
     if (bas.saglayici === 'workersai') return bas.sonuc;
 
     const tur = Math.max(1, Math.round((sayi(env.MANUS_SURE_DK) || 20) * 3)); // 20 sn'de bir
