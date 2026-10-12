@@ -200,7 +200,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 function normalizeBrand(b: Brand): Brand {
   return {
     ...b,
-    kullanici_adi: b.kullanici_adi || b.id,
+    kullanici_adi: b.kullanici_adi || (b.id === 'kontak' ? 'kontak.social' : b.id),
     logo_url: b.logo_url ?? null,
     ton_kurallari: b.ton_kurallari ?? [],
     sutunlar: b.sutunlar ?? [],

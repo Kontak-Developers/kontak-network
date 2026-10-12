@@ -2,7 +2,7 @@
 
 **Istanbul Ignited by Slush'D Hackathon · Manus AI track · 12 Ekim 2026**
 
-İlk marka: **Kontak**, Türkiye'de motosiklet kültürü üzerine kurulu tanışma ve topluluk uygulaması.
+İlk marka: **kontak.social**, Türkiye'de motosiklet kültürü üzerine kurulu tanışma ve topluluk uygulaması.
 
 ![Bugün ekranı](docs/ekran/bugun.jpg)
 

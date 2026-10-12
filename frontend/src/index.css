@@ -3255,3 +3255,13 @@ a.btn {
 .is-design .shade-bottom {
   display: none;
 }
+
+/* Ürün logosu: kontak.social (koyu menüde beyaz) */
+.side-logo {
+  flex: none;
+  width: 34px;
+  height: 23px;
+  background: #fff;
+  -webkit-mask: url(/brands/kontak/logo.png) center / contain no-repeat;
+  mask: url(/brands/kontak/logo.png) center / contain no-repeat;
+}

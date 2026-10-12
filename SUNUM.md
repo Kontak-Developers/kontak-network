@@ -13,7 +13,7 @@ Puanlama (her biri %20): problem ve değer · ne kadar şey yapıldı ve çalı�
 ## Konuşma (yaklaşık 2:00)
 
 **0:00 · Problem (15 sn)**
-> Kontak, Türkiye'de motorcuların tanıştığı bir uygulama. Sosyal medyamızı her gün elle yönetiyorduk: TikTok'ta, Instagram'da gezin, neyin yükseldiğini anla, fikir bul, yaz, görsel hazırla. Her gün saatler gidiyordu.
+> kontak.social, Türkiye'de motorcuların tanıştığı bir uygulama. Sosyal medyamızı her gün elle yönetiyorduk: TikTok'ta, Instagram'da gezin, neyin yükseldiğini anla, fikir bul, yaz, görsel hazırla. Her gün saatler gidiyordu.
 
 **0:15 · Çözüm (15 sn)**
 > Bunun yerine her sabah kendi uyanan bir ajan yaptık. Apify ile tarıyor, Manus düşünüp karar veriyor, fal.ai görsel ve videoyu üretiyor. Biz sadece onaylıyoruz.
@@ -41,7 +41,7 @@ Bir video kartına tıklayın. Telefonda sahneler oynasın, sonra **TikTok → I
 **Şimdi tara**ya basın. Adımlar ve canlı günlük akarken konuşmaya devam edin.
 
 **1:50 · Kapanış (10 sn)**
-> Kontak'ta yarın sabah 08:00'de çalışmaya devam ediyor. Ve marka değiştirici var: aynı ajan her küçük marka için çalışabilir.
+> kontak.social'da yarın sabah 08:00'de çalışmaya devam ediyor. Ve marka değiştirici var: aynı ajan her küçük marka için çalışabilir.
 
 ## Jüri soruları
 

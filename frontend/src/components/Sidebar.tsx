@@ -3,7 +3,6 @@ import { Bot, Check, ChevronsUpDown, LayoutGrid, Layers, Palette, Plus, Sun } fr
 import { useStore } from '../store'
 import { fmtTime } from '../lib'
 import { Avatar } from './Phone'
-import { NetworkMark } from './bits'
 
 export type Tab = 'bugun' | 'icerikler' | 'seriler' | 'ajan' | 'marka'
 
@@ -24,10 +23,10 @@ export default function Sidebar({ tab, go }: { tab: Tab; go: (t: Tab) => void })
   return (
     <aside className="side">
       <div className="side-product">
-        <NetworkMark />
+        <span className="side-logo" aria-hidden />
         <span>
-          network
-          <small>Sosyal medya ajanı</small>
+          kontak.social
+          <small>Büyüme ajanı</small>
         </span>
       </div>
 
