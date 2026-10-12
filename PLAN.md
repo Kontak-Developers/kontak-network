@@ -35,6 +35,8 @@ Panel: Bugün'ün gündemi, hazır içerikler (onayla / reddet / metni kopyala),
 | **Kemal** | **Frontend + entegrasyon** | Panel (gündem, içerik kartları, onay, geçmiş, "Şimdi çalıştır"), fal.ai modülü, uçtan uca test, deploy |
 | **Nida** | **Ajan beyni + sunum** | Manus API'yi doğrulamak, marka profili, analiz ve üretim promptları (`prompts/`), fal.ai stil testleri, sunum ve demo akışı |
 
+Herkesin ilk promptu `baslangic/` klasöründe: Burak Claude Code/Codex'te, Kemal Claude Code'da, Nida Manus'ta çalışır. Veri şekilleri `SOZLESME.md`'de.
+
 ## API sözleşmesi (Burak ↔ Kemal)
 
 ```
