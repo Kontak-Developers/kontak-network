@@ -1,0 +1,10 @@
+# Yerel deneme için: bu dosyayı .dev.vars olarak kopyala (.dev.vars gitignore'da).
+# Prod'da bunlar YALNIZ `npx wrangler secret put AD` ile girilir.
+# Anahtar boşsa: Apify yoksa sahte tarama, Manus yoksa Workers AI, fal yoksa görsel yok.
+
+APIFY_TOKEN=
+FAL_KEY=
+MANUS_API_KEY=
+
+# Yalnız yerelde: moderatör jetonu kontrolünü kapatır. Prod'a ASLA girme.
+YETKI_KAPALI=1

@@ -1,0 +1,215 @@
+// Kontak Network Worker: API + Cron + Workflow + panel dosyaları.
+// Uçlar SOZLESME.md ile birebir.
+
+import type { Env, RunParams } from './tipler';
+import { fikirCikti, haftaCikti, runCikti, seriCikti, trendCikti } from './db';
+import { hata, json, runIdUret, simdiIst } from './yardimci';
+
+export { AgentRun } from './workflow';
+
+const FIKIR_DURUM = new Set(['yeni', 'onaylandi', 'reddedildi', 'paylasildi']);
+const INSAN_DURUM = new Set(['sabit', 'yasak']);
+
+export default {
+  async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(req.url);
+    const yol = url.pathname;
+    if (!yol.startsWith('/api/')) return env.VARLIKLAR.fetch(req);
+
+    try {
+      // Görseller <img> ile yüklenir, başlık gönderilemez. Anahtarlar
+      // tahmin edilemez (run + rastgele fikir id'si), yetki aranmaz.
+      if (req.method === 'GET' && yol.startsWith('/api/medya/')) return medya(env, yol.slice('/api/medya/'.length));
+      if (yol === '/api/saglik') {
+        return json({ ok: true, apify: !!env.APIFY_TOKEN, manus: !!env.MANUS_API_KEY, fal: !!env.FAL_KEY });
+      }
+
+      const red = await yetki(req, env, url);
+      if (red) return red;
+      return await api(req, env, url);
+    } catch (e) {
+      console.error(e);
+      return hata('sunucu', 'Beklenmeyen bir hata oldu.', 500);
+    }
+  },
+
+  async scheduled(_c: ScheduledController, env: Env, ctx: ExecutionContext) {
+    ctx.waitUntil(runBaslat(env, 'cron').then(() => undefined));
+  },
+} satisfies ExportedHandler<Env>;
+
+async function api(req: Request, env: Env, url: URL): Promise<Response> {
+  const yol = url.pathname;
+  const m = req.method;
+  const run = url.searchParams.get('run');
+  // Panel /ag altından proxy'liyorsa medya adresi o önekle verilmeli.
+  const onek = (req.headers.get('x-dis-onek') ?? '').match(/^\/[a-z0-9-]{1,20}$/)?.[0] ?? '';
+  const medyaOnek = `${onek}/api/medya/`;
+  const DB = env.DB;
+
+  if (yol === '/api/brand') {
+    if (m === 'GET') {
+      const r = await DB.prepare("SELECT veri FROM brands WHERE id = 'kontak'").first<{ veri: string }>();
+      return r ? new Response(r.veri, { headers: { 'content-type': 'application/json; charset=utf-8' } }) : hata('yok', 'Marka profili yok.', 404);
+    }
+    if (m === 'PUT') {
+      const govde = await req.text();
+      if (govde.length > 50_000) return hata('buyuk', 'Profil çok büyük.', 413);
+      let b: any;
+      try {
+        b = JSON.parse(govde);
+      } catch {
+        return hata('gecersiz', 'Gövde JSON değil.', 400);
+      }
+      if (!b || typeof b !== 'object' || Array.isArray(b) || typeof b.ad !== 'string') {
+        return hata('gecersiz', 'Profilde en az "ad" olmalı.', 400);
+      }
+      b.id = 'kontak';
+      await DB.prepare("INSERT INTO brands (id, veri, guncelleme) VALUES ('kontak', ?, ?) ON CONFLICT(id) DO UPDATE SET veri = excluded.veri, guncelleme = excluded.guncelleme")
+        .bind(JSON.stringify(b), simdiIst()).run();
+      return json(b);
+    }
+  }
+
+  if (yol === '/api/runs') {
+    if (m === 'GET') {
+      const r = await DB.prepare('SELECT * FROM runs ORDER BY baslangic DESC LIMIT 60').all();
+      return json(r.results.map(runCikti));
+    }
+    if (m === 'POST') {
+      // Aynı anda tek çalıştırma: üst üste basmak kredi yakar.
+      const suren = await DB.prepare(
+        "SELECT * FROM runs WHERE durum = 'calisiyor' AND baslangic > ? ORDER BY baslangic DESC LIMIT 1"
+      ).bind(simdiIst(new Date(Date.now() - 45 * 60_000))).first();
+      if (suren) return json({ hata: { kod: 'zaten_calisiyor', mesaj: 'Ajan şu an çalışıyor.' }, run: runCikti(suren) }, 409);
+      const id = await runBaslat(env, 'manuel');
+      return json({ id, durum: 'calisiyor' }, 202);
+    }
+  }
+
+  if (yol === '/api/runs/latest' && m === 'GET') {
+    const r = await DB.prepare('SELECT * FROM runs ORDER BY baslangic DESC LIMIT 1').first();
+    return json(r ? runCikti(r) : null);
+  }
+
+  if (yol === '/api/trends' && m === 'GET') {
+    const r = run
+      ? await DB.prepare('SELECT * FROM trends WHERE run_id = ? ORDER BY ivme DESC').bind(run).all()
+      : await DB.prepare('SELECT * FROM trends ORDER BY ivme DESC LIMIT 200').all();
+    return json(r.results.map(trendCikti));
+  }
+
+  if (yol === '/api/ideas' && m === 'GET') {
+    const r = run
+      ? await DB.prepare('SELECT * FROM ideas WHERE run_id = ? ORDER BY olusturma').bind(run).all()
+      : await DB.prepare('SELECT * FROM ideas ORDER BY run_id DESC, olusturma LIMIT 200').all();
+    return json(r.results.map((i) => fikirCikti(i, medyaOnek)));
+  }
+
+  const fikir = yol.match(/^\/api\/ideas\/([A-Za-z0-9_-]{1,40})$/);
+  if (fikir && m === 'PATCH') {
+    const b: any = await req.json().catch(() => null);
+    if (!b || !FIKIR_DURUM.has(b.durum)) return hata('gecersiz', 'durum: yeni | onaylandi | reddedildi | paylasildi', 400);
+    const r = await DB.prepare('UPDATE ideas SET durum = ? WHERE id = ? RETURNING *').bind(b.durum, fikir[1]).first();
+    return r ? json(fikirCikti(r, medyaOnek)) : hata('yok', 'Fikir bulunamadı.', 404);
+  }
+
+  if (yol === '/api/weekly/latest' && m === 'GET') {
+    const r = await DB.prepare('SELECT * FROM weekly ORDER BY hafta DESC LIMIT 1').first();
+    return json(r ? haftaCikti(r) : null);
+  }
+
+  if (yol === '/api/watchlist' && m === 'GET') {
+    const r = await DB.prepare(
+      `SELECT * FROM watchlist ORDER BY CASE durum WHEN 'sabit' THEN 0 WHEN 'aktif' THEN 1 WHEN 'deneme' THEN 2
+         WHEN 'yasak' THEN 3 ELSE 4 END, skor DESC`
+    ).all();
+    return json(r.results);
+  }
+
+  const takip = yol.match(/^\/api\/watchlist\/([A-Za-z0-9_-]{1,40})$/);
+  if (takip && m === 'PATCH') {
+    const b: any = await req.json().catch(() => null);
+    if (!b || !INSAN_DURUM.has(b.durum)) return hata('gecersiz', 'durum: sabit | yasak', 400);
+    const r = await DB.prepare("UPDATE watchlist SET durum = ?, kaynak = 'insan' WHERE id = ? RETURNING *").bind(b.durum, takip[1]).first();
+    return r ? json(r) : hata('yok', 'Etiket bulunamadı.', 404);
+  }
+
+  if (yol === '/api/decisions' && m === 'GET') {
+    const r = run
+      ? await DB.prepare('SELECT * FROM decisions WHERE run_id = ? ORDER BY zaman').bind(run).all()
+      : await DB.prepare('SELECT * FROM decisions ORDER BY zaman DESC LIMIT 200').all();
+    return json(r.results);
+  }
+
+  if (yol === '/api/series' && m === 'GET') {
+    const r = await DB.prepare("SELECT * FROM series ORDER BY durum = 'aktif' DESC, olusturma DESC").all();
+    return json(r.results.map(seriCikti));
+  }
+
+  return hata('yok', 'Böyle bir uç yok.', 404);
+}
+
+async function runBaslat(env: Env, tetik: RunParams['tetik']): Promise<string> {
+  let id = runIdUret();
+  if (await env.DB.prepare('SELECT 1 FROM runs WHERE id = ?').bind(id).first()) id += `_${Date.now() % 100000}`;
+  await env.DB.prepare(
+    "INSERT INTO runs (id, tetik, durum, adim, baslangic, taranan_gonderi, ozet) VALUES (?, ?, 'calisiyor', 'tara', ?, 0, '')"
+  ).bind(id, tetik, simdiIst()).run();
+  try {
+    const w = await env.AGENT_RUN.create({ id, params: { runId: id, tetik } });
+    await env.DB.prepare('UPDATE runs SET workflow_id = ? WHERE id = ?').bind(w.id, id).run();
+  } catch (e) {
+    await env.DB.prepare("UPDATE runs SET durum = 'hata', hata = ?, bitis = ? WHERE id = ?")
+      .bind('Workflow başlatılamadı', simdiIst(), id).run();
+    throw e;
+  }
+  return id;
+}
+
+async function medya(env: Env, anahtar: string): Promise<Response> {
+  if (!/^[A-Za-z0-9_./-]{1,120}$/.test(anahtar) || anahtar.includes('..')) return hata('yok', 'Dosya yok.', 404);
+  const o = await env.MEDYA.get(anahtar);
+  if (!o) return hata('yok', 'Dosya yok.', 404);
+  const h = new Headers();
+  o.writeHttpMetadata(h);
+  h.set('etag', o.httpEtag);
+  h.set('cache-control', 'private, max-age=86400');
+  return new Response(o.body, { headers: h });
+}
+
+// ─────────────────────────────────────────────
+// Yetki: prod panelin moderatör jetonu.
+//
+// Jeton kontak-api'ye (service binding, internete çıkmaz) moderatör
+// korumalı bir uçla sorulur: 200 → moderatör + iki adımlı doğrulama
+// tamam. Böylece JWT sırrı bu Worker'a kopyalanmaz, panel girişi aynen
+// geçerli olur. Sonuç 2 dk önbellekte, her istekte API'ye gidilmez.
+// ─────────────────────────────────────────────
+const onay = new Map<string, number>();
+
+async function yetki(req: Request, env: Env, url: URL): Promise<Response | null> {
+  // Yalnız yerelde kapatılabilir; prod'a yanlışlıkla girse de işlemez.
+  if (env.YETKI_KAPALI === '1' && (url.hostname === 'localhost' || url.hostname === '127.0.0.1')) return null;
+
+  const baslik = req.headers.get('authorization') ?? '';
+  if (!baslik.startsWith('Bearer ') || baslik.length > 4096) return hata('oturum_yok', 'Panele giriş yap.', 401);
+
+  const ozet = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(baslik))))
+    .map((b) => b.toString(16).padStart(2, '0')).join('');
+  const bitis = onay.get(ozet);
+  if (bitis && bitis > Date.now()) return null;
+
+  const y = await env.KONTAK_API.fetch(
+    new Request(`https://api.kontakdating.com${env.YETKI_KONTROL_YOLU}`, { headers: { Authorization: baslik } })
+  );
+  await y.body?.cancel();
+  if (y.status === 200) {
+    if (onay.size > 500) onay.clear();
+    onay.set(ozet, Date.now() + 120_000);
+    return null;
+  }
+  if (y.status === 401) return hata('oturum_dustu', 'Oturum süresi doldu, panele tekrar giriş yap.', 401);
+  if (y.status === 403) return hata('yetkisiz', 'Bu bölüm yalnız moderatörlere açık.', 403);
+  return hata('yetki_kontrolu', 'Yetki kontrol edilemedi.', 502);
+}

@@ -1,0 +1,18 @@
+{
+  "name": "kontak-network-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "db:yerel": "wrangler d1 migrations apply kontak-network --local",
+    "db:prod": "wrangler d1 migrations apply kontak-network --remote",
+    "deploy": "cd ../frontend && npm run build && cd ../backend && wrangler deploy",
+    "tip": "tsc --noEmit",
+    "types": "wrangler types --env-interface Env src/worker-configuration.d.ts"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261006.1",
+    "typescript": "~5.8.3",
+    "wrangler": "^4.149.0"
+  }
+}

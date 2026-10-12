@@ -1,0 +1,74 @@
+# Kontak Network: sosyal medya ajanı backend'i
+#
+# ⚠️ YALNIZ PROD. Dev ortamı yok (karar, 12 Ekim). Deneme yerelde:
+#    `npm run dev` (yerel D1/R2, sahte tarama, yetki kapalı).
+#
+# ⚠️ PUBLIC ADRES YOK. workers_dev = false ve route yok:
+#    - workers.dev Türkiye'den açılmıyor (kontak panel/api notları).
+#    - Dışarıya açık olsaydı POST /api/runs ile herkes Apify / fal.ai /
+#      Manus kredisi yakabilirdi.
+#    Erişim yalnız prod panel Worker'ı üzerinden: panel.kontakdating.com/ag/*
+#    isteklerini service binding ile buraya iletir.
+
+name = "kontak-network"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+preview_urls = false
+
+# Promptlar ../prompts/*.md'den derleme öncesi src/promptlar.gen.ts'e alınır.
+# Nida'nın dosyası yoksa yerleşik varsayılan kullanılır.
+[build]
+command = "node scripts/promptlari-al.mjs"
+# src izlenmez: betik src/promptlar.gen.ts yazıyor, izlenirse sonsuz yeniden başlatma.
+watch_dir = ["../prompts"]
+
+# Kemal'in paneli (frontend/dist). /api/* dışındaki her şey panele.
+[assets]
+directory = "../frontend/dist"
+binding = "VARLIKLAR"
+run_worker_first = ["/api/*"]
+not_found_handling = "single-page-application"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kontak-network"
+database_id = "f3b02059-5e26-4930-9f07-ebee3d413e21"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "MEDYA"
+bucket_name = "kontak-network-medya"
+
+[ai]
+binding = "AI"
+
+[[workflows]]
+name = "kontak-network-agentrun"
+binding = "AGENT_RUN"
+class_name = "AgentRun"
+
+# Moderatör jetonunu doğrulamak için kontak-api (prod). İnternete çıkmaz.
+[[services]]
+binding = "KONTAK_API"
+service = "kontak-api"
+
+# Her gün 08:00 İstanbul (05:00 UTC). Pazartesi ayrıca haftalık özet.
+[triggers]
+crons = ["0 5 * * *"]
+
+[vars]
+# Hashtag başına çekilecek gönderi (Apify ücreti sonuç başına).
+GONDERI_PER_ETIKET = "30"
+# standard | lite | max. Kredi için lite yeterli olabilir.
+MANUS_PROFIL = "standard"
+# Manus bu kadar dakikada bitmezse Workers AI'ye düşülür.
+MANUS_SURE_DK = "20"
+# fal.ai modelleri
+FAL_GORSEL_MODEL = "fal-ai/flux/schnell"
+FAL_VIDEO_MODEL = "fal-ai/kling-video/v2.1/standard/text-to-video"
+# "1" ise video üretilir (çalıştırma başına butce.video_per_run kadar)
+VIDEO_AKTIF = "0"
+# Jeton doğrulaması için moderatör korumalı herhangi bir uç
+YETKI_KONTROL_YOLU = "/api/yonetim/sos"
