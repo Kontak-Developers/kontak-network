@@ -26,6 +26,18 @@ const TEKRAR = {
   timeout: '5 minutes' as const,
 };
 
+/**
+ * ⚠️ NEFES (13 Ekim gece): bir Worker çağrısında en fazla 50 dış istek
+ *    (ücretsiz plan). Workflow `step.sleep` görmedikçe adımları AYNI
+ *    çağrıda koşturuyor; sök zincirinde video taşıma (≈41) + döküm (≈27)
+ *    art arda 50'yi aştı ve sonraki HER adım ("Too many subrequests") düştü.
+ *    Uyku çağrıyı bitiriyor, sonraki adım taze kotayla başlıyor. Ağır
+ *    adımların önüne konur; bedeli ~1 sn.
+ */
+function nefes(step: WorkflowStep, ad: string): Promise<void> {
+  return step.sleep(`nefes-${ad}`, '1 second');
+}
+
 /** step.do'nun Serializable tipleri D1 satırları ve iç içe JSON'da çok katı; tek yerde gevşetildi. */
 function yap<T>(step: WorkflowStep, ad: string, fn: () => Promise<T>): Promise<T>;
 function yap<T>(step: WorkflowStep, ad: string, cfg: WorkflowStepConfig, fn: () => Promise<T>): Promise<T>;
@@ -149,22 +161,35 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
             );
             if (bitti) break;
           }
-          const dosyalar = await yap(step, 'sok-fal', { ...TEKRAR, timeout: '10 minutes' as const }, async () => {
-            const kaynak = await indirilenler(env, indirIs);
+          await nefes(step, 'sok-kaynak');
+          const kaynak = await yap(step, 'sok-kaynak', TEKRAR, async () => {
+            const k = await indirilenler(env, indirIs);
             await harcamaYaz(env, runId, 'apify', 'indir:tiktok-video', await avMaliyeti(env, indirIs.runId).catch(() => 0), false);
-            const out: Record<string, string> = {};
-            const liste = secilen.filter((a) => kaynak[a.link]);
-            // 2'şerli: video ≤ 19 MB, Worker belleği 128 MB (4'erli ~76 MB sınırda).
-            for (let i = 0; i < liste.length; i += 2) {
-              await Promise.all(
-                liste.slice(i, i + 2).map(async (a, j) => {
-                  const url = await falaTasi(env, kaynak[a.link], `patlayan-${i + j + 1}`).catch(() => null);
-                  if (url) out[a.link] = url;
-                })
-              );
-            }
-            return out;
+            return k;
           });
+          // Video başına 3 istek (Apify indir, fal başlat, fal yükle): 5'erli
+          // parça ≈ 15 istek; her parça kendi çağrısında (nefes).
+          const tasinacak = secilen.filter((a) => kaynak[a.link]);
+          const dosyalar: Record<string, string> = {};
+          for (let p = 0; p * 5 < tasinacak.length; p++) {
+            await nefes(step, `sok-fal-${p}`);
+            const parca = await yap(step, `sok-fal-${p}`, { ...TEKRAR, timeout: '10 minutes' as const }, async () => {
+              const out: Record<string, string> = {};
+              const liste = tasinacak.slice(p * 5, p * 5 + 5);
+              // 2'şerli: video ≤ 19 MB, Worker belleği 128 MB.
+              for (let i = 0; i < liste.length; i += 2) {
+                await Promise.all(
+                  liste.slice(i, i + 2).map(async (a, j) => {
+                    const url = await falaTasi(env, kaynak[a.link], `patlayan-${p * 5 + i + j + 1}`).catch(() => null);
+                    if (url) out[a.link] = url;
+                  })
+                );
+              }
+              return out;
+            });
+            Object.assign(dosyalar, parca);
+          }
+          await nefes(step, 'sok-dokum');
           const dokumler = await yap(step, 'sok-dokum', { ...TEKRAR, timeout: '10 minutes' as const }, async () => {
             const out: Record<string, string> = {};
             await Promise.all(
@@ -182,6 +207,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
           });
           const linkSirasi = Object.keys(dosyalar);
           const ekler: BrainEki[] = linkSirasi.map((l, i) => ({ url: dosyalar[l], ad: `video-${i + 1}.mp4`, mime: 'video/mp4' }));
+          await nefes(step, 'sok-girdi');
           const sokGirdi = await yap(step, 'sok-girdi', async () => ({
             patlayanlar: secilen.map((a) => ({
               link: a.link, kaynak: a.kaynak, hesap: a.hesap, takipci: a.takipci, izlenme: a.izlenme, patlama: a.patlama,
@@ -193,12 +219,14 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
             tr_trendleri: avSonucu!.tr.slice(0, 40),
           }));
           const sok = await this.beyin(step, runId, 'sok', sokGirdi, ekler, 35);
+          await nefes(step, 'sok-kaydet');
           await yap(step, 'sok-kaydet', () => formatlariYaz(env, runId, sok, secilen));
         } catch (e) {
           console.error('sök zinciri düştü, eski yoldan devam:', hataMetni(e));
         }
       }
 
+      await nefes(step, 'analiz');
       const analizGirdi = await yap(step, 'analiz-girdi', async () => {
         const gonderiler = await gonderileriOku(env, 9);
         const ivme = ivmeHesapla(gonderiler);
@@ -252,6 +280,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       // ───────────── 3. ÜRET ─────────────
       await adim('uret');
       // Şekil prompts/uretim.md "Girdi" bölümüyle aynı: gundem.{ozet, gundem[]}.
+      await nefes(step, 'uretim');
       const uretimGirdi = await yap(step, 'uretim-girdi', async () => {
         let hesapPerformansi: any;
         try {
@@ -291,6 +320,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
         const uretilen: Record<string, (Uretilen | null)[]> = {};
         for (const f of fikirler) {
           try {
+            await nefes(step, `gorsel-${f.id}`);
             uretilen[f.id] = await yap(step, `gorsel-${f.id}`, { ...TEKRAR, retries: { ...TEKRAR.retries, limit: 2 } }, async () => {
               const kareler = kareListesi(f);
               const boyut = f.format === 'kisa_video' ? DIKEY_9_16 : DIKEY_4_5;
