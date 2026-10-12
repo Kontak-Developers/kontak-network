@@ -4,6 +4,10 @@
 import type { Env, RunParams } from './tipler';
 import { fikirCikti, haftaCikti, runCikti, seriCikti, trendCikti } from './db';
 import { hata, json, runIdUret, simdiIst } from './yardimci';
+import {
+  instagramPublish, instagramPublishComplete, instagramPublishPreview, instagramPublishStatus, socialConnectUrl,
+  socialOAuthCallback, socialStatus, SocialError,
+} from './social';
 
 export { AgentRun } from './workflow';
 
@@ -17,6 +21,19 @@ export default {
     if (!yol.startsWith('/api/')) return env.VARLIKLAR.fetch(req);
 
     try {
+      // OAuth callback'leri moderatör Bearer token'ı taşımaz; tek kullanımlık,
+      // kısa ömürlü state D1'de doğrulanır. Diğer sosyal uçlar yetki arar.
+      const oauthCallback = yol.match(/^\/api\/social\/(instagram|tiktok)\/callback$/);
+      if (oauthCallback && req.method === 'GET') {
+        const platform = oauthCallback[1] as 'instagram' | 'tiktok';
+        try {
+          await socialOAuthCallback(env, platform, url);
+          return oauthRedirect(env, url, platform, 'baglandi');
+        } catch (e) {
+          const code = e instanceof SocialError ? e.code : 'oauth_hatasi';
+          return oauthRedirect(env, url, platform, `hata_${code}`);
+        }
+      }
       // Görseller <img> ile yüklenir, başlık gönderilemez. Anahtarlar
       // tahmin edilemez (run + rastgele fikir id'si), yetki aranmaz.
       if (req.method === 'GET' && yol.startsWith('/api/medya/')) return medya(env, yol.slice('/api/medya/'.length));
@@ -28,6 +45,7 @@ export default {
       if (red) return red;
       return await api(req, env, url);
     } catch (e) {
+      if (e instanceof SocialError) return hata(e.code, e.message, e.status);
       console.error(e);
       return hata('sunucu', 'Beklenmeyen bir hata oldu.', 500);
     }
@@ -46,6 +64,29 @@ async function api(req: Request, env: Env, url: URL): Promise<Response> {
   const onek = (req.headers.get('x-dis-onek') ?? '').match(/^\/[a-z0-9-]{1,20}$/)?.[0] ?? '';
   const medyaOnek = `${onek}/api/medya/`;
   const DB = env.DB;
+
+  if (yol === '/api/social/status' && m === 'GET') return json(await socialStatus(env));
+  const socialConnect = yol.match(/^\/api\/social\/(instagram|tiktok)\/connect$/);
+  if (socialConnect && m === 'POST') {
+    const platform = socialConnect[1] as 'instagram' | 'tiktok';
+    const redirectUri = `${socialApiBase(env, url, onek)}/social/${platform}/callback`;
+    return json(await socialConnectUrl(env, platform, redirectUri));
+  }
+
+  const publicApi = new URL(socialApiBase(env, url, onek));
+  const publicPrefix = publicApi.pathname.replace(/\/api\/?$/, '');
+  const publishPreview = yol.match(/^\/api\/ideas\/([A-Za-z0-9_-]{1,40})\/publish-preview$/);
+  if (publishPreview && m === 'GET') return json(await instagramPublishPreview(env, publishPreview[1], publicApi.origin, publicPrefix));
+  const publishStatus = yol.match(/^\/api\/ideas\/([A-Za-z0-9_-]{1,40})\/publish-status$/);
+  if (publishStatus && m === 'GET') return json(await instagramPublishStatus(env, publishStatus[1]));
+  const publishComplete = yol.match(/^\/api\/ideas\/([A-Za-z0-9_-]{1,40})\/publish-complete$/);
+  if (publishComplete && m === 'POST') return json(await instagramPublishComplete(env, publishComplete[1]), 202);
+  const publish = yol.match(/^\/api\/ideas\/([A-Za-z0-9_-]{1,40})\/publish$/);
+  if (publish && m === 'POST') {
+    const body: any = await req.json().catch(() => null);
+    if (typeof body?.fingerprint !== 'string') return hata('gecersiz', 'Önizleme onayı gerekli.', 400);
+    return json(await instagramPublish(env, publish[1], body.fingerprint, publicApi.origin, publicPrefix), 202);
+  }
 
   if (yol === '/api/brand') {
     if (m === 'GET') {
@@ -110,6 +151,15 @@ async function api(req: Request, env: Env, url: URL): Promise<Response> {
   if (fikir && m === 'PATCH') {
     const b: any = await req.json().catch(() => null);
     if (!b || !FIKIR_DURUM.has(b.durum)) return hata('gecersiz', 'durum: yeni | onaylandi | reddedildi | paylasildi', 400);
+    if (b.durum === 'paylasildi') {
+      const idea = await DB.prepare('SELECT platform FROM ideas WHERE id = ?').bind(fikir[1]).first<{ platform: string }>();
+      if (!idea) return hata('yok', 'Fikir bulunamadı.', 404);
+      if (idea.platform === 'instagram') {
+        const job = await DB.prepare("SELECT 1 FROM social_publish_jobs WHERE idea_id = ? AND platform = 'instagram' AND status = 'published'")
+          .bind(fikir[1]).first();
+        if (!job) return hata('yayim_onayi_gerekli', 'Instagram içeriği yalnızca onay ekranındaki yayımla işlemi başarıyla tamamlanınca paylaşıldı işaretlenebilir.', 409);
+      }
+    }
     const r = await DB.prepare('UPDATE ideas SET durum = ? WHERE id = ? RETURNING *').bind(b.durum, fikir[1]).first();
     return r ? json(fikirCikti(r, medyaOnek)) : hata('yok', 'Fikir bulunamadı.', 404);
   }
@@ -223,6 +273,27 @@ async function medya(env: Env, anahtar: string): Promise<Response> {
   h.set('etag', o.httpEtag);
   h.set('cache-control', 'private, max-age=86400');
   return new Response(o.body, { headers: h });
+}
+
+function oauthRedirect(env: Env, url: URL, platform: string, result: string) {
+  const publicApi = new URL(socialApiBase(env, url, ''));
+  const panel = new URL(publicApi);
+  panel.pathname = panel.pathname.replace(/\/api\/?$/, '/') || '/';
+  panel.search = '';
+  panel.searchParams.set('sosyal', platform);
+  panel.searchParams.set('sonuc', result);
+  panel.hash = 'ajan';
+  return Response.redirect(panel.toString(), 302);
+}
+
+function socialApiBase(env: Env, url: URL, prefix: string) {
+  const fallback = `${url.origin}${prefix}/api`;
+  const base = (env.SOCIAL_REDIRECT_BASE_URL || fallback).replace(/\/+$/, '');
+  const parsed = new URL(base);
+  if (parsed.pathname !== '/api' && !parsed.pathname.endsWith('/ag/api')) {
+    throw new SocialError(500, 'callback_base_gecersiz', 'Sosyal OAuth callback kökü /api ile bitmeli.');
+  }
+  return parsed.toString().replace(/\/$/, '');
 }
 
 // ─────────────────────────────────────────────

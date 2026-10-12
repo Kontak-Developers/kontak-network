@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Ban, CalendarPlus, CheckCheck, ExternalLink, Layers, Minus, Pin, Plus, Sparkles, Undo2 } from 'lucide-react'
-import type { Decision, WatchItem, WatchStatus } from '../types'
+import type { Decision, SocialStatus, WatchItem, WatchStatus } from '../types'
 import { useStore } from '../store'
 import { fmtTime, relDay, runDuration } from '../lib'
 import { PlatformGlyph } from '../components/bits'
+import { api } from '../api'
 
 const DECISION_ICON: Record<Decision['tur'], typeof Plus> = {
   hashtag_ekle: Plus,
@@ -25,8 +26,42 @@ const GROUPS: { id: WatchStatus; label: string }[] = [
 export default function Agent() {
   const { brand, watchlist, decisions, runs, setWatch, toast } = useStore()
   const [menu, setMenu] = useState<string | null>(null)
+  const [social, setSocial] = useState<SocialStatus | null>(null)
+  const [socialError, setSocialError] = useState<string | null>(null)
+  const [connecting, setConnecting] = useState<'instagram' | 'tiktok' | null>(null)
   const budget = brand?.sinirlar?.butce ?? { aktif_hashtag: 8, deneme_hashtag: 3, video_per_run: 1 }
   const count = (d: WatchStatus) => watchlist.filter((w) => w.durum === d).length
+
+  useEffect(() => {
+    let active = true
+    const loadSocial = () => api.socialStatus().then((s) => { if (active) { setSocial(s); setSocialError(null) } })
+      .catch((e) => { if (active) setSocialError(e instanceof Error ? e.message : 'Hesap durumu alınamadı.') })
+    loadSocial()
+    const params = new URLSearchParams(location.search)
+    const platform = params.get('sosyal')
+    const result = params.get('sonuc')
+    if ((platform === 'instagram' || platform === 'tiktok') && result) {
+      toast(result === 'baglandi' ? `${platform === 'instagram' ? 'Instagram' : 'TikTok'} hesabı bağlandı` : 'Hesap bağlantısı tamamlanmadı; ayarları kontrol edip yeniden dene.')
+      loadSocial()
+      const clean = new URL(location.href)
+      clean.searchParams.delete('sosyal')
+      clean.searchParams.delete('sonuc')
+      history.replaceState(null, '', clean.toString())
+    }
+    return () => { active = false }
+  }, [toast])
+
+  const connectSocial = async (platform: 'instagram' | 'tiktok') => {
+    setConnecting(platform)
+    try {
+      const result = await api.socialConnect(platform)
+      if (!result.url.startsWith('https://')) throw new Error('Güvenli bağlantı adresi alınamadı.')
+      location.assign(result.url)
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Hesap bağlantısı başlatılamadı.')
+      setConnecting(null)
+    }
+  }
 
   const change = async (w: WatchItem, durum: WatchStatus, msg: string) => {
     setMenu(null)
@@ -43,6 +78,24 @@ export default function Agent() {
 
   return (
     <div className="page agent">
+      <section className="panel panel-wide">
+        <div className="sec-head">
+          <h2>Sosyal hesap bağlantıları</h2>
+          <span className="muted">Günlük okuma · yayın onaylı</span>
+        </div>
+        <div className="social-grid">
+          <SocialConnection platform="instagram" title="Instagram" status={social?.instagram} connecting={connecting === 'instagram'} onConnect={() => connectSocial('instagram')} />
+          <SocialConnection platform="tiktok" title="TikTok" status={social?.tiktok} connecting={connecting === 'tiktok'} onConnect={() => connectSocial('tiktok')} />
+        </div>
+        <p className="social-note">
+          Instagram’da içerik yalnızca önizlemede son kez onayladığında yayımlanır. TikTok’ta yalnızca kendi herkese açık videoların ve metriklerin okunur; dışa aktarılan içerik TikTok uygulamasında elle paylaşılır.
+        </p>
+        {socialError && <p className="social-error">Bağlantı durumu alınamadı: {socialError}</p>}
+        {!social?.instagram.configured && !social?.tiktok.configured && (
+          <p className="social-setup">Bağlamak için Meta ve TikTok Developer uygulama bilgileri ile token şifreleme anahtarı Cloudflare Worker Secret olarak eklenmeli.</p>
+        )}
+      </section>
+
       <section className="panel">
         <div className="sec-head">
           <h2>Takip listesi</h2>
@@ -150,6 +203,24 @@ export default function Agent() {
         </div>
       </section>
     </div>
+  )
+}
+
+function SocialConnection({
+  platform, title, status, connecting, onConnect,
+}: {
+  platform: 'instagram' | 'tiktok'; title: string; status?: SocialStatus['instagram']; connecting: boolean; onConnect: () => void
+}) {
+  const connected = !!status?.connected
+  const configured = !!status?.configured
+  const needsReconnect = !!status?.needs_reconnect
+  return (
+    <article className={`social-card ${connected ? 'social-connected' : ''}`}>
+      <div className="social-card-title"><PlatformGlyph platform={platform} size={17} /><b>{title}</b><span className={`social-dot ${connected ? 'on' : ''}`} /></div>
+      <p>{connected ? `${status?.username ?? 'Hesap bağlı'} · ${status?.posts_read ?? 0} gönderi okundu` : needsReconnect ? 'Yetki yenilenmeli' : configured ? 'Henüz bağlanmadı' : 'Developer uygulama ayarı bekleniyor'}</p>
+      {connected && status?.last_sync && <small>Son okuma: {relDay(status.last_sync)} {fmtTime(status.last_sync)}</small>}
+      {configured && <button className="btn" onClick={onConnect} disabled={connecting}>{connecting ? 'Bağlanıyor…' : connected || needsReconnect ? 'Yetkiyi yeniden bağla' : 'Hesabı bağla'}</button>}
+    </article>
   )
 }
 

@@ -65,6 +65,7 @@ Worker girdisi bir JSON nesnesidir:
 - `gundem`: `{ "ozet": "...", "gundem": [...] }` nesnesi. İçteki her trend `id`, `tip`, `baslik`, `aciklama`, `platform`, `ivme`, `ornek_linkler` taşır. `id` değerleri Worker tarafından atanır ve `trend_id` için aynen kullanılmalıdır.
 - `uygulama_rotalari`: Kontak uygulamasındaki onaylı gerçek rotalar (`id`, `ad`, `sehir`, `km`, `sure_dk`, `zorluk`, `en_iyi_zaman`, `duraklar`). Rota kartında `rota_id` olarak bunların `id`'sini kullan. Boş olabilir.
 - `aktif_seriler`: mevcut seri kayıtları (`id`, `ad`, `aciklama`, `format`, bölüm sayısı ve planlanan bölümler).
+- `hesap_performansi`: bağlanmış Kontak Instagram/TikTok hesaplarının kendi herkese açık gönderi metrikleri. Bağlantı yoksa gönderi listeleri boş olabilir; bu normaldir.
 - İsteğe bağlı `calisma_tarihi` ve `son_30_gun_sutun_sayilari` yardımcı alanları.
 
 Tek seferlik test girdisi `gundem` alanını doğrudan trend dizisi olarak da verebilir; bu durumda diziyi kullan. Testte seriler yoksa boş dizi kabul et. Marka profilindeki izlenecek kaynakların gerekçelerini içerik iddiası olarak kullanma.
@@ -86,7 +87,9 @@ Tek seferlik test girdisi `gundem` alanını doğrudan trend dizisi olarak da ve
    - Görsel modelinden yazı, logo ya da arayüz üretmesini istemesin. Ekranda görünecek metin yalnız `ekran_yazisi`'nda.
 10. Uygun mevcut seri varsa `seri` alanında seri id'sini kullan; serisiz fikirde `seri`, `bolum_no` ve `bolum_adi` için `null` kullan. Yeni bir seri açılacaksa kök `seriler` listesine ekle ve fikirde `seri` alanına yeni serinin adını yaz; sıradaki bölüm numarasını tahmin etme, `bolum_no` değerini `null` bırak.
 11. Gerçek olduğu doğrulanmış bir ses girdide yoksa `onerilen_ses: null` kullan. Test için uydurulmuş ses adını yayın önerisi gibi sunma.
-12. Son kontrolde tam 3 fikir (gündem boş değilse), geçerli trend id'leri, benzersiz kanca/senaryolar ve geçerli JSON olduğunu doğrula.
+12. `hesap_performansi` yalnızca Kontak'ın kendi içeriklerini, formatlarını ve mevcut etkileşimlerini değerlendirmek içindir. Bu verileri Türkiye genelinde yükselen trend kanıtı sayma, `gundem` ivmesini değiştirmek için kullanma ve az sayıda gönderiden nedensel sonuç çıkarma. Metrik `null`/eksikse sıfır varsayma; yeterli hesap geçmişi yoksa genel trend ve marka sütunlarıyla devam et.
+13. Gerçek dışa aktarım gerekiyorsa dosyası olmayan `tasarim` sahnesini yayımlanabilir medya gibi sunma: bu sahneler panel önizlemesidir, R2'de yüklenebilir görsel dosyası oluşturmaz. Instagram/TikTok `gonderi` için tek `foto` sahnesi kullan. Foto-carousel'de 4–7 sahnenin tamamı `tur: "foto"` olsun; Instagram onayı bütün slaytlar için ayrı görsel dosyası ister. Instagram/TikTok `kisa_video` için en az bir `tur: "video"` sahnesi kullan; Instagram Reel ancak gerçek video dosyası üretildiyse yayımlanabilir. Video bütçesi `marka.sinirlar.butce.video_per_run` içinde yoksa/0 ise kısa video seçme. TikTok'ta panel yalnız indirilebilir taslağı hazırlar; son yükleme TikTok uygulamasında elle yapılır.
+14. Son kontrolde tam 3 fikir (gündem boş değilse), geçerli trend id'leri, benzersiz kanca/senaryolar ve geçerli JSON olduğunu doğrula.
 
 ## Çıktı sözleşmesi
 

@@ -12,6 +12,12 @@ export interface Env {
   APIFY_TOKEN?: string;
   FAL_KEY?: string;
   MANUS_API_KEY?: string;
+  IG_APP_ID?: string;
+  IG_APP_SECRET?: string;
+  TIKTOK_CLIENT_KEY?: string;
+  TIKTOK_CLIENT_SECRET?: string;
+  SOCIAL_TOKEN_ENCRYPTION_KEY?: string;
+  SOCIAL_REDIRECT_BASE_URL?: string;
   YETKI_KAPALI?: string;
 
   GONDERI_PER_ETIKET: string;

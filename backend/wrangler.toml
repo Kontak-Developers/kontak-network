@@ -76,3 +76,5 @@ VIDEO_AKTIF = "1"
 # Jeton doğrulaması için moderatör korumalı bir uç. /sos diye bir uç YOK (404 → her istek 502
 # "Yetki kontrol edilemedi"). /ozet: panelin kendisi de oturumu bununla doğruluyor, tek sorgu.
 YETKI_KONTROL_YOLU = "/api/yonetim/ozet"
+# Meta/TikTok Developer uygulamalarında birebir kayıt edilecek public API kökü.
+SOCIAL_REDIRECT_BASE_URL = "https://panel.kontakdating.com/ag/api"

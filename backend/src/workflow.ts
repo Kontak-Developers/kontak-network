@@ -14,6 +14,7 @@ import { ivmeHesapla, ornekGonderiler } from './ivme';
 import { brainBaslat, brainYokla, workersAi, type PromptAdi } from './brain';
 import { DIKEY_4_5, DIKEY_9_16, gorselUret, sahnePromptu, videoBaslat, videoYokla, type Uretilen } from './fal';
 import { gonderileriYaz, markaOku, gonderileriOku } from './db';
+import { syncSocialPerformance } from './social';
 import {
   dizi, hataMetni, isoHafta, jsonAc, kisaId, metin, pazartesiMi, sayi, simdiIst, sinirla,
 } from './yardimci';
@@ -148,16 +149,30 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       // ───────────── 3. ÜRET ─────────────
       await adim('uret');
       // Şekil prompts/uretim.md "Girdi" bölümüyle aynı: gundem.{ozet, gundem[]}.
-      const uretimGirdi = await yap(step, 'uretim-girdi', async () => ({
-        marka: await markaOku(env),
-        gundem: { ozet: metin(analiz?.ozet), gundem: trendler.map(({ run_id, ...t }) => t) },
-        uygulama_rotalari: await uygulamaRotalari(env),
-        aktif_seriler: (
-          await env.DB.prepare(
-            "SELECT id, ad, aciklama, format, bolum_sayisi, planlanan_bolumler FROM series WHERE durum = 'aktif' ORDER BY olusturma DESC LIMIT 5"
-          ).all()
-        ).results,
-      }));
+      const uretimGirdi = await yap(step, 'uretim-girdi', async () => {
+        let hesapPerformansi: any;
+        try {
+          hesapPerformansi = await syncSocialPerformance(env);
+        } catch {
+          // Social API failure must not stop public trend analysis/content ideation.
+          hesapPerformansi = {
+            note: 'Kontak hesap verileri alınamadı; genel trend analizi sürdürülüyor.',
+            instagram: { connected: false, posts: [] }, tiktok: { connected: false, posts: [] },
+            warnings: ['Hesap metrikleri bu çalıştırmada yok.'],
+          };
+        }
+        return {
+          marka: await markaOku(env),
+          gundem: { ozet: metin(analiz?.ozet), gundem: trendler.map(({ run_id, ...t }) => t) },
+          uygulama_rotalari: await uygulamaRotalari(env),
+          aktif_seriler: (
+            await env.DB.prepare(
+              "SELECT id, ad, aciklama, format, bolum_sayisi, planlanan_bolumler FROM series WHERE durum = 'aktif' ORDER BY olusturma DESC LIMIT 5"
+            ).all()
+          ).results,
+          hesap_performansi: hesapPerformansi,
+        };
+      });
       const uretimHam = (await this.beyin(step, runId, 'uretim', uretimGirdi)) as any;
       // uretim.md kökte 3 elemanlı dizi istiyor; şema {seriler, fikirler}. İkisi de olur.
       const uretim = Array.isArray(uretimHam) ? { fikirler: uretimHam, seriler: [] } : uretimHam;

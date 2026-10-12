@@ -3265,3 +3265,52 @@ a.btn {
   -webkit-mask: url(/brands/kontak/logo.png) center / contain no-repeat;
   mask: url(/brands/kontak/logo.png) center / contain no-repeat;
 }
+
+/* Sosyal hesap bağlantıları ve güvenli yayın onayları */
+.social-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.social-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--cizgi, #e7e7eb);
+  border-radius: 16px;
+  background: var(--zemin, #fff);
+}
+.social-connected { border-color: color-mix(in srgb, var(--marka) 35%, #e7e7eb); }
+.social-card-title { display: flex; align-items: center; gap: 8px; }
+.social-card-title b { font-size: 14px; }
+.social-dot { width: 8px; height: 8px; margin-left: auto; border-radius: 50%; background: #c5c6cc; }
+.social-dot.on { background: #20a66a; box-shadow: 0 0 0 3px rgba(32,166,106,.12); }
+.social-card p { margin: 12px 0 4px; color: var(--yazi, #202127); font-size: 13px; font-weight: 600; }
+.social-card small { display: block; margin: 0 0 10px; color: var(--soluk, #777983); font-size: 11px; }
+.social-card .btn { margin-top: 10px; }
+.social-note, .social-setup, .social-error { margin: 12px 0 0; color: var(--soluk, #6e7078); font-size: 12px; line-height: 1.5; }
+.social-setup { color: #67520a; }
+.social-error { color: #a12e2e; }
+.publish-hint, .publish-status { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: #f4f4f7; color: #4d4f58; font-size: 12px; line-height: 1.45; }
+.publish-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.publish-overlay { position: fixed; z-index: 120; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(13, 14, 20, .64); }
+.publish-modal { position: relative; width: min(560px, 100%); max-height: min(92vh, 850px); overflow: auto; padding: 26px; border-radius: 20px; background: #fff; color: #1c1d22; box-shadow: 0 24px 80px rgba(0,0,0,.28); }
+.publish-close { position: absolute; top: 16px; right: 16px; }
+.publish-kicker { display: block; padding-right: 40px; color: var(--marka, #0000a8); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+.publish-modal h2 { margin: 8px 36px 8px 0; font-size: 22px; line-height: 1.2; }
+.publish-account { margin: 0 0 14px; color: #666873; font-size: 12px; line-height: 1.45; }
+.publish-media { display: block; width: auto; max-width: 100%; max-height: 280px; margin: 0 auto 16px; border-radius: 12px; object-fit: contain; background: #f2f2f5; }
+.publish-media-preview { opacity: .68; }
+.publish-media-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+.publish-media-grid .publish-media { width: 100%; max-height: 240px; aspect-ratio: 4 / 5; margin: 0; }
+.publish-caption-label { display: block; margin: 0 0 6px; font-size: 12px; font-weight: 700; }
+.publish-caption { max-height: 190px; overflow: auto; margin: 0; padding: 12px; border: 1px solid #e6e6eb; border-radius: 10px; background: #fafafd; color: #272830; font-family: inherit; font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.publish-block { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff3e7; color: #8b4310; font-size: 12px; line-height: 1.45; }
+.publish-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.publish-small { margin: 12px 0 0; color: #777983; font-size: 10px; line-height: 1.45; }
+@media (max-width: 680px) {
+  .social-grid { grid-template-columns: 1fr; }
+  .publish-overlay { padding: 10px; }
+  .publish-modal { max-height: 94vh; padding: 22px 16px 18px; border-radius: 16px; }
+  .publish-modal h2 { font-size: 19px; }
+  .publish-status { align-items: flex-start; flex-direction: column; }
+}

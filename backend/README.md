@@ -67,3 +67,29 @@ başlığını ekler, medya adresleri bu önekle döner. Yetki: panelin moderat�
 | `GET /api/decisions?run=`, `GET /api/series` | ajanın kararları, seriler |
 | `GET /api/medya/<anahtar>` | R2'deki görsel/video (yetkisiz) |
 | `GET /api/saglik` | hangi anahtarlar girili (değerleri değil) |
+
+## Sosyal hesapları bağlama
+
+Üretim callback URL'lerini **Meta Developer** ve **TikTok for Developers** uygulamalarına birebir kaydet:
+
+- Instagram Business Login: `https://panel.kontakdating.com/ag/api/social/instagram/callback`
+- TikTok Login Kit Web: `https://panel.kontakdating.com/ag/api/social/tiktok/callback`
+
+Meta uygulamasında Instagram API with Instagram Login'ı etkinleştir; profesyonel (`Business` veya `Creator`) hesap ve şu izinler gerekir: `instagram_business_basic`, `instagram_business_manage_insights`, `instagram_business_content_publish`. TikTok Developer uygulamasında Login Kit Web ve Display API'yi etkinleştirip `user.info.basic` ve `video.list` izinlerini iste. Sağlayıcıların test/live erişimi veya App Review onayı gerekebilir; Manus Instagram/TikTok hesap connector'ları bu Worker OAuth token'larının yerine geçmez.
+
+Migration'ı **deploy'dan önce** uygula, sonra bilgileri sohbet yerine Cloudflare Worker secret olarak ekle:
+
+```bash
+cd backend
+npx wrangler d1 migrations apply kontak-network --remote
+npx wrangler secret put IG_APP_ID
+npx wrangler secret put IG_APP_SECRET
+npx wrangler secret put TIKTOK_CLIENT_KEY
+npx wrangler secret put TIKTOK_CLIENT_SECRET
+openssl rand -base64 32 | npx wrangler secret put SOCIAL_TOKEN_ENCRYPTION_KEY
+npm run deploy
+```
+
+`SOCIAL_TOKEN_ENCRYPTION_KEY` tek, kalıcı bir 32-byte AES-GCM anahtarıdır. Cloudflare secret değerini yedekle ve kaybetme/rotasyona uğratma; D1'deki OAuth tokenları onunla şifrelenir. Secret'lar repo'ya, log'a veya sohbete konmamalı. Deploy'dan sonra yönetim panelinde **Ajan → Sosyal hesap bağlantıları** üzerinden OAuth izni ver.
+
+Günlük ajan, bağlanan hesapların kendi son medya metriklerini ayrı `social_posts` tablosunda saklar (90 günlük saklama) ve içerik üretiminde bunları yalnızca Kontak hesabının performans bağlamı olarak kullanır; genel Türkiye gündemi/ivmesi saymaz. TikTok bağlantısı profil ve herkese açık video metriklerini okur, **doğrudan TikTok yayını yapmaz**: tek görsel/video dosyası veya foto-carousel slaytları panelden indirilir ve son yükleme TikTok uygulamasında elle yapılır. Instagram'da görsel gönderi, çoklu foto-carousel (2–10 gerçek görsel slaytı) veya Reels önce özel medya container'ında hazırlanır; başlık, her medya dosyası ve hedef hesap panelde tekrar gösterilir; herkese açık paylaşım yalnızca ayrıca tıklanan son onayla yapılır. Eksik medya dosyası olan carousel, henüz üretilmemiş video veya render edilmemiş tasarım kartı yayına kapalıdır. Hiçbir günlük Cron içerik yayımlamaz.

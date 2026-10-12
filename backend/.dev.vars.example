@@ -5,6 +5,12 @@
 APIFY_TOKEN=
 FAL_KEY=
 MANUS_API_KEY=
+IG_APP_ID=
+IG_APP_SECRET=
+TIKTOK_CLIENT_KEY=
+TIKTOK_CLIENT_SECRET=
+# `openssl rand -base64 32` ile üret; tokenları D1'de AES-GCM ile şifrelemek için.
+SOCIAL_TOKEN_ENCRYPTION_KEY=
 
 # Yalnız yerelde: moderatör jetonu kontrolünü kapatır. Prod'a ASLA girme.
 YETKI_KAPALI=1

@@ -70,7 +70,8 @@ const state = load()
 
 function save() {
   try {
-    const { weekly: _w, ...rest } = state
+    const { brand, runs, trends, ideas, watchlist, decisions, series } = state
+    const rest = { brand, runs, trends, ideas, watchlist, decisions, series }
     localStorage.setItem(STORE_KEY, JSON.stringify(rest))
   } catch {
     // önemli değil, sadece bu oturumda kalır
@@ -180,6 +181,12 @@ export async function mockRequest(method: string, path: string, body?: unknown):
   }
   if (method === 'GET' && p === '/api/runs') return clone(state.runs)
   if (method === 'GET' && p === '/api/runs/latest') return clone(state.runs[0] ?? null)
+  if (method === 'GET' && p === '/api/social/status') {
+    const account = { configured: false, connected: false, username: null, scopes: [], last_sync: null, needs_reconnect: false, posts_read: 0 }
+    return { instagram: clone(account), tiktok: clone(account), tiktok_publishing: 'manual_only' }
+  }
+  if (method === 'POST' && /^\/api\/social\/(instagram|tiktok)\/connect$/.test(p))
+    throw new Error('Sosyal hesaplar için Worker app secrets yerel örnek modunda etkin değil.')
   if (method === 'POST' && p === '/api/runs') {
     const r = startRun()
     return { id: r.id, durum: r.durum }
@@ -194,6 +201,28 @@ export async function mockRequest(method: string, path: string, body?: unknown):
         .sort((a, b) => (order.get(a.run_id) ?? 99) - (order.get(b.run_id) ?? 99)),
     )
   }
+  const previewMatch = p.match(/^\/api\/ideas\/([^/]+)\/publish-preview$/)
+  if (method === 'GET' && previewMatch) {
+    const idea = state.ideas.find((x) => x.id === decodeURIComponent(previewMatch[1]))
+    if (!idea) throw new Error('İçerik bulunamadı')
+    const mediaUrls = idea.format === 'carousel'
+      ? (idea.sahneler ?? []).map((scene) => scene.gorsel_url ?? null).filter((asset): asset is string => !!asset)
+      : idea.gorsel_url ? [idea.gorsel_url] : []
+    return {
+      idea_id: idea.id, platform: 'instagram', format: idea.format,
+      caption: `${idea.aciklama_metni}\n\n${idea.hashtagler.join(' ')}`.trim(),
+      media_url: idea.format === 'kisa_video' ? idea.video_url : mediaUrls[0] ?? null,
+      media_urls: idea.format === 'kisa_video' && idea.video_url ? [idea.video_url] : mediaUrls,
+      media_type: idea.format === 'kisa_video' ? 'REELS' : idea.format === 'carousel' ? 'CAROUSEL' : 'IMAGE',
+      account: null, can_publish: false, block_reason: 'Mock modunda Instagram hesabı bağlı değil.', fingerprint: 'mock',
+    }
+  }
+  const publishStatusMatch = p.match(/^\/api\/ideas\/([^/]+)\/publish-status$/)
+  if (method === 'GET' && publishStatusMatch) return { status: 'not_started' }
+  if (method === 'POST' && /^\/api\/ideas\/[^/]+\/publish-complete$/.test(p))
+    throw new Error('Mock modunda gerçek Instagram yayını kapalıdır.')
+  if (method === 'POST' && /^\/api\/ideas\/[^/]+\/publish$/.test(p))
+    throw new Error('Mock modunda gerçek Instagram yayını kapalıdır.')
   const ideaMatch = p.match(/^\/api\/ideas\/(.+)$/)
   if (method === 'PATCH' && ideaMatch) {
     const idea = state.ideas.find((x) => x.id === decodeURIComponent(ideaMatch[1]))

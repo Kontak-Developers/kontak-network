@@ -1,5 +1,8 @@
 import { mockRequest } from './mock'
-import type { Brand, Decision, Idea, IdeaStatus, KontakRota, Run, Series, Trend, WatchItem, WatchStatus, Weekly } from './types'
+import type {
+  Brand, Decision, Idea, IdeaStatus, InstagramPublishPreview, InstagramPublishResult, KontakRota,
+  Run, Series, SocialStatus, Trend, WatchItem, WatchStatus, Weekly,
+} from './types'
 
 // Panel iki yerde çalışır:
 //  - yerelde (localhost): /api → wrangler dev; erişilemeyen uç örnek veriye düşer
@@ -95,7 +98,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   let res: Response
   try {
     res = await fetch(BASE + path, { method, headers, body: body ? JSON.stringify(body) : undefined })
-  } catch (e) {
+  } catch {
     if (FALLBACK) {
       mark(ep, false)
       return (await mockRequest(method, path, body)) as T
@@ -133,6 +136,17 @@ export const api = {
   ideas: (run?: string) => request<Idea[]>('GET', `/api/ideas${q(run)}`),
   setIdeaStatus: (id: string, durum: IdeaStatus) =>
     request<Idea>('PATCH', `/api/ideas/${encodeURIComponent(id)}`, { durum }),
+  socialStatus: () => request<SocialStatus>('GET', '/api/social/status'),
+  socialConnect: (platform: 'instagram' | 'tiktok') =>
+    request<{ url: string }>('POST', `/api/social/${platform}/connect`, {}),
+  instagramPublishPreview: (id: string) =>
+    request<InstagramPublishPreview>('GET', `/api/ideas/${encodeURIComponent(id)}/publish-preview`),
+  instagramPublish: (id: string, fingerprint: string) =>
+    request<InstagramPublishResult>('POST', `/api/ideas/${encodeURIComponent(id)}/publish`, { fingerprint }),
+  instagramPublishStatus: (id: string) =>
+    request<InstagramPublishResult>('GET', `/api/ideas/${encodeURIComponent(id)}/publish-status`),
+  instagramPublishComplete: (id: string) =>
+    request<InstagramPublishResult>('POST', `/api/ideas/${encodeURIComponent(id)}/publish-complete`, {}),
   weekly: () => request<Weekly | null>('GET', '/api/weekly/latest'),
   watchlist: () => request<WatchItem[]>('GET', '/api/watchlist'),
   setWatch: (id: string, durum: WatchStatus) =>

@@ -105,6 +105,43 @@ export type Idea = {
   gorsel_url: string | null
   video_url: string | null
   durum: IdeaStatus
+  published_at?: string | null
+}
+
+export type SocialAccountStatus = {
+  configured: boolean
+  connected: boolean
+  username: string | null
+  scopes: string[]
+  last_sync: string | null
+  needs_reconnect: boolean
+  posts_read: number
+}
+
+export type SocialStatus = {
+  instagram: SocialAccountStatus
+  tiktok: SocialAccountStatus
+  tiktok_publishing: 'manual_only'
+}
+
+export type InstagramPublishPreview = {
+  idea_id: string
+  platform: 'instagram'
+  format: Idea['format']
+  caption: string
+  media_url: string | null
+  media_urls: string[]
+  media_type: 'IMAGE' | 'REELS' | 'CAROUSEL'
+  account: string | null
+  can_publish: boolean
+  block_reason: string | null
+  fingerprint: string
+}
+
+export type InstagramPublishResult = {
+  status: 'not_started' | 'processing' | 'ready' | 'publishing' | 'published' | 'failed' | 'uncertain' | 'needs_reconnect'
+  media_id?: string | null
+  last_error?: string | null
 }
 
 export type WeeklyItem = { baslik: string; ivme: number }
