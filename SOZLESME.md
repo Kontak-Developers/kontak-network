@@ -88,6 +88,8 @@ data/mock/  Sahte veri, aşağıdaki şekillerle birebir
 `format`: kisa_video | carousel | gonderi. `durum`: yeni | onaylandi | reddedildi | paylasildi.
 `PATCH` gövdesi: `{ "durum": "onaylandi" }`.
 
+`/api/trends` ve `/api/ideas`'ta `run` parametresi isteğe bağlı: verilmezse tüm kayıtlar döner (fikirler en yeni çalıştırmadan başlayarak, gündem ivmeye göre). Panelin İçerikler sekmesi `GET /api/ideas`'ı parametresiz çağırır.
+
 ## Başlatma: `POST /api/runs`
 
 Gövde yok. `{ "id": "run_…", "durum": "calisiyor" }` döner. Panel `GET /api/runs/latest` ile 5 saniyede bir durumu izler.

@@ -1,0 +1,96 @@
+[
+  {
+    "id": "i1",
+    "run_id": "run_2026-10-12_0800",
+    "trend_id": "t1",
+    "platform": "tiktok",
+    "format": "kisa_video",
+    "baslik": "Kontak'ta tanıştık, ilk sürüş: POV",
+    "kanca": "Uygulamada tanıştığım biriyle ilk kez sürüşe çıktım.",
+    "senaryo": [
+      "Sahne 1 (0-2 sn): Telefonda Kontak eşleşme ekranı, ekranda yazı: \"Pazar 09:00, Şile?\"",
+      "Sahne 2 (2-8 sn): Kask kamerası POV, buluşma noktasında iki motor yan yana park ediyor, el sallama",
+      "Sahne 3 (8-13 sn): Sahil yolunda arkadan giden motorun POV görüntüsü, yavaşlatılmış egzoz sesi + lo-fi",
+      "Sahne 4 (13-15 sn): Kafe molası, iki kask masada. Yazı: \"Sürüş arkadaşın bir eşleşme uzağında\""
+    ],
+    "aciklama_metni": "Tek başına sürmekten sıkıldıysan, sürüş arkadaşın bir eşleşme uzağında. Pazar Şile'deydik, sıradaki rota senin.",
+    "hashtagler": ["#motosiklet", "#motovlog", "#pov", "#şile", "#kontak"],
+    "gorsel_prompt": "First-person POV from a motorcycle helmet camera on a coastal road in autumn, another motorcycle riding ahead, soft morning light, deep navy blue (#0000A8) accent on the rider's jacket, cinematic, no visible faces, no logos, vertical 1080x1350",
+    "gorsel_url": null,
+    "video_url": null,
+    "durum": "yeni"
+  },
+  {
+    "id": "i2",
+    "run_id": "run_2026-10-12_0800",
+    "trend_id": "t2",
+    "platform": "instagram",
+    "format": "carousel",
+    "baslik": "İstanbul'dan 3 sonbahar rotası",
+    "kanca": "Yapraklar dökülmeden gitmen gereken 3 rota.",
+    "senaryo": [
+      "Kart 1: Kapak: \"Yapraklar dökülmeden: 3 sonbahar rotası\"",
+      "Kart 2: Polonezköy orman yolu: 35 km, kolay, kahvaltı molası önerisi",
+      "Kart 3: Şile sahil yolu: 70 km, orta, rüzgâra dikkat",
+      "Kart 4: Ağva–Kandıra: 110 km, orta-zor, yakıt noktaları",
+      "Kart 5: \"Rotayı Kontak'ta paylaş, birlikte gidecek arkadaş bul\""
+    ],
+    "aciklama_metni": "Sonbahar sürüş için yılın en güzel zamanı. Bu üç rotayı kaydet, hafta sonu birini seç. Yalnız gitme: Kontak'ta rotanı paylaş, aynı yöne giden motorcularla buluş.",
+    "hashtagler": ["#motosiklet", "#motorcu", "#sonbahar", "#rota", "#polonezköy"],
+    "gorsel_prompt": "Minimal illustrated route map card of a winding forest road in autumn near Istanbul, warm orange and yellow foliage, route line in deep navy blue (#0000A8), clean flat design, no text, no logos, vertical 1080x1350",
+    "gorsel_url": null,
+    "video_url": null,
+    "durum": "onaylandi"
+  },
+  {
+    "id": "i3",
+    "run_id": "run_2026-10-12_0800",
+    "trend_id": "t4",
+    "platform": "instagram",
+    "format": "gonderi",
+    "baslik": "#ilksürüşüm: yeni motorculara çağrı",
+    "kanca": "Ehliyeti yeni aldın, kiminle sürüşe çıkacağını bilmiyor musun?",
+    "senaryo": [
+      "Tek görsel: Boş bir sabah yolunda tek bir motor, yanında ikinci motor için boş alan",
+      "Görsel üstü yazı: \"İlk sürüşüne yalnız çıkma\""
+    ],
+    "aciklama_metni": "Herkesin bir ilk sürüşü var. Seninki nasıl geçti? Yorumlara yaz, #ilksürüşüm etiketiyle paylaş. Henüz çıkmadıysan Kontak'ta deneyimli bir sürüş arkadaşı bul.",
+    "hashtagler": ["#ilksürüşüm", "#motosiklet", "#yenimotorcu", "#kontak"],
+    "gorsel_prompt": "A single motorcycle parked on an empty early morning road with space next to it for another bike, misty light, deep navy blue (#0000A8) motorcycle tank, calm and inviting mood, no people, no logos, vertical 1080x1350",
+    "gorsel_url": null,
+    "video_url": null,
+    "durum": "yeni"
+  },
+  {
+    "id": "i4",
+    "run_id": "run_2026-10-11_0800",
+    "trend_id": "t7",
+    "platform": "instagram",
+    "format": "carousel",
+    "baslik": "Grup sürüşü öncesi 5 kural",
+    "kanca": "Konvoyda herkesin bilmesi gereken 5 kural.",
+    "senaryo": ["Kart 1: Kapak", "Kart 2-6: Her karta bir kural", "Kart 7: Kontak'ta grup sürüşü oluştur"],
+    "aciklama_metni": "Grup sürüşü keyiflidir, kuralları biliniyorsa. Kaydet, ekibine gönder.",
+    "hashtagler": ["#grupsürüşü", "#motosiklet", "#güvenlisürüş"],
+    "gorsel_prompt": "Group of motorcycles riding in staggered formation on a highway, aerial view, deep navy blue (#0000A8) accents, no faces, no logos, vertical 1080x1350",
+    "gorsel_url": null,
+    "video_url": null,
+    "durum": "paylasildi"
+  },
+  {
+    "id": "i5",
+    "run_id": "run_2026-10-10_0800",
+    "trend_id": "t9",
+    "platform": "tiktok",
+    "format": "kisa_video",
+    "baslik": "Yağmurda 3 hayati ipucu",
+    "kanca": "Yağmurda frene böyle basarsan düşersin.",
+    "senaryo": ["Sahne 1: Islak yol yakın çekim", "Sahne 2-4: Her sahnede bir ipucu", "Sahne 5: Güvenli sür, Kontak'ta buluşalım"],
+    "aciklama_metni": "Yağmur sürüşü bitirmez, dikkatsizlik bitirir. Bu üç ipucunu kaydet.",
+    "hashtagler": ["#yağmurdasürüş", "#motosiklet", "#güvenlik"],
+    "gorsel_prompt": "Close-up of a motorcycle tire on a wet asphalt road with reflections, rainy evening, deep navy blue (#0000A8) tones, no logos, vertical 1080x1350",
+    "gorsel_url": null,
+    "video_url": null,
+    "durum": "reddedildi"
+  }
+]

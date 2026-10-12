@@ -71,3 +71,13 @@ Kemal, Burak hazır olana kadar `data/mock/` altındaki sahte JSON ile çalış�
 - Kişisel veri yok: sadece herkese açık gönderi istatistikleri ve hesap adları.
 - API anahtarları sadece Cloudflare secret olarak (`wrangler secret put`). Repoya, ekrana, sunuma girmez.
 - Manus görev linklerini saklayın, sunumda kanıt olacak.
+
+## Paneli çalıştırma
+
+```
+cd frontend
+npm install
+npm run dev            # http://localhost:5173, backend yoksa otomatik olarak örnek veriye düşer
+VITE_MOCK=1 npm run dev  # hep örnek veri
+npm run build          # frontend/dist, Worker bunu sunar
+```

@@ -1,0 +1,23 @@
+{
+  "id": "week_2026-W42",
+  "hafta": "2026-W42",
+  "olusturma": "2026-10-12T08:07:00+03:00",
+  "ozet": "Bu hafta POV videoları kalıcı oldu, sonbahar rotaları hızla yükseliyor, modifiye içerikleri durağan.",
+  "kalici": [
+    { "baslik": "Kask kamerası POV", "ivme": 78 },
+    { "baslik": "Hafta sonu grup sürüşleri", "ivme": 71 }
+  ],
+  "yukselen": [
+    { "baslik": "Sonbahar rotaları", "ivme": 91 },
+    { "baslik": "#ilksürüşüm", "ivme": 68 }
+  ],
+  "sonen": [
+    { "baslik": "Önce / sonra modifiye", "ivme": 18 },
+    { "baslik": "Yağmurda sürüş ipuçları", "ivme": 22 }
+  ],
+  "onerilen_odak": [
+    "Hafta boyunca en az 3 POV videosu, biri Kontak eşleşmesiyle başlayan",
+    "Çarşamba sonbahar rotaları carousel'i, cumartesi öncesi kaydedilsin diye",
+    "#ilksürüşüm etiketiyle yeni motorculara yönelik bir çağrı gönderisi"
+  ]
+}

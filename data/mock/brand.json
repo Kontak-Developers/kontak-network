@@ -1,0 +1,24 @@
+{
+  "id": "kontak",
+  "ad": "Kontak",
+  "tanim": "Türkiye'de motosiklet kültürü üzerine kurulu tanışma ve topluluk uygulaması",
+  "hedef_kitle": "20-40 yaş arası, hafta sonu sürüşe çıkan, yeni sürüş arkadaşı ve topluluk arayan motorcular",
+  "ton_kurallari": [
+    "Samimi ama abartısız: motorcu gibi konuş, reklamcı gibi değil",
+    "Güvenliği her zaman ön planda tut: kasksız, ekipmansız sürüş gösterme",
+    "Kimseyi küçümseme: scooter da motordur",
+    "Emojiyi ölçülü kullan, en fazla 2"
+  ],
+  "vurgu_rengi": "#0000A8",
+  "sutunlar": [
+    { "ad": "Topluluk", "oran": 30 },
+    { "ad": "Rota", "oran": 25 },
+    { "ad": "Tanışma", "oran": 25 },
+    { "ad": "Güvenlik", "oran": 20 }
+  ],
+  "izlenecek": {
+    "tiktok_hashtagler": ["motosiklet", "motorcu", "motovlog", "motorcuyuz", "istanbulmotor"],
+    "instagram_hashtagler": ["motosiklet", "motorcu", "motosikletkulübü", "motorcukafe", "sürüş"],
+    "hesaplar": []
+  }
+}

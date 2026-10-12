@@ -1,0 +1,102 @@
+[
+  {
+    "id": "t1",
+    "run_id": "run_2026-10-12_0800",
+    "tip": "format",
+    "baslik": "Kask kamerası POV",
+    "aciklama": "Sürüş anını sürücünün gözünden gösteren 10-15 saniyelik videolar. Son 48 saatte önceki haftanın 3 katı paylaşım.",
+    "platform": "tiktok",
+    "ivme": 86,
+    "ornek_linkler": ["https://www.tiktok.com/tag/motovlog"]
+  },
+  {
+    "id": "t2",
+    "run_id": "run_2026-10-12_0800",
+    "tip": "konu",
+    "baslik": "Sonbahar rotaları",
+    "aciklama": "Sarı yapraklı orman yolları ve sahil rotaları. Özellikle Şile, Polonezköy ve Kazdağları paylaşımları artıyor.",
+    "platform": "ikisi",
+    "ivme": 79,
+    "ornek_linkler": ["https://www.instagram.com/explore/tags/motosiklet/"]
+  },
+  {
+    "id": "t3",
+    "run_id": "run_2026-10-12_0800",
+    "tip": "ses",
+    "baslik": "Yavaşlatılmış egzoz sesi + lo-fi",
+    "aciklama": "Motor sesinin yavaşlatılıp lo-fi müzikle birleştiği ses, kısa videolarda hızla yayılıyor.",
+    "platform": "tiktok",
+    "ivme": 72,
+    "ornek_linkler": ["https://www.tiktok.com/tag/motorcu"]
+  },
+  {
+    "id": "t4",
+    "run_id": "run_2026-10-12_0800",
+    "tip": "hashtag",
+    "baslik": "#ilksürüşüm",
+    "aciklama": "Yeni ehliyet alanların ilk sürüş deneyimini paylaştığı etiket. Yorumlarda çok fazla \"birlikte sürelim\" mesajı var.",
+    "platform": "instagram",
+    "ivme": 68,
+    "ornek_linkler": ["https://www.instagram.com/explore/tags/motorcu/"]
+  },
+  {
+    "id": "t5",
+    "run_id": "run_2026-10-12_0800",
+    "tip": "konu",
+    "baslik": "Grup sürüşünde el işaretleri",
+    "aciklama": "Konvoyda kullanılan el işaretlerini anlatan eğitici içerikler kaydediliyor ve paylaşılıyor.",
+    "platform": "instagram",
+    "ivme": 54,
+    "ornek_linkler": ["https://www.instagram.com/explore/tags/motosiklet/"]
+  },
+  {
+    "id": "t6",
+    "run_id": "run_2026-10-12_0800",
+    "tip": "format",
+    "baslik": "Önce / sonra modifiye",
+    "aciklama": "Popüler ama durağan: paylaşım çok, büyüme düşük. Takipte kalınmalı.",
+    "platform": "tiktok",
+    "ivme": 31,
+    "ornek_linkler": ["https://www.tiktok.com/tag/motosiklet"]
+  },
+  {
+    "id": "t7",
+    "run_id": "run_2026-10-11_0800",
+    "tip": "konu",
+    "baslik": "Hafta sonu grup sürüşleri",
+    "aciklama": "Cumartesi sabahı buluşup çıkılan grup sürüşlerinin paylaşımları zirve yaptı.",
+    "platform": "ikisi",
+    "ivme": 81,
+    "ornek_linkler": ["https://www.instagram.com/explore/tags/motorcu/"]
+  },
+  {
+    "id": "t8",
+    "run_id": "run_2026-10-11_0800",
+    "tip": "hashtag",
+    "baslik": "#ilksürüşüm",
+    "aciklama": "Yeni sürücülerin ilk deneyim paylaşımları artmaya başladı.",
+    "platform": "instagram",
+    "ivme": 52,
+    "ornek_linkler": ["https://www.instagram.com/explore/tags/motorcu/"]
+  },
+  {
+    "id": "t9",
+    "run_id": "run_2026-10-10_0800",
+    "tip": "konu",
+    "baslik": "Yağmurda sürüş ipuçları",
+    "aciklama": "Havaların bozulmasıyla güvenli sürüş içerikleri öne çıktı.",
+    "platform": "ikisi",
+    "ivme": 74,
+    "ornek_linkler": ["https://www.tiktok.com/tag/motosiklet"]
+  },
+  {
+    "id": "t10",
+    "run_id": "run_2026-10-09_0800",
+    "tip": "konu",
+    "baslik": "Motorcu kafe buluşmaları",
+    "aciklama": "Hafta içi akşam kafe buluşmalarının paylaşımları artıyor.",
+    "platform": "instagram",
+    "ivme": 66,
+    "ornek_linkler": ["https://www.instagram.com/explore/tags/motorcukafe/"]
+  }
+]
