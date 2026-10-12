@@ -107,7 +107,9 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
             izlenme: g.izlenme, begeniler: g.begeni, yorumlar: g.yorum, paylasimlar: g.paylasim,
             ses_adi: g.ses, tarih: g.tarih, icerik_formati: g.format,
           })),
-          gecmis_karsilastirma: ivme.slice(0, 40),
+          // analiz.md ivmeyi bu adlarla bekliyor; yoksa "önceki dönem kıyası yok" sayar.
+          ivme_hashtag: ivme.filter((s) => s.tur === 'hashtag').slice(0, 25),
+          ivme_ses: ivme.filter((s) => s.tur === 'ses').slice(0, 15),
           marka: await markaOku(env),
           takip_listesi: takip.results,
         };
@@ -139,7 +141,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
           )
         );
         await env.DB.prepare('UPDATE runs SET ozet = ? WHERE id = ?').bind(metin(analiz?.ozet).slice(0, 300), runId).run();
-        await takipKararlari(env, runId, dizi<any>(analiz?.takip), analizGirdi.gecmis_karsilastirma.filter((s) => s.tur === 'hashtag'));
+        await takipKararlari(env, runId, dizi<any>(analiz?.takip), analizGirdi.ivme_hashtag);
         return satirlar;
       });
 
