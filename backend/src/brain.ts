@@ -91,9 +91,9 @@ export const SEMALAR: Record<PromptAdi, Record<string, unknown>> = {
           type: 'array',
           items: nesne({ sira: N, sure_sn: N, prompt: S, ekran_yazisi: S }),
         },
-        rota: {
-          anyOf: [nesne({ ad: S, km: N, duraklar: SD }), { type: 'null' }],
-        },
+        // anyOf(nesne | null) Manus'ta 400 verdi (12 Ekim); rota hep nesne,
+        // rota yoksa ad boş string ve duraklar boş dizi.
+        rota: nesne({ ad: { ...S, description: 'Rota yoksa boş string' }, km: N, duraklar: SD }),
         onerilen_ses: SN,
       }),
     },

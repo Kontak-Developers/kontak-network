@@ -361,7 +361,7 @@ async function fikirleriYaz(env: Env, runId: string, uretim: any, trendIdleri: s
     const sahneler = dizi<any>(f?.sahneler).slice(0, 8).map((s, i) => ({
       sira: sayi(s?.sira) || i + 1, sure_sn: sayi(s?.sure_sn), prompt: metin(s?.prompt), ekran_yazisi: metin(s?.ekran_yazisi),
     }));
-    const rota = f?.rota && typeof f.rota === 'object'
+    const rota = f?.rota && typeof f.rota === 'object' && metin(f.rota.ad).trim()
       ? { ad: metin(f.rota.ad), km: sayi(f.rota.km), duraklar: dizi<string>(f.rota.duraklar).map((d) => metin(d)) }
       : null;
     const format = ['kisa_video', 'carousel', 'gonderi'].includes(f?.format) ? f.format : 'gonderi';
