@@ -29,3 +29,11 @@ Senden 4 şey istiyorum:
 **4. Test.** Gerçekçi 20 örnek gönderi uydur (Türkçe motosiklet içerikleri), iki promptu bunlarla çalıştır ve çıktıları göster. Zayıf noktaları düzeltip promptların son halini ver.
 
 Çıktıları ayrı dosyalar olarak ver: `brand.json`, `analiz.md`, `uretim.md`, `test-ciktisi.json`.
+
+---
+
+## Ek (ikinci mesaj olarak ver)
+
+Ajan sadece popüler olanı değil, yükseleni bulmalı. Bu yüzden `analiz` promptuna her hashtag ve ses için bir `ivme` sayısı (0-100) da gelecek: son 48 saatin önceki 7 güne göre büyümesi. `analiz.md`'yi bu sayıyı kullanacak şekilde güncelle: popüler ama durağan olanları ele, hızla yükselenleri öne çıkar.
+
+Bir de üçüncü prompt yaz: `haftalik.md`. Girdi: son 7 günün gündem listeleri. Çıktı JSON: `ozet` (tek cümle), `kalici` (hafta boyu güçlü kalanlar), `yukselen`, `sonen` (her biri `baslik` + `ivme`), `onerilen_odak` (bu hafta için 2-4 somut öneri). Örnek veriyle test et.

@@ -91,3 +91,27 @@ data/mock/  Sahte veri, aşağıdaki şekillerle birebir
 ## Başlatma: `POST /api/runs`
 
 Gövde yok. `{ "id": "run_…", "durum": "calisiyor" }` döner. Panel `GET /api/runs/latest` ile 5 saniyede bir durumu izler.
+
+## Trend tespiti: ivme nasıl hesaplanır
+
+- Her taramadaki ham gönderiler `posts` tablosunda saklanır (link benzersiz). Sadece herkese açık alanlar: link, platform, hesap adı, açıklama, hashtag'ler, ses adı, izlenme, beğeni, yorum, paylaşım, tarih.
+- Her hashtag / ses için: **son 48 saatteki günlük ortalama** (gönderi sayısı ve toplam etkileşim) ÷ **önceki 7 günün günlük ortalaması**.
+- Bu oran 0-100 arası `ivme` puanına çevrilir ve `analiz` promptuna girdi olarak verilir. Beyin popüler olanı değil, yükseleni seçer.
+- **İlk çalıştırma** son 7 günü tarar, böylece referans ilk günden dolu olur.
+
+## Haftalık özet: `GET /api/weekly/latest`
+
+Her pazartesi 08:00'deki çalıştırma, günlük işin üstüne haftalık özeti de üretir (`prompts/haftalik.md`).
+
+```json
+{
+  "id": "week_2026-W42",
+  "hafta": "2026-W42",
+  "olusturma": "2026-10-12T08:07:00+03:00",
+  "ozet": "Bu hafta POV videoları kalıcı oldu, scooter içerikleri söndü.",
+  "kalici": [{ "baslik": "Kask kamerası POV", "ivme": 78 }],
+  "yukselen": [{ "baslik": "Sonbahar rotaları", "ivme": 91 }],
+  "sonen": [{ "baslik": "Scooter modifiye", "ivme": 12 }],
+  "onerilen_odak": ["Hafta boyunca 3 POV videosu", "Cumartesi grup sürüşü çağrısı"]
+}
+```

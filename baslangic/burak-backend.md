@@ -27,3 +27,13 @@ Bu repoda Kontak için her gün otomatik çalışan bir sosyal medya ajanının 
 8. **Gizli anahtarlar:** `APIFY_TOKEN`, `FAL_KEY`, `MANUS_API_KEY` sadece `wrangler secret put` ile girilecek. Kodda ya da repoda anahtar olmasın, `.dev.vars.example` dosyası oluştur.
 
 Önce Apify olmadan sahte tarama verisiyle tüm akışın uçtan uca çalıştığını göster, sonra gerçek Apify'ı bağla. Bitince backend/README.md'ye çalıştırma komutlarını yaz.
+
+---
+
+## Ek (ikinci mesaj olarak ver)
+
+SOZLESME.md'ye "Trend tespiti" ve "Haftalık özet" bölümleri eklendi, oku ve uygula:
+- `posts` tablosu: her taramanın ham gönderilerini sakla (link benzersiz, tekrar ekleme).
+- İvme hesabı: son 48 saatin günlük ortalaması ÷ önceki 7 günün günlük ortalaması, hashtag ve ses bazında, 0-100'e ölçekle. Bu sayıları `analiz` promptuna girdi olarak ver.
+- Hiç geçmiş yoksa (ilk çalıştırma) son 7 günü tara.
+- Pazartesi çalıştırması ayrıca `haftalik` promptuyla haftalık özet üretsin, `weekly` tablosuna yazsın. `GET /api/weekly/latest` ucunu ekle.
