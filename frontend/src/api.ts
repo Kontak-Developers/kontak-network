@@ -118,7 +118,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     mark(ep, false)
     return (await mockRequest(method, path, body)) as T
   }
-  throw new ApiError(res.status, data?.hata?.kod ?? 'hata', data?.hata?.mesaj ?? `Beklenmeyen yanıt (${res.status}).`)
+  throw new ApiError(res.status, data?.hata?.kod ?? 'hata', `${data?.hata?.mesaj ?? 'Beklenmeyen yanıt.'} (${method} ${path.split('?')[0]} → ${res.status})`)
 }
 
 const q = (run?: string) => (run ? `?run=${encodeURIComponent(run)}` : '')

@@ -61,15 +61,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const loadAll = useCallback(async () => {
     try {
+    // Marka ve çalıştırmalar şart; diğerleri düşerse boş değerle devam
+    const soft = <T,>(p: Promise<T>, fallback: T) =>
+      p.catch((e) => {
+        if (e instanceof ApiError && (e.status === 401 || e.status === 403)) throw e
+        console.warn(e)
+        return fallback
+      })
     const [b, r, t, i, s, w, d, wk] = await Promise.all([
       api.brand(),
       api.runs(),
-      api.trends(),
-      api.ideas(),
-      api.series(),
-      api.watchlist(),
-      api.decisions(),
-      api.weekly(),
+      soft(api.trends(), []),
+      soft(api.ideas(), []),
+      soft(api.series(), []),
+      soft(api.watchlist(), []),
+      soft(api.decisions(), []),
+      soft(api.weekly(), null),
     ])
     setBrand(normalizeBrand(b))
     setRuns(r)
