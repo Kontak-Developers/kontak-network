@@ -35,6 +35,8 @@ export type Run = {
   taranan_gonderi: number
   ozet: string
   log?: { zaman: string; mesaj: string }[]
+  hata?: string | null
+  manus_linkleri?: string[]
 }
 
 export type Trend = {

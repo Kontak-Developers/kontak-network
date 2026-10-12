@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { useStore } from '../store'
+import { assetUrl } from '../api'
 import { FORMAT_LABEL } from '../lib'
 import { MediaCard } from '../components/MediaCard'
 import { FormatIcon } from '../components/bits'
@@ -19,7 +20,7 @@ export default function SeriesView() {
           return (
             <button key={s.id} className={`scard ${open === s.id ? 'on' : ''}`} onClick={() => setOpen(open === s.id ? null : s.id)} title={s.neden}>
               <span className="scard-cover">
-                {cover ? <img src={cover} alt="" /> : <span className="scard-empty" />}
+                {cover ? <img src={assetUrl(cover)!} alt="" /> : <span className="scard-empty" />}
                 <span className="scard-shade" />
                 {s.olusturan === 'ajan' && (
                   <span className="scard-by">

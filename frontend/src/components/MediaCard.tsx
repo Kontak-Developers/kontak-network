@@ -1,5 +1,6 @@
 import type { Idea, Series } from '../types'
 import { useStore } from '../store'
+import { assetUrl } from '../api'
 import { FORMAT_LABEL, STATUS_LABEL } from '../lib'
 import { FormatIcon, PlatformGlyph, SeriesIcon } from './bits'
 
@@ -13,7 +14,7 @@ export function MediaCard({ idea, series }: { idea: Idea; series?: Series }) {
       aria-pressed={on}
       aria-label={`${idea.baslik}, ${STATUS_LABEL[idea.durum]}`}
     >
-      {idea.gorsel_url ? <img src={idea.gorsel_url} alt="" loading="lazy" /> : <span className="mcard-empty" />}
+      {idea.gorsel_url ? <img src={assetUrl(idea.gorsel_url)!} alt="" loading="lazy" /> : <span className="mcard-empty" />}
       <span className="mcard-shade" />
       <span className="mcard-top">
         <span className="mcard-chip">

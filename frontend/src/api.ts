@@ -1,17 +1,34 @@
 import { mockRequest } from './mock'
 import type { Brand, Decision, Idea, IdeaStatus, Run, Series, Trend, WatchItem, WatchStatus, Weekly } from './types'
 
-// VITE_MOCK=1 ise hep sahte veri. Değilse her uç önce gerçek API'yi dener,
-// o uç erişilemezse yalnızca o uç sahte veriye düşer (backend parça parça gelebilir).
-// VITE_API_URL verilirse API başka bir adreste (ör. https://ajan-api.kontakdating.com).
-const FORCE_MOCK = import.meta.env.VITE_MOCK === '1'
-const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
+// Panel iki yerde çalışır:
+//  - yerelde (localhost): /api → wrangler dev; erişilemeyen uç örnek veriye düşer
+//  - prod: panel.kontakdating.com/ag/ altında; istekler /ag/api'ye gider ve
+//    Kontak panelinin moderatör jetonunu taşır. Prod'da sahte veri gösterilmez
+//    (moderatör sahte içeriği onaylamasın), yalnız ?ornek=1 ile açıkça istenirse.
+const LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname)
+const FORCE_MOCK = import.meta.env.VITE_MOCK === '1' || new URLSearchParams(location.search).has('ornek')
+const FALLBACK = LOCAL
+const BASE = (import.meta.env.VITE_API_URL ?? location.pathname.replace(/\/[^/]*$/, '')).replace(/\/$/, '')
+const JETON_ANAHTAR = 'kontak_panel_jeton'
+
+export class ApiError extends Error {
+  status: number
+  kod: string
+  constructor(status: number, kod: string, mesaj: string) {
+    super(mesaj)
+    this.status = status
+    this.kod = kod
+  }
+}
 
 export type MockLevel = 'yok' | 'kismi' | 'tam'
+export type AuthState = 'tamam' | 'giris_yok' | 'yetkisiz'
 
 const live = new Set<string>()
 const mocked = new Set<string>()
-const listeners = new Set<(level: MockLevel) => void>()
+const mockListeners = new Set<(level: MockLevel) => void>()
+const authListeners = new Set<(s: AuthState) => void>()
 
 export function mockLevel(): MockLevel {
   if (FORCE_MOCK) return 'tam'
@@ -24,11 +41,21 @@ export function mockedEndpoints() {
 }
 
 export function onMockChange(fn: (level: MockLevel) => void) {
-  listeners.add(fn)
+  mockListeners.add(fn)
   return () => {
-    listeners.delete(fn)
+    mockListeners.delete(fn)
   }
 }
+
+export function onAuthChange(fn: (s: AuthState) => void) {
+  authListeners.add(fn)
+  return () => {
+    authListeners.delete(fn)
+  }
+}
+
+/** Kontak panelinin giriş sayfası (prod'da /ag/'nin bir üstü) */
+export const PANEL_URL = LOCAL ? null : '/'
 
 // /api/ideas/i1 ve /api/ideas aynı uç sayılsın
 const endpointOf = (method: string, path: string) =>
@@ -43,26 +70,55 @@ function mark(endpoint: string, ok: boolean) {
     mocked.add(endpoint)
   }
   const after = mockLevel()
-  if (after !== before) listeners.forEach((fn) => fn(after))
+  if (after !== before) mockListeners.forEach((fn) => fn(after))
 }
+
+function token() {
+  try {
+    return sessionStorage.getItem(JETON_ANAHTAR)
+  } catch {
+    return null
+  }
+}
+
+/** Uç yok / sunucu yok: yerelde örnek veriye düşülebilir. Yetki ve doğrulama hataları düşmez. */
+const isMissing = (status: number) => status === 404 || status >= 500
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   if (FORCE_MOCK) return (await mockRequest(method, path, body)) as T
   const ep = endpointOf(method, path)
+  const headers: Record<string, string> = {}
+  if (body) headers['Content-Type'] = 'application/json'
+  const t = token()
+  if (t) headers.Authorization = `Bearer ${t}`
+
+  let res: Response
   try {
-    const res = await fetch(BASE + path, {
-      method,
-      headers: body ? { 'Content-Type': 'application/json' } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
-    })
-    const isJson = res.headers.get('content-type')?.includes('application/json')
-    if (!res.ok || !isJson) throw new Error(`${res.status}`)
+    res = await fetch(BASE + path, { method, headers, body: body ? JSON.stringify(body) : undefined })
+  } catch (e) {
+    if (FALLBACK) {
+      mark(ep, false)
+      return (await mockRequest(method, path, body)) as T
+    }
+    throw new ApiError(0, 'baglanti', 'Ajana ulaşılamadı. İnternet bağlantını kontrol et.')
+  }
+
+  const isJson = res.headers.get('content-type')?.includes('application/json')
+  const data = isJson ? await res.json().catch(() => null) : null
+
+  if (res.ok && isJson) {
     mark(ep, true)
-    return (await res.json()) as T
-  } catch {
+    return data as T
+  }
+  if (res.status === 401 || res.status === 403) {
+    authListeners.forEach((fn) => fn(res.status === 401 ? 'giris_yok' : 'yetkisiz'))
+    throw new ApiError(res.status, data?.hata?.kod ?? 'yetki', data?.hata?.mesaj ?? 'Panele giriş yap.')
+  }
+  if (FALLBACK && (isMissing(res.status) || !isJson)) {
     mark(ep, false)
     return (await mockRequest(method, path, body)) as T
   }
+  throw new ApiError(res.status, data?.hata?.kod ?? 'hata', data?.hata?.mesaj ?? `Beklenmeyen yanıt (${res.status}).`)
 }
 
 const q = (run?: string) => (run ? `?run=${encodeURIComponent(run)}` : '')
@@ -83,4 +139,11 @@ export const api = {
     request<WatchItem>('PATCH', `/api/watchlist/${encodeURIComponent(id)}`, { durum }),
   decisions: (run?: string) => request<Decision[]>('GET', `/api/decisions${q(run)}`),
   series: () => request<Series[]>('GET', '/api/series'),
+}
+
+/** Göreli medya yolu (ör. "mock/ornek-1.jpg") /ag/ altında da doğru çözülsün */
+export function assetUrl(u: string | null | undefined) {
+  if (!u) return null
+  if (/^(https?:|data:|blob:)/.test(u) || u.startsWith(BASE + '/')) return u
+  return `${BASE}/${u.replace(/^\//, '')}`
 }

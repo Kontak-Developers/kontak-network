@@ -1,12 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { api } from './api'
+import { ApiError, api, onAuthChange } from './api'
+import type { AuthState } from './api'
 import type { Brand, Decision, Idea, IdeaStatus, Run, Series, Trend, WatchItem, WatchStatus, Weekly } from './types'
 
 type Toast = { id: number; text: string }
 
 type Store = {
   ready: boolean
+  error: string | null
+  auth: AuthState
   brand: Brand | null
   runs: Run[]
   latest: Run | null
@@ -36,6 +39,8 @@ export function useStore() {
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [auth, setAuth] = useState<AuthState>('tamam')
   const [brand, setBrand] = useState<Brand | null>(null)
   const [runs, setRuns] = useState<Run[]>([])
   const [trends, setTrends] = useState<Trend[]>([])
@@ -55,6 +60,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loadAll = useCallback(async () => {
+    try {
     const [b, r, t, i, s, w, d, wk] = await Promise.all([
       api.brand(),
       api.runs(),
@@ -65,7 +71,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       api.decisions(),
       api.weekly(),
     ])
-    setBrand(b)
+    setBrand(normalizeBrand(b))
     setRuns(r)
     setTrends(t)
     setIdeas(i)
@@ -73,11 +79,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setWatchlist(w)
     setDecisions(d)
     setWeekly(wk)
+    setError(null)
     setReady(true)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Veriler yüklenemedi.')
+    }
   }, [])
 
   useEffect(() => {
+    const off = onAuthChange(setAuth)
     loadAll()
+    return off
   }, [loadAll])
 
   const latest = runs[0] ?? null
@@ -86,7 +98,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (latest?.durum !== 'calisiyor') return
     const timer = setInterval(async () => {
-      const r = await api.latestRun()
+      const r = await api.latestRun().catch(() => null)
       if (!r) return
       if (r.durum === 'calisiyor') setRuns((list) => [r, ...list.filter((x) => x.id !== r.id)])
       else {
@@ -106,34 +118,42 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setIdeas((list) => list.map((i) => (i.id === id ? { ...i, durum } : i)))
       try {
         await api.setIdeaStatus(id, durum)
-      } catch {
-        setIdeas(await api.ideas())
+      } catch (e) {
+        toast(e instanceof Error ? e.message : 'Kaydedilemedi')
+        setIdeas(await api.ideas().catch(() => []))
       }
     },
-    [],
+    [toast],
   )
 
   const setWatch = useCallback(async (id: string, durum: WatchStatus) => {
     setWatchlist((list) => list.map((w) => (w.id === id ? { ...w, durum, kaynak: 'insan' } : w)))
     try {
       await api.setWatch(id, durum)
-    } catch {
-      setWatchlist(await api.watchlist())
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Kaydedilemedi')
+      setWatchlist(await api.watchlist().catch(() => []))
     }
-  }, [])
+  }, [toast])
 
   const startRun = useCallback(async () => {
-    await api.startRun()
-    setRuns(await api.runs())
-  }, [])
+    try {
+      await api.startRun()
+    } catch (e) {
+      toast(e instanceof ApiError && e.kod === 'zaten_calisiyor' ? 'Ajan zaten çalışıyor' : e instanceof Error ? e.message : 'Başlatılamadı')
+    }
+    setRuns(await api.runs().catch(() => []))
+  }, [toast])
 
   const saveBrand = useCallback(async (b: Brand) => {
-    setBrand(await api.saveBrand(b))
+    setBrand(normalizeBrand(await api.saveBrand(b)))
   }, [])
 
   const value = useMemo<Store>(
     () => ({
       ready,
+      error,
+      auth,
       brand,
       runs,
       latest,
@@ -152,10 +172,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       toast,
       toasts,
     }),
-    [ready, brand, runs, latest, trends, ideas, series, watchlist, decisions, weekly, selectedId, setIdeaStatus, setWatch, startRun, saveBrand, toast, toasts],
+    [ready, error, auth, brand, runs, latest, trends, ideas, series, watchlist, decisions, weekly, selectedId, setIdeaStatus, setWatch, startRun, saveBrand, toast, toasts],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
+}
+
+/** Backend'den eksik gelebilecek alanları tamamla */
+function normalizeBrand(b: Brand): Brand {
+  return {
+    ...b,
+    kullanici_adi: b.kullanici_adi || b.id,
+    logo_url: b.logo_url ?? null,
+    ton_kurallari: b.ton_kurallari ?? [],
+    sutunlar: b.sutunlar ?? [],
+    izlenecek: { ...{ tiktok_hashtagler: [], instagram_hashtagler: [], hesaplar: [] }, ...b.izlenecek },
+  }
 }
 
 /** Ekranda gösterilecek "bugünkü" çalıştırma: çalışan varsa son tamamlanan */

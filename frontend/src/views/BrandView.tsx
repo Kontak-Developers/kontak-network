@@ -38,6 +38,8 @@ export default function BrandView() {
         ton_kurallari: draft.ton_kurallari.map((s) => s.trim()).filter(Boolean),
       })
       toast('Kaydedildi. Ajan bir sonraki çalıştırmada bu profili kullanacak')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Kaydedilemedi')
     } finally {
       setSaving(false)
     }

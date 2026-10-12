@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { mockLevel, mockedEndpoints, onMockChange } from './api'
+import { PANEL_URL, mockLevel, mockedEndpoints, onMockChange } from './api'
 import { StoreProvider, useStore } from './store'
 import Sidebar, { BottomNav, NAV } from './components/Sidebar'
 import type { Tab } from './components/Sidebar'
@@ -37,7 +37,7 @@ function useIsNarrow() {
 }
 
 function Shell() {
-  const { ready, brand, selectedId, select, toasts } = useStore()
+  const { ready, error, auth, brand, selectedId, select, toasts } = useStore()
   const [tab, setTab] = useState<Tab>(readTab)
   const [mock, setMock] = useState(mockLevel())
   const narrow = useIsNarrow()
@@ -63,6 +63,32 @@ function Shell() {
     setTab(t)
     window.scrollTo(0, 0)
   }
+
+  if (auth !== 'tamam')
+    return (
+      <div className="gate">
+        <span className="gate-mark" />
+        <h1>{auth === 'yetkisiz' ? 'Bu bölüm moderatörlere açık' : 'Panele giriş yap'}</h1>
+        <p>{auth === 'yetkisiz' ? 'Hesabının Büyüme Ajanı yetkisi yok.' : 'Büyüme Ajanı Kontak yönetim paneli girişini kullanır.'}</p>
+        {PANEL_URL && (
+          <a className="btn btn-primary btn-lg" href={PANEL_URL}>
+            Yönetim paneline git
+          </a>
+        )}
+      </div>
+    )
+
+  if (error && !ready)
+    return (
+      <div className="gate">
+        <span className="gate-mark" />
+        <h1>Ajana ulaşılamadı</h1>
+        <p>{error}</p>
+        <button className="btn btn-primary btn-lg" onClick={() => location.reload()}>
+          Tekrar dene
+        </button>
+      </div>
+    )
 
   if (!ready || !brand)
     return (

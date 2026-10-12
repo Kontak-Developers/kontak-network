@@ -1569,15 +1569,15 @@ textarea:focus {
   color: var(--marka);
 }
 .phone-host {
+  position: relative;
   flex: 1;
   min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .phone-sizer {
-  position: relative;
-  flex: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 .preview-foot {
   display: flex;
@@ -2760,4 +2760,79 @@ textarea:focus {
   .actions .btn {
     flex: 1 1 100%;
   }
+}
+
+/* Giriş / hata ekranı */
+.gate {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+  background: var(--zemin);
+}
+.gate h1 {
+  font-size: 22px;
+}
+.gate p {
+  color: var(--metin-orta);
+  max-width: 40ch;
+  margin-bottom: 8px;
+}
+.gate-mark {
+  width: 64px;
+  height: 46px;
+  background: var(--marka);
+  -webkit-mask: url(/brands/kontak/logo.png) center / contain no-repeat;
+  mask: url(/brands/kontak/logo.png) center / contain no-repeat;
+  margin-bottom: 8px;
+}
+a.btn {
+  text-decoration: none;
+}
+.manus-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.hero-stats .manus-link {
+  margin-left: auto;
+}
+.hero-stats .manus-link + .link {
+  margin-left: 0;
+}
+.run-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.run-end a {
+  color: var(--marka);
+  display: inline-flex;
+}
+.hero-error {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: #fecaca;
+  max-width: 60ch;
+}
+.step-failed {
+  background: rgba(239, 68, 68, 0.18);
+}
+.step-failed .step-icon {
+  background: #ef4444;
+  color: #fff;
+}
+.empty-inline {
+  color: var(--metin-soluk);
+  font-size: 13.5px;
+  padding: 18px 20px;
+  border: 1.5px dashed var(--cizgi-koyu);
+  border-radius: var(--r);
 }

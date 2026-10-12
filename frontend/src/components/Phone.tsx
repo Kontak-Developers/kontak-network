@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import type { Brand, Idea } from '../types'
 import { scenesOf } from '../lib'
+import { assetUrl } from '../api'
 
 /* ───────────── Çerçeve ───────────── */
 
@@ -89,9 +90,11 @@ function StatusBar() {
 /* ───────────── Ortak ───────────── */
 
 export function Avatar({ brand, size = 32, ring }: { brand: Brand; size?: number; ring?: boolean }) {
+  const [broken, setBroken] = useState(false)
+  const src = assetUrl(brand.logo_url ?? `brands/${brand.id}/logo.png`)
   return (
     <span className={`avatar ${ring ? 'avatar-ring' : ''}`} style={{ width: size, height: size }}>
-      {brand.logo_url ? <img src={brand.logo_url} alt="" /> : <b>{brand.ad[0]}</b>}
+      {src && !broken ? <img src={src} alt="" onError={() => setBroken(true)} /> : <b style={{ fontSize: size * 0.45 }}>{brand.ad[0]}</b>}
     </span>
   )
 }
@@ -133,13 +136,13 @@ function useSceneClock(idea: Idea, active: boolean) {
 }
 
 function SceneMedia({ idea, index }: { idea: Idea; index: number }) {
-  if (idea.video_url) return <video className="media-fill" src={idea.video_url} autoPlay muted loop playsInline />
+  if (idea.video_url) return <video className="media-fill" src={assetUrl(idea.video_url)!} autoPlay muted loop playsInline />
   if (!idea.gorsel_url) return <div className="media-fill media-empty" />
   return (
     <img
       key={`${idea.id}-${index}`}
       className={`media-fill kenburns kb-${index % 3}`}
-      src={idea.gorsel_url}
+      src={assetUrl(idea.gorsel_url)!}
       alt=""
     />
   )
@@ -365,7 +368,7 @@ export function FeedView({ idea, brand }: { idea: Idea; brand: Brand }) {
             {scenes.map((s, i) => (
               <div className="feed-slide" key={s.sira}>
                 {idea.gorsel_url && (
-                  <img src={idea.gorsel_url} alt="" style={{ objectPosition: `${30 + ((i * 23) % 50)}% 50%` }} />
+                  <img src={assetUrl(idea.gorsel_url)!} alt="" style={{ objectPosition: `${30 + ((i * 23) % 50)}% 50%` }} />
                 )}
                 {idea.format === 'carousel' ? (
                   <div className={`slide-card ${i === 0 ? 'slide-cover' : ''}`}>
@@ -451,7 +454,7 @@ export function ProfileView({ brand, ideas, onPick }: { brand: Brand; ideas: Ide
       <div className="profile-grid">
         {ideas.map((i) => (
           <button key={i.id} onClick={() => onPick(i.id)} aria-label={i.baslik}>
-            {i.gorsel_url && <img src={i.gorsel_url} alt="" />}
+            {i.gorsel_url && <img src={assetUrl(i.gorsel_url)!} alt="" />}
             {i.format === 'kisa_video' && <Clapperboard size={14} className="grid-badge" />}
           </button>
         ))}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Ban, CalendarPlus, CheckCheck, Layers, Minus, Pin, Plus, Sparkles, Undo2 } from 'lucide-react'
+import { Ban, CalendarPlus, CheckCheck, ExternalLink, Layers, Minus, Pin, Plus, Sparkles, Undo2 } from 'lucide-react'
 import type { Decision, WatchItem, WatchStatus } from '../types'
 import { useStore } from '../store'
 import { fmtTime, relDay, runDuration } from '../lib'
@@ -130,14 +130,21 @@ export default function Agent() {
         </div>
         <div className="runs">
           {runs.slice(0, 8).map((r) => (
-            <div key={r.id} className={`run run-${r.durum}`} title={r.ozet}>
+            <div key={r.id} className={`run run-${r.durum}`} title={r.hata ?? r.ozet}>
               <span className="run-dot" />
               <b>
                 {relDay(r.baslangic)} {fmtTime(r.baslangic)}
               </b>
               <span>{r.tetik === 'cron' ? 'Otomatik' : 'Elle'}</span>
               <span>{r.taranan_gonderi.toLocaleString('tr-TR')} gönderi</span>
-              <span>{r.durum === 'calisiyor' ? 'çalışıyor' : r.durum === 'hata' ? 'hata' : runDuration(r)}</span>
+              <span className="run-end">
+                {r.durum === 'calisiyor' ? 'çalışıyor' : r.durum === 'hata' ? 'hata' : runDuration(r)}
+                {r.manus_linkleri?.[0] && (
+                  <a href={r.manus_linkleri[0]} target="_blank" rel="noreferrer" title="Manus görevi" aria-label="Manus görevi">
+                    <ExternalLink size={13} />
+                  </a>
+                )}
+              </span>
             </div>
           ))}
         </div>

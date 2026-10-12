@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowDownRight, ArrowUpRight, Check, Loader2, Play, Sparkles } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, Loader2, Play, Sparkles, X } from 'lucide-react'
 import { useShownRun, useStore } from '../store'
 import { STEPS, STEP_HINT, STEP_LABEL, TREND_LABEL, fmtTime, relDay, runDuration } from '../lib'
 import { MediaGrid } from '../components/MediaCard'
@@ -14,6 +14,7 @@ export default function Today({ openAgent }: { openAgent: () => void }) {
   if (!brand) return null
 
   const running = latest?.durum === 'calisiyor'
+  const failed = latest?.durum === 'hata'
   const todayTrends = trends.filter((t) => t.run_id === shown?.id)
   const todayIdeas = ideas.filter((i) => i.run_id === shown?.id)
   const visibleIdeas = trendId ? todayIdeas.filter((i) => i.trend_id === trendId) : todayIdeas
@@ -38,8 +39,23 @@ export default function Today({ openAgent }: { openAgent: () => void }) {
             <span className="pulse" />
           </span>
           <div className="hero-text">
-            <span className="eyebrow">{running ? 'Ajan şu an çalışıyor' : shown ? `${relDay(shown.baslangic)} ${fmtTime(shown.baslangic)}` : 'Henüz çalışmadı'}</span>
-            <h1>{running ? 'Gündem taranıyor…' : (shown?.ozet ?? 'Ajan ilk taramasını bekliyor')}</h1>
+            <span className="eyebrow">
+              {running
+                ? 'Ajan şu an çalışıyor'
+                : failed && latest
+                  ? `Son tarama hata verdi · ${relDay(latest.baslangic)} ${fmtTime(latest.baslangic)}`
+                  : shown
+                    ? `${relDay(shown.baslangic)} ${fmtTime(shown.baslangic)}`
+                    : 'Henüz çalışmadı'}
+            </span>
+            <h1>
+              {running
+                ? 'Gündem taranıyor…'
+                : failed && !shown
+                  ? 'Tarama tamamlanamadı, tekrar dene'
+                  : (shown?.ozet ?? 'Ajan ilk taramasını bekliyor')}
+            </h1>
+            {failed && latest?.hata && <p className="hero-error">{latest.hata}</p>}
           </div>
           <button className="btn btn-primary btn-lg hero-btn" onClick={run} disabled={running || starting}>
             {running ? <Loader2 size={18} className="spin" /> : <Play size={17} fill="currentColor" />}
@@ -49,10 +65,21 @@ export default function Today({ openAgent }: { openAgent: () => void }) {
 
         <ol className="steps">
           {STEPS.map((s, i) => {
-            const st = !running || i < stepIndex ? 'done' : i === stepIndex ? 'active' : 'todo'
+            const st =
+              running || failed
+                ? i < stepIndex
+                  ? 'done'
+                  : i === stepIndex
+                    ? failed
+                      ? 'failed'
+                      : 'active'
+                    : 'todo'
+                : shown
+                  ? 'done'
+                  : 'todo'
             return (
               <li key={s} className={`step step-${st}`}>
-                <span className="step-icon">{st === 'done' ? <Check size={14} strokeWidth={3} /> : st === 'active' ? <Loader2 size={14} className="spin" /> : i + 1}</span>
+                <span className="step-icon">{st === 'done' ? <Check size={14} strokeWidth={3} /> : st === 'active' ? <Loader2 size={14} className="spin" /> : st === 'failed' ? <X size={14} strokeWidth={3} /> : i + 1}</span>
                 <span className="step-text">
                   <b>{STEP_LABEL[s]}</b>
                   <small>{STEP_HINT[s]}</small>
@@ -64,12 +91,20 @@ export default function Today({ openAgent }: { openAgent: () => void }) {
 
         {running ? (
           <ul className="log" aria-live="polite">
-            {(latest?.log ?? []).slice(-4).map((l) => (
-              <li key={l.zaman + l.mesaj}>
-                <span>{fmtTime(l.zaman)}</span>
-                {l.mesaj}
+            {latest?.log?.length ? (
+              latest.log.slice(-4).map((l) => (
+                <li key={l.zaman + l.mesaj}>
+                  <span>{fmtTime(l.zaman)}</span>
+                  {l.mesaj}
+                </li>
+              ))
+            ) : (
+              <li key={latest?.adim}>
+                <span>{latest ? fmtTime(new Date().toISOString()) : ''}</span>
+                {latest ? `${STEP_LABEL[latest.adim]} · ${STEP_HINT[latest.adim]}` : ''}
+                {latest && latest.taranan_gonderi > 0 ? ` · ${latest.taranan_gonderi} gönderi` : ''}
               </li>
-            ))}
+            )}
           </ul>
         ) : (
           shown && (
@@ -88,6 +123,11 @@ export default function Today({ openAgent }: { openAgent: () => void }) {
                   <b>{runDuration(shown)}</b> sürdü
                 </span>
               )}
+              {shown.manus_linkleri?.[0] && (
+                <a className="link manus-link" href={shown.manus_linkleri[0]} target="_blank" rel="noreferrer">
+                  Manus görevi <ExternalLink size={13} />
+                </a>
+              )}
               <button className="link" onClick={openAgent}>
                 Kararları gör
               </button>
@@ -105,6 +145,7 @@ export default function Today({ openAgent }: { openAgent: () => void }) {
             </button>
           )}
         </div>
+        {!todayTrends.length && <p className="empty-inline">İlk başarılı taramadan sonra yükselen konular burada görünecek.</p>}
         <div className="trends">
           {todayTrends.map((t) => (
             <button
@@ -140,7 +181,11 @@ export default function Today({ openAgent }: { openAgent: () => void }) {
             {pending > 0 && <span className="count">{pending} onay bekliyor</span>}
           </h2>
         </div>
-        {visibleIdeas.length ? <MediaGrid ideas={visibleIdeas} /> : <p className="empty">Bu trendden içerik üretilmedi.</p>}
+        {visibleIdeas.length ? (
+          <MediaGrid ideas={visibleIdeas} />
+        ) : (
+          <p className="empty-inline">{trendId ? 'Bu trendden içerik üretilmedi.' : 'Ajanın ürettiği içerikler burada görünecek.'}</p>
+        )}
       </section>
 
       {weekly && (

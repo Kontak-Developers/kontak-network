@@ -74,7 +74,13 @@ export default function Sidebar({ tab, go }: { tab: Tab; go: (t: Tab) => void })
         <span className="pulse" />
         <span>
           <b>{running ? 'Ajan çalışıyor' : 'Ajan aktif'}</b>
-          <small>{running ? 'Gündem taranıyor…' : `Sonraki: yarın 08:00${latest?.bitis ? ` · son ${fmtTime(latest.bitis)}` : ''}`}</small>
+          <small>
+            {running
+              ? 'Gündem taranıyor…'
+              : latest?.durum === 'hata'
+                ? 'Son tarama hata verdi'
+                : `Sonraki: yarın 08:00${latest?.bitis ? ` · son ${fmtTime(latest.bitis)}` : ''}`}
+          </small>
         </span>
       </div>
     </aside>
