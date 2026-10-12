@@ -20,7 +20,7 @@ import {
   Users,
 } from 'lucide-react'
 import type { Brand, Idea } from '../types'
-import { scenesOf } from '../lib'
+import { sceneImage, scenesOf } from '../lib'
 import { assetUrl } from '../api'
 
 /* ───────────── Çerçeve ───────────── */
@@ -99,53 +99,66 @@ export function Avatar({ brand, size = 32, ring }: { brand: Brand; size?: number
   )
 }
 
-/** Sahneleri süreleriyle sırayla oynatır; video yoksa görsel üzerinde yavaş yakınlaşma */
-function useSceneClock(idea: Idea, active: boolean) {
+/**
+ * Sahneleri sırayla oynatır. Sahnenin gerçek video klibi varsa klip oynar ve
+ * bitince sıradakine geçer; yoksa görseli sure_sn kadar gösterir.
+ */
+function usePlayback(idea: Idea) {
   const scenes = scenesOf(idea)
-  const durations = scenes.map((s) => Math.max(1.5, s.sure_sn || 3))
-  const total = durations.reduce((a, b) => a + b, 0)
-  const [t, setT] = useState(0)
+  const [index, setIndex] = useState(0)
+  const [frac, setFrac] = useState(0)
+  const cur = scenes[Math.min(index, scenes.length - 1)]
+  const isVideo = !!cur.video_url
 
   useEffect(() => {
-    setT(0)
+    setIndex(0)
+    setFrac(0)
   }, [idea.id])
 
+  const next = () => {
+    setIndex((i) => (i + 1) % scenes.length)
+    setFrac(0)
+  }
+
   useEffect(() => {
-    if (!active) return
+    if (isVideo) return
+    const dur = Math.max(2, cur.sure_sn || 3) * 1000
+    const t0 = performance.now()
     let raf = 0
-    let last = performance.now()
     const tick = (now: number) => {
-      setT((prev) => (prev + (now - last) / 1000) % total)
-      last = now
+      const f = (now - t0) / dur
+      if (f >= 1) return next()
+      setFrac(f)
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [active, total])
+  }, [index, isVideo, idea.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  let acc = 0
-  let index = 0
-  for (let i = 0; i < durations.length; i++) {
-    if (t < acc + durations[i]) {
-      index = i
-      break
-    }
-    acc += durations[i]
-  }
-  return { scenes, index, progress: t / total }
-}
-
-function SceneMedia({ idea, index }: { idea: Idea; index: number }) {
-  if (idea.video_url) return <video className="media-fill" src={assetUrl(idea.video_url)!} autoPlay muted loop playsInline />
-  if (!idea.gorsel_url) return <div className="media-fill media-empty" />
-  return (
-    <img
-      key={`${idea.id}-${index}`}
-      className={`media-fill kenburns kb-${index % 3}`}
-      src={assetUrl(idea.gorsel_url)!}
-      alt=""
-    />
+  const following = scenes[(index + 1) % scenes.length]
+  const media = (
+    <>
+      {isVideo ? (
+        <video
+          key={cur.video_url!}
+          className="media-fill"
+          src={assetUrl(cur.video_url)!}
+          autoPlay
+          muted
+          playsInline
+          loop={scenes.length === 1}
+          onTimeUpdate={(e) => setFrac(e.currentTarget.currentTime / (e.currentTarget.duration || 5))}
+          onEnded={next}
+        />
+      ) : sceneImage(idea, cur) ? (
+        <img key={`${idea.id}-${index}`} className={`media-fill kenburns kb-${index % 3}`} src={assetUrl(sceneImage(idea, cur))!} alt="" />
+      ) : (
+        <div className="media-fill media-empty" />
+      )}
+      {following !== cur && following.video_url && <video className="preload" src={assetUrl(following.video_url)!} preload="auto" muted />}
+    </>
   )
+  return { scenes, index, scene: cur, progress: (index + frac) / scenes.length, media }
 }
 
 function OverlayText({ text, variant }: { text: string; variant: 'tiktok' | 'reels' }) {
@@ -182,12 +195,11 @@ function Caption({ idea, brand, light }: { idea: Idea; brand: Brand; light?: boo
 
 export function TikTokView({ idea, brand }: { idea: Idea; brand: Brand }) {
   const isSlides = idea.format !== 'kisa_video'
-  const { scenes, index, progress } = useSceneClock(idea, true)
-  const scene = scenes[index]
+  const { scenes, index, scene, progress, media } = usePlayback(idea)
 
   return (
     <div className="tt">
-      <SceneMedia idea={idea} index={index} />
+      {media}
       <div className="shade-top" />
       <div className="shade-bottom" />
       <div className="tt-top">
@@ -271,11 +283,10 @@ export function TikTokView({ idea, brand }: { idea: Idea; brand: Brand }) {
 /* ───────────── Instagram Reels ───────────── */
 
 export function ReelsView({ idea, brand }: { idea: Idea; brand: Brand }) {
-  const { scenes, index, progress } = useSceneClock(idea, true)
-  const scene = scenes[index]
+  const { scene, progress, media } = usePlayback(idea)
   return (
     <div className="reels">
-      <SceneMedia idea={idea} index={index} />
+      {media}
       <div className="shade-top" />
       <div className="shade-bottom" />
       <div className="reels-top">
@@ -367,15 +378,15 @@ export function FeedView({ idea, brand }: { idea: Idea; brand: Brand }) {
           <div className="feed-track" style={{ transform: `translateX(-${slide * 100}%)` }}>
             {scenes.map((s, i) => (
               <div className="feed-slide" key={s.sira}>
-                {idea.gorsel_url && (
-                  <img src={assetUrl(idea.gorsel_url)!} alt="" style={{ objectPosition: `${30 + ((i * 23) % 50)}% 50%` }} />
+                {sceneImage(idea, s) && (
+                  <img
+                    src={assetUrl(sceneImage(idea, s))!}
+                    alt=""
+                    style={s.gorsel_url ? undefined : { objectPosition: `${30 + ((i * 23) % 50)}% 50%` }}
+                  />
                 )}
-                {idea.format === 'carousel' ? (
+                {s.ekran_yazisi && (
                   <div className={`slide-card ${i === 0 ? 'slide-cover' : ''}`}>
-                    <span>{s.ekran_yazisi}</span>
-                  </div>
-                ) : (
-                  <div className="slide-card slide-single">
                     <span>{s.ekran_yazisi}</span>
                   </div>
                 )}

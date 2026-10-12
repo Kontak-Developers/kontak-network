@@ -52,7 +52,14 @@ export type Trend = {
 
 export type IdeaStatus = 'yeni' | 'onaylandi' | 'reddedildi' | 'paylasildi'
 
-export type Scene = { sira: number; sure_sn: number; prompt: string; ekran_yazisi: string }
+export type Scene = {
+  sira: number
+  sure_sn: number
+  prompt: string
+  ekran_yazisi: string
+  gorsel_url?: string | null
+  video_url?: string | null
+}
 
 export type Idea = {
   id: string

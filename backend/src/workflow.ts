@@ -12,7 +12,7 @@ import type { Brand, Env, Etiket, Gonderi, Platform, RunParams } from './tipler'
 import { taramaBaslat, taramaDurumu, taramaSonuclari, sahteTarama, type ApifyIs } from './apify';
 import { ivmeHesapla, ornekGonderiler } from './ivme';
 import { brainBaslat, brainYokla, workersAi, type PromptAdi } from './brain';
-import { gorselUret, videoBaslat, videoYokla } from './fal';
+import { DIKEY_4_5, DIKEY_9_16, gorselUret, sahnePromptu, videoBaslat, videoYokla, type Uretilen } from './fal';
 import { gonderileriYaz, markaOku, gonderileriOku } from './db';
 import {
   dizi, hataMetni, isoHafta, jsonAc, kisaId, metin, pazartesiMi, sayi, simdiIst, sinirla,
@@ -164,34 +164,69 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       const fikirler = await yap(step, 'uretim-kaydet', () => fikirleriYaz(env, runId, uretim, trendler.map((t) => t.id)));
 
       if (env.FAL_KEY) {
+        // Her sahneye ayrı görsel: carousel'de her kart, videoda her sahne farklı kare.
+        // Bir fikrin sahneleri tek adımda paralel üretilir; biri düşerse diğerleri kalır.
+        const uretilen: Record<string, (Uretilen | null)[]> = {};
         for (const f of fikirler) {
           try {
-            await yap(step, `gorsel-${f.id}`, { ...TEKRAR, retries: { ...TEKRAR.retries, limit: 2 } }, async () => {
-              const anahtar = await gorselUret(env, f.gorsel_prompt, `${runId}/${f.id}.jpg`);
-              await env.DB.prepare('UPDATE ideas SET gorsel_anahtar = ? WHERE id = ?').bind(anahtar, f.id).run();
-              return anahtar;
+            uretilen[f.id] = await yap(step, `gorsel-${f.id}`, { ...TEKRAR, retries: { ...TEKRAR.retries, limit: 2 } }, async () => {
+              const kareler = kareListesi(f);
+              const boyut = f.format === 'kisa_video' ? DIKEY_9_16 : DIKEY_4_5;
+              const sonuc = await Promise.allSettled(
+                kareler.map((k, i) => gorselUret(env, sahnePromptu(k, f.gorsel_prompt), `${runId}/${f.id}-${i + 1}.jpg`, boyut))
+              );
+              const out = sonuc.map((r) => (r.status === 'fulfilled' ? r.value : null));
+              sonuc.forEach((r, i) => r.status === 'rejected' && console.error('görsel üretilemedi', f.id, i + 1, hataMetni(r.reason)));
+              if (!out.some(Boolean)) throw new Error('hiçbir sahne görseli üretilemedi');
+              await sahneMedyasiYaz(env, f.id, out.map((o) => (o ? { gorsel_anahtar: o.anahtar } : {})));
+              return out;
             });
           } catch (e) {
             console.error('görsel üretilemedi', f.id, hataMetni(e)); // fikir görselsiz de işe yarar
           }
         }
+
+        // Video: bütçe kadar kısa video fikri; her sahne görselinden 5 sn'lik gerçek klip.
         const butce = sayi((await markaOku(env)).sinirlar?.butce?.video_per_run ?? 1);
-        const videoFikri = fikirler.find((f) => f.format === 'kisa_video') ?? fikirler[0];
-        if (env.VIDEO_AKTIF === '1' && butce > 0 && videoFikri) {
-          try {
-            const is = await yap(step, 'video-baslat', TEKRAR, () => videoBaslat(env, videoFikri.video_prompt));
-            for (let i = 0; i < 30; i++) {
-              await step.sleep(`video-bekle-${i}`, '30 seconds');
-              const anahtar = await yap(step, `video-durum-${i}`, TEKRAR, () => videoYokla(env, is, `${runId}/${videoFikri.id}.mp4`));
-              if (anahtar) {
-                await yap(step, 'video-kaydet', () =>
-                  env.DB.prepare('UPDATE ideas SET video_anahtar = ? WHERE id = ?').bind(anahtar, videoFikri.id).run().then(() => true)
+        const videoFikirleri = fikirler.filter((f) => f.format === 'kisa_video').slice(0, Math.max(0, butce));
+        if (env.VIDEO_AKTIF === '1') {
+          for (const vf of videoFikirleri) {
+            try {
+              const kareler = kareListesi(vf).slice(0, VIDEO_SAHNE_SINIRI);
+              const gorseller = uretilen[vf.id] ?? [];
+              const isler = await yap(step, `video-baslat-${vf.id}`, TEKRAR, async () => {
+                const r = await Promise.allSettled(kareler.map((k, i) => videoBaslat(env, k, gorseller[i]?.falUrl)));
+                r.forEach((x, i) => x.status === 'rejected' && console.error('video başlatılamadı', vf.id, i + 1, hataMetni(x.reason)));
+                return r.map((x) => (x.status === 'fulfilled' ? x.value : null));
+              });
+              // null: sürüyor · '': başarısız (bir daha yoklanmaz) · anahtar: hazır
+              const bitti: (string | null)[] = isler.map((is) => (is ? null : ''));
+              for (let tur = 0; tur < 24 && bitti.some((b) => b === null); tur++) {
+                await step.sleep(`video-bekle-${vf.id}-${tur}`, '30 seconds');
+                const durum = await yap(step, `video-durum-${vf.id}-${tur}`, TEKRAR, async () =>
+                  Promise.all(
+                    isler.map(async (is, i) => {
+                      if (!is || bitti[i] !== null) return bitti[i];
+                      try {
+                        return await videoYokla(env, is, `${runId}/${vf.id}-${i + 1}.mp4`);
+                      } catch (e) {
+                        console.error('video klibi başarısız', vf.id, i + 1, hataMetni(e));
+                        return '';
+                      }
+                    })
+                  )
                 );
-                break;
+                durum.forEach((d, i) => d !== null && (bitti[i] = d));
               }
+              await yap(step, `video-kaydet-${vf.id}`, async () => {
+                await sahneMedyasiYaz(env, vf.id, bitti.map((b) => (b ? { video_anahtar: b } : {})));
+                const ilk = bitti.find(Boolean);
+                if (ilk) await env.DB.prepare('UPDATE ideas SET video_anahtar = ? WHERE id = ?').bind(ilk, vf.id).run();
+                return bitti.filter(Boolean).length;
+              });
+            } catch (e) {
+              console.error('video üretilemedi', vf.id, hataMetni(e));
             }
-          } catch (e) {
-            console.error('video üretilemedi', hataMetni(e));
           }
         }
       }
@@ -336,7 +371,28 @@ async function takipKararlari(
   }
 }
 
-type FikirOzet = { id: string; format: string; gorsel_prompt: string; video_prompt: string };
+type FikirOzet = { id: string; format: string; gorsel_prompt: string; video_prompt: string; sahne_promptlari: string[] };
+
+/** Kısa videoda en fazla bu kadar sahne klibe dönüşür (kredi). */
+const VIDEO_SAHNE_SINIRI = 4;
+
+/** Üretilecek kareler: gönderide 1, carousel'de en fazla 7, videoda en fazla 5. Sahne yoksa ortak stil. */
+function kareListesi(f: FikirOzet): string[] {
+  const enFazla = f.format === 'gonderi' ? 1 : f.format === 'carousel' ? 7 : 5;
+  const k = f.sahne_promptlari.filter((p) => p.trim()).slice(0, enFazla);
+  return k.length ? k : [f.gorsel_prompt];
+}
+
+/** Sahnelerin R2 anahtarlarını sahneler JSON'una işler; kapak = ilk görsel. */
+async function sahneMedyasiYaz(env: Env, fikirId: string, ekler: { gorsel_anahtar?: string; video_anahtar?: string }[]) {
+  const r = await env.DB.prepare('SELECT sahneler, gorsel_anahtar FROM ideas WHERE id = ?').bind(fikirId).first<any>();
+  if (!r) return;
+  let sahneler = jsonAc<any[]>(r.sahneler, []);
+  if (!sahneler.length) sahneler = ekler.map((_, i) => ({ sira: i + 1, sure_sn: 0, prompt: '', ekran_yazisi: '' }));
+  sahneler = sahneler.map((s, i) => ({ ...s, ...(ekler[i] ?? {}) }));
+  const kapak = r.gorsel_anahtar ?? sahneler.find((s) => s.gorsel_anahtar)?.gorsel_anahtar ?? null;
+  await env.DB.prepare('UPDATE ideas SET sahneler = ?, gorsel_anahtar = ? WHERE id = ?').bind(JSON.stringify(sahneler), kapak, fikirId).run();
+}
 
 async function fikirleriYaz(env: Env, runId: string, uretim: any, trendIdleri: string[]): Promise<FikirOzet[]> {
   const zaman = simdiIst();
@@ -409,6 +465,7 @@ async function fikirleriYaz(env: Env, runId: string, uretim: any, trendIdleri: s
     ozet.push({
       id, format, gorsel_prompt: gorselPrompt,
       video_prompt: sahneler.map((s) => s.prompt).filter(Boolean).join(' Then: ') || gorselPrompt,
+      sahne_promptlari: sahneler.map((s) => s.prompt),
     });
   }
   if (stmts.length) await env.DB.batch(stmts);

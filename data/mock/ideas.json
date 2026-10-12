@@ -215,25 +215,29 @@
         "sira": 1,
         "sure_sn": 2,
         "prompt": "Close-up of a phone on a motorcycle tank showing a match notification, morning light, no readable text, no faces",
-        "ekran_yazisi": "Pazar 09:00 · Şile?"
+        "ekran_yazisi": "Pazar 09:00 · Şile?",
+        "gorsel_url": "/mock/ornek-3.jpg"
       },
       {
         "sira": 2,
         "sure_sn": 4,
         "prompt": "Helmet camera POV arriving at a seaside meeting point, another rider in a helmet waving, autumn, cinematic",
-        "ekran_yazisi": "Uygulamada tanıştık"
+        "ekran_yazisi": "Uygulamada tanıştık",
+        "gorsel_url": "/mock/ornek-1.jpg"
       },
       {
         "sira": 3,
         "sure_sn": 5,
         "prompt": "Helmet camera POV following another motorcycle on a coastal road, golden hour, smooth motion",
-        "ekran_yazisi": "İlk sürüşümüz"
+        "ekran_yazisi": "İlk sürüşümüz",
+        "gorsel_url": "/mock/ornek-2.jpg"
       },
       {
         "sira": 4,
         "sure_sn": 3,
         "prompt": "Two helmets resting on a cafe table by the sea, warm light, no people visible",
-        "ekran_yazisi": "Yol arkadaşın bir eşleşme uzağında"
+        "ekran_yazisi": "Yol arkadaşın bir eşleşme uzağında",
+        "gorsel_url": "/mock/ornek-3.jpg"
       }
     ],
     "aciklama_metni": "Tek başına sürmekten sıkıldıysan, yol arkadaşın bir eşleşme uzağında. Pazar Şile'deydik, sıradaki rota senin.",
@@ -272,25 +276,29 @@
         "sira": 1,
         "sure_sn": 3,
         "prompt": "Empty misty coastal road at dawn, slow drone shot, melancholic, no people",
-        "ekran_yazisi": "Üzgünken gidilecek rota"
+        "ekran_yazisi": "Üzgünken gidilecek rota",
+        "gorsel_url": "/mock/ornek-1.jpg"
       },
       {
         "sira": 2,
         "sure_sn": 5,
         "prompt": "Rider in a dark helmet seen from behind riding slowly along a quiet sea road, overcast sky",
-        "ekran_yazisi": "Riva → Ağva → Şile"
+        "ekran_yazisi": "Riva → Ağva → Şile",
+        "gorsel_url": "/mock/ornek-2.jpg"
       },
       {
         "sira": 3,
         "sure_sn": 4,
         "prompt": "Wide shot of the Black Sea coast road winding through green hills, soft fog",
-        "ekran_yazisi": "64 km · sakin tempo"
+        "ekran_yazisi": "64 km · sakin tempo",
+        "gorsel_url": "/mock/ornek-3.jpg"
       },
       {
         "sira": 4,
         "sure_sn": 3,
         "prompt": "Parked motorcycle facing the sea at sunset, calm water, no people",
-        "ekran_yazisi": "Bazen tek ihtiyacın yol"
+        "ekran_yazisi": "Bazen tek ihtiyacın yol",
+        "gorsel_url": "/mock/ornek-1.jpg"
       }
     ],
     "aciklama_metni": "Ruh haline göre rota · Bölüm 2. Kafan doluysa Riva'dan Şile'ye sahil boyunca sakin bir sürüş. Gün batımında Şile feneri önünde mola ver.",
@@ -338,31 +346,36 @@
         "sira": 1,
         "sure_sn": 0,
         "prompt": "Winding forest road from above in autumn",
-        "ekran_yazisi": "Viraj severler için · İstanbul"
+        "ekran_yazisi": "Viraj severler için · İstanbul",
+        "gorsel_url": "/mock/ornek-3.jpg"
       },
       {
         "sira": 2,
         "sure_sn": 0,
         "prompt": "Forest road in Polonezköy",
-        "ekran_yazisi": "1 · Polonezköy · 35 km"
+        "ekran_yazisi": "1 · Polonezköy · 35 km",
+        "gorsel_url": "/mock/ornek-1.jpg"
       },
       {
         "sira": 3,
         "sure_sn": 0,
         "prompt": "Coastal road to Şile",
-        "ekran_yazisi": "2 · Şile sahil · 70 km"
+        "ekran_yazisi": "2 · Şile sahil · 70 km",
+        "gorsel_url": "/mock/ornek-2.jpg"
       },
       {
         "sira": 4,
         "sure_sn": 0,
         "prompt": "Hilly road Ağva to Kandıra",
-        "ekran_yazisi": "3 · Ağva – Kandıra · 110 km"
+        "ekran_yazisi": "3 · Ağva – Kandıra · 110 km",
+        "gorsel_url": "/mock/ornek-3.jpg"
       },
       {
         "sira": 5,
         "sure_sn": 0,
         "prompt": "Two motorcycles parked at a viewpoint",
-        "ekran_yazisi": "Rotanı Kontak'ta paylaş"
+        "ekran_yazisi": "Rotanı Kontak'ta paylaş",
+        "gorsel_url": "/mock/ornek-1.jpg"
       }
     ],
     "aciklama_metni": "Viraj severler için · İstanbul. Kaydet, hafta sonu birini seç. Yalnız gitme: rotanı Kontak'ta paylaş, aynı yöne giden motorcularla buluş.",
@@ -445,19 +458,22 @@
         "sira": 1,
         "sure_sn": 3,
         "prompt": "Sunlit forest road, bright morning",
-        "ekran_yazisi": "Mutluyken gidilecek rota"
+        "ekran_yazisi": "Mutluyken gidilecek rota",
+        "gorsel_url": "/mock/ornek-3.jpg"
       },
       {
         "sira": 2,
         "sure_sn": 5,
         "prompt": "Group of riders in helmets on a curvy forest road",
-        "ekran_yazisi": "Polonezköy orman yolu"
+        "ekran_yazisi": "Polonezköy orman yolu",
+        "gorsel_url": "/mock/ornek-1.jpg"
       },
       {
         "sira": 3,
         "sure_sn": 3,
         "prompt": "Breakfast table in a village garden, helmets on the bench",
-        "ekran_yazisi": "35 km · köy kahvaltısı"
+        "ekran_yazisi": "35 km · köy kahvaltısı",
+        "gorsel_url": "/mock/ornek-2.jpg"
       }
     ],
     "aciklama_metni": "Ruh haline göre rota · Bölüm 1. Keyfin yerindeyse Polonezköy orman yolu ve köy kahvaltısı.",

@@ -1,7 +1,8 @@
 import type { Idea, Series } from '../types'
 import { useStore } from '../store'
 import { assetUrl } from '../api'
-import { FORMAT_LABEL, STATUS_LABEL } from '../lib'
+import { FORMAT_LABEL, STATUS_LABEL, hasVideo, scenesOf } from '../lib'
+import { Images, Play } from 'lucide-react'
 import { FormatIcon, PlatformGlyph, SeriesIcon } from './bits'
 
 export function MediaCard({ idea, series }: { idea: Idea; series?: Series }) {
@@ -33,6 +34,17 @@ export function MediaCard({ idea, series }: { idea: Idea; series?: Series }) {
         )}
         <span className="mcard-title">{idea.baslik}</span>
       </span>
+      {hasVideo(idea) ? (
+        <span className="mcard-media">
+          <Play size={10} fill="currentColor" /> {scenesOf(idea).filter((s) => s.video_url).length} klip
+        </span>
+      ) : (
+        idea.format === 'carousel' && (
+          <span className="mcard-media">
+            <Images size={11} /> {scenesOf(idea).length}
+          </span>
+        )
+      )}
     </button>
   )
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Check, ChevronDown, Copy, Info, MapPin, Music2, Send, Undo2, X } from 'lucide-react'
 import { useStore } from '../store'
-import { STATUS_LABEL, caption, copyText, scenesOf } from '../lib'
+import { STATUS_LABEL, caption, copyText, hasVideo, scenesOf } from '../lib'
 import { FeedView, PhoneFrame, ProfileView, ReelsView, TikTokView } from './Phone'
 
 type Platform = 'instagram' | 'tiktok'
@@ -41,6 +41,7 @@ export default function Preview({ onClose }: { onClose?: () => void }) {
                 </span>
               )}
               <b>{idea.baslik}</b>
+              {idea.format === 'kisa_video' && !hasVideo(idea) && <span className="preview-note">Video klibi yok · görsel önizleme</span>}
             </div>
             <div className="seg" role="tablist" aria-label="Platform">
               {(['instagram', 'tiktok'] as Platform[]).map((p) => (

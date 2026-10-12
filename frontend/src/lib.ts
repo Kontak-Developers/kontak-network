@@ -1,4 +1,4 @@
-import type { Idea, IdeaStatus, Run, RunStep, Trend } from './types'
+import type { Idea, IdeaStatus, Run, RunStep, Scene, Trend } from './types'
 
 export const STEPS: RunStep[] = ['tara', 'analiz', 'uret', 'kaydet']
 export const STEP_LABEL: Record<RunStep, string> = { tara: 'Tara', analiz: 'Analiz', uret: 'Üret', kaydet: 'Kaydet' }
@@ -65,7 +65,17 @@ export async function copyText(text: string) {
 }
 
 /** Sahne listesi yoksa tek sahne üret */
-export function scenesOf(idea: Idea) {
-  if (idea.sahneler?.length) return idea.sahneler
-  return [{ sira: 1, sure_sn: 4, prompt: idea.gorsel_prompt, ekran_yazisi: idea.kanca }]
+export function scenesOf(idea: Idea): Scene[] {
+  const base: Scene[] = idea.sahneler?.length
+    ? idea.sahneler
+    : [{ sira: 1, sure_sn: 4, prompt: idea.gorsel_prompt, ekran_yazisi: idea.kanca }]
+  // Tek parça eski video: ilk sahneye bağla
+  if (idea.video_url && !base.some((s) => s.video_url)) return base.map((s, i) => (i === 0 ? { ...s, video_url: idea.video_url } : s))
+  return base
 }
+
+/** Fikrin gerçek video klibi var mı */
+export const hasVideo = (idea: Idea) => scenesOf(idea).some((s) => s.video_url)
+
+/** Sahnenin görseli; yoksa fikrin kapağı */
+export const sceneImage = (idea: Idea, s: Scene) => s.gorsel_url ?? idea.gorsel_url

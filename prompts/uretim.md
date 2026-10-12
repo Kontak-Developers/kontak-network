@@ -24,8 +24,12 @@ Tek seferlik test girdisi `gundem` alanını doğrudan trend dizisi olarak da ve
 5. Güvenlik: kask ve uygun ekipman görünür olsun. Kasksız/ekipmansız sürüş, hız, tek teker, tehlikeli manevra, trafikte çekim veya sürüş sırasında telefon kullanımı gösterme/önerme. Kamera güvenli biçimde sabitlenmiş olsun veya çekim sürüş dışında yapılsın. Teknik güvenlik tavsiyesi uydurma; girdi desteklemiyorsa genel ve temkinli kal.
 6. Girdide verilmeyen rota, kilometre, etkinlik zamanı, ürün özelliği veya istatistiği uydurma. Rota kanıtı yoksa `rota` için boş ad, 0 km ve boş duraklar kullan. Fikir, gerçek ve doğrulanmış bir yerden yararlanıyorsa yalnız girdide desteklenen bilgiyi yaz.
 7. `hashtagler` için konuyla ilgili 4–7 etiket seç ve başlarında `#` kullan. Girdide olmayan etiketi yükseliyor diye tanıtma; alakasız popüler etiket veya başka marka adı ekleme.
-8. `gorsel_prompt` fal.ai için İngilizce, tek istem ve en fazla 1200 karakter olsun: dikey 1080x1350, vurgu rengi lacivert `#0000A8`, belirgin/ayırt edilebilir gerçek kişi yüzü yok, başka marka veya logo yok, görsel üzerinde okunabilir yazı yok. İnsan varsa kimliği belirsiz ve kaskı kapalı olsun; tehlikeli sürüş göstermesin.
-9. `sahneler`, `senaryo` ile aynı sırada yapısal sahne listesi olsun. Her sahne `sira` (1'den başlayan sayı), `sure_sn` (saniye; carousel/gönderide 0 olabilir), `prompt` (İngilizce görsel/sahne tarifi) ve `ekran_yazisi` (tasarımda sonradan eklenecek Türkçe metin) alanlarını taşısın. Görsel modelinden yazı üretmesini isteme.
+8. `gorsel_prompt` fikrin **ortak görsel stili**dir (İngilizce, en fazla 600 karakter). Her sahnenin görseline eklenir; carousel ve videodaki karelerin aynı dünyadan geldiğini bu sağlar. Sahne tarif etme. Işık, renk paleti, mevsim, lens ve film dokusu tarif et. Örnek: "cinematic editorial motorcycle photography, golden-hour autumn light, muted warm palette with deep navy #0000A8 accents in clothing or gear, 35mm lens, shallow depth of field, subtle film grain, photorealistic". Belirgin kişi yüzü yok, başka marka veya logo yok, okunabilir yazı ya da plaka yok. İnsan varsa kimliği belirsiz ve kaskı kapalı olsun.
+9. `sahneler`, `senaryo` ile aynı sırada yapısal sahne listesi olsun. Her sahne `sira` (1'den başlayan sayı), `sure_sn` (saniye; carousel/gönderide 0 olabilir), `prompt` (İngilizce) ve `ekran_yazisi` (tasarımda sonradan eklenecek kısa Türkçe metin, en fazla 6 kelime) alanlarını taşısın. **Her sahne için ayrı bir görsel üretilir, kısa videoda bu görsel 5 saniyelik gerçek bir video klibe dönüştürülür.** Bu yüzden sahne `prompt`ları:
+   - **Birbirinden açıkça farklı kareler** tarif etsin: farklı özne, farklı mekân ya da farklı çekim ölçeği ve açısı (geniş plan, yakın plan, detay, havadan, arkadan). Aynı fotoğrafın tekrarı olmasın; carousel'de her kart kendi başına güçlü bir fotoğraf olsun.
+   - Somut ve görsel olsun: ne görünüyor, nerede, ışık nasıl, kamera nerede. Örnek: "low-angle close-up of a gloved hand resting on a motorcycle tank, misty forest road blurred behind, morning dew on the paint".
+   - Kısa videoda **hareketi ve kamera hareketini** de söylesin: "slow dolly forward", "drone shot gliding over the coastal road", "rider seen from behind leaning gently into a curve", "leaves drifting across the empty road". Hareket güvenli ve sakin olsun.
+   - Görsel modelinden yazı, logo ya da arayüz üretmesini istemesin. Ekranda görünecek metin yalnız `ekran_yazisi`'nda.
 10. Uygun mevcut seri varsa `seri` alanında seri id'sini kullan; serisiz fikirde `seri`, `bolum_no` ve `bolum_adi` için `null` kullan. Yeni bir seri açılacaksa kök `seriler` listesine ekle ve fikirde `seri` alanına yeni serinin adını yaz; sıradaki bölüm numarasını tahmin etme, `bolum_no` değerini `null` bırak.
 11. Gerçek olduğu doğrulanmış bir ses girdide yoksa `onerilen_ses: null` kullan. Test için uydurulmuş ses adını yayın önerisi gibi sunma.
 12. Son kontrolde tam 3 fikir (gündem boş değilse), geçerli trend id'leri, benzersiz kanca/senaryolar ve geçerli JSON olduğunu doğrula.
@@ -58,9 +62,9 @@ Yanıt **yalnızca** Worker ile uyumlu JSON nesnesi olsun; Markdown, açıklama,
       "senaryo": ["Sahne 1", "Sahne 2", "Sahne 3"],
       "aciklama_metni": "Paylaşım açıklaması ve çağrı.",
       "hashtagler": ["#motosiklet", "#kontak", "#grupsürüşü", "#motovlog"],
-      "gorsel_prompt": "English prompt: vertical 1080x1350, deep navy accent #0000A8, no identifiable human faces, no logos, no visible text.",
+      "gorsel_prompt": "Shared visual style in English: light, palette with deep navy #0000A8 accents, lens, texture. No faces, logos or text.",
       "sahneler": [
-        {"sira": 1, "sure_sn": 3, "prompt": "English visual direction.", "ekran_yazisi": "Sonradan eklenecek kısa yazı"}
+        {"sira": 1, "sure_sn": 5, "prompt": "Distinct shot in English: subject, place, light, camera angle and movement.", "ekran_yazisi": "Kısa ekran yazısı"}
       ],
       "rota": {"ad": "", "km": 0, "duraklar": []},
       "onerilen_ses": null
