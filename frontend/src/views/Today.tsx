@@ -39,11 +39,11 @@ export default function Today({ openAgent }: { openAgent: () => void }) {
           </span>
           <div className="hero-text">
             <span className="eyebrow">{running ? 'Ajan şu an çalışıyor' : shown ? `${relDay(shown.baslangic)} ${fmtTime(shown.baslangic)}` : 'Henüz çalışmadı'}</span>
-            <h1>{running ? 'Gündem taranıyor…' : (shown?.ozet ?? 'Ajanı ilk kez çalıştır')}</h1>
+            <h1>{running ? 'Gündem taranıyor…' : (shown?.ozet ?? 'Ajan ilk taramasını bekliyor')}</h1>
           </div>
           <button className="btn btn-primary btn-lg hero-btn" onClick={run} disabled={running || starting}>
             {running ? <Loader2 size={18} className="spin" /> : <Play size={17} fill="currentColor" />}
-            {running ? 'Çalışıyor' : 'Şimdi çalıştır'}
+            {running ? 'Çalışıyor' : 'Şimdi tara'}
           </button>
         </div>
 
