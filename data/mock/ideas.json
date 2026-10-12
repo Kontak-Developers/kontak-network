@@ -1,5 +1,199 @@
 [
   {
+    "trend_id": "trend_test_10",
+    "seri": null,
+    "bolum_no": null,
+    "bolum_adi": null,
+    "platform": "tiktok",
+    "format": "kisa_video",
+    "baslik": "Yola çıkmamak da bir plan",
+    "kanca": "Koşullar uygun değilse, bugünkü buluşma mola; rota başka güne.",
+    "senaryo": [
+      "Park halindeki motorlar ve ekipmanla sakin açılış.",
+      "Sürücüler yalnızca park halindeyken hava ve planı konuşur.",
+      "Koşullar uygun değilse sürüşün ertelendiği net biçimde belirtilir.",
+      "Kasklar ve eldivenler hazır; grup güvenli bir kapalı alanda buluşmayı sürdürür."
+    ],
+    "aciklama_metni": "Yola çıkmadan hava ve yol koşullarını değerlendirin. Uygun değilse ertelemek de planın parçası. Buluşma ve sonraki sürüş planını Kontak'ta arkadaşlarınla kur.",
+    "hashtagler": [
+      "#güvenlisürüş",
+      "#motosiklet",
+      "#grupsürüşü",
+      "#kontak"
+    ],
+    "gorsel_prompt": "Create a vertical 1080x1350 editorial image of two anonymous, fully helmeted riders beside safely parked motorcycles at a sheltered meeting point during light rain; visible protective gear, reflective details and a small deep navy #0000A8 accent on a route card, no identifiable human faces, no logos, no readable text, no moving traffic, no speed or risky behavior.",
+    "sahneler": [
+      {
+        "sira": 1,
+        "sure_sn": 3,
+        "prompt": "Static close-up of parked motorcycles and visible protective gear under soft rainy daylight.",
+        "ekran_yazisi": "Önce koşulları kontrol et"
+      },
+      {
+        "sira": 2,
+        "sure_sn": 4,
+        "prompt": "Anonymous helmeted riders discuss a ride plan while all motorcycles are parked; no phone use while riding.",
+        "ekran_yazisi": "Planı yola çıkmadan konuş"
+      },
+      {
+        "sira": 3,
+        "sure_sn": 4,
+        "prompt": "A calm indoor café meeting point with helmets and gloves placed safely on a table; no identifiable faces.",
+        "ekran_yazisi": "Uygun değilse ertele"
+      },
+      {
+        "sira": 4,
+        "sure_sn": 3,
+        "prompt": "Parked motorcycles remain still as the group reschedules a ride in a friendly community setting.",
+        "ekran_yazisi": "Sonraki sürüşte görüşürüz"
+      }
+    ],
+    "rota": {
+      "ad": "",
+      "km": 0,
+      "duraklar": []
+    },
+    "onerilen_ses": null,
+    "id": "idea_test_1",
+    "run_id": "run_test_synthetic_2026-10-12_1231",
+    "series_id": null,
+    "gorsel_url": null,
+    "video_url": null,
+    "durum": "yeni"
+  },
+  {
+    "trend_id": "trend_test_1",
+    "seri": null,
+    "bolum_no": null,
+    "bolum_adi": null,
+    "platform": "instagram",
+    "format": "carousel",
+    "baslik": "İlk grup sürüşünde önce tanış",
+    "kanca": "İlk kez katıldığın grupla yola çıkmadan önce tanışmak ister misin?",
+    "senaryo": [
+      "Kart 1: Kapak; park etmiş motosikletler ve başlık için boş alan.",
+      "Kart 2: Buluşma alanında kaskları kapalı sürücüler selamlaşır.",
+      "Kart 3: Motorlar kapalıyken rota ve herkesin rahat ettiği tempo konuşulur.",
+      "Kart 4: Güvenli takip mesafesini koruyan sakin grup sürüşünden yüz göstermeyen bir kare.",
+      "Kart 5: Kahve molası ve Kontak'ta sürüş arkadaşı bulma çağrısı."
+    ],
+    "aciklama_metni": "İlk grup sürüşünde tanışmayı ve planı yola çıkmadan konuşmak iyi bir başlangıç. Yeni sürüş arkadaşlarını Kontak'ta bul; buluşma noktasında görüşürüz.",
+    "hashtagler": [
+      "#grupsürüşü",
+      "#ilkgrupsürüşüm",
+      "#motorcu",
+      "#motosiklet",
+      "#kontak"
+    ],
+    "gorsel_prompt": "Create a vertical 1080x1350 editorial carousel cover showing anonymous, fully helmeted motorcycle riders greeting beside safely parked bikes before a daytime group ride; inclusive protective gear, friendly but natural body language, deep navy #0000A8 accents, generous negative space for later layout, no identifiable human faces, no logos, no visible text, no traffic or risky riding.",
+    "sahneler": [
+      {
+        "sira": 1,
+        "sure_sn": 0,
+        "prompt": "Editorial cover illustration of safely parked motorcycles at a daytime meeting point, with empty space for later text.",
+        "ekran_yazisi": "İlk grup sürüşünde önce tanış"
+      },
+      {
+        "sira": 2,
+        "sure_sn": 0,
+        "prompt": "Anonymous fully helmeted riders greet beside parked motorcycles; inclusive protective gear.",
+        "ekran_yazisi": "Buluşmada selamlaş"
+      },
+      {
+        "sira": 3,
+        "sure_sn": 0,
+        "prompt": "A simple route card and helmets on a parked bike; riders discuss the plan before departure.",
+        "ekran_yazisi": "Rotayı ve tempoyu konuş"
+      },
+      {
+        "sira": 4,
+        "sure_sn": 0,
+        "prompt": "Distant rear view of a small group riding calmly with safe following gaps; no traffic conflict or risky maneuvers.",
+        "ekran_yazisi": "Herkesin temposuna saygı"
+      },
+      {
+        "sira": 5,
+        "sure_sn": 0,
+        "prompt": "Coffee stop after the ride, helmets on the table, anonymous riders seen only from behind.",
+        "ekran_yazisi": "Yol arkadaşını Kontak'ta bul"
+      }
+    ],
+    "rota": {
+      "ad": "",
+      "km": 0,
+      "duraklar": []
+    },
+    "onerilen_ses": null,
+    "id": "idea_test_2",
+    "run_id": "run_test_synthetic_2026-10-12_1231",
+    "series_id": null,
+    "gorsel_url": null,
+    "video_url": null,
+    "durum": "yeni"
+  },
+  {
+    "trend_id": "trend_test_7",
+    "seri": null,
+    "bolum_no": null,
+    "bolum_adi": null,
+    "platform": "tiktok",
+    "format": "kisa_video",
+    "baslik": "Buluşma noktasından sakin POV",
+    "kanca": "Birlikte çıkılan rota, yola çıkmadan önce tanışmayla başlar.",
+    "senaryo": [
+      "Park halindeki kask ve güvenli biçimde sabitlenmiş kamera gösterilir.",
+      "Buluşma noktasında kasklı sürücüler selamlaşıp planı konuşur.",
+      "Sabit kameradan sakin yol görüntüsü ve güvenli takip aralığı gösterilir.",
+      "Sürüş sonrası kahve molası ve Kontak çağrısıyla kapanış yapılır."
+    ],
+    "aciklama_metni": "Önce buluş, rotayı ve molayı konuş; sonra güvenli bir sürüş planı yap. Aynı yöne gidecek yol arkadaşlarını Kontak'ta bul.",
+    "hashtagler": [
+      "#motovlog",
+      "#grupsürüşü",
+      "#motosikletgezisi",
+      "#kontak"
+    ],
+    "gorsel_prompt": "Create a vertical 1080x1350 cinematic editorial image of anonymous, fully helmeted riders preparing for a calm group ride at a public meeting point; a securely mounted action camera is visible on a parked helmet, bikes remain safely parked, subtle deep navy #0000A8 accent, soft autumn daylight, no identifiable faces, no logos, no readable text, no dangerous riding.",
+    "sahneler": [
+      {
+        "sira": 1,
+        "sure_sn": 3,
+        "prompt": "A securely mounted action camera on a helmet resting on a parked motorcycle; protective gear visible.",
+        "ekran_yazisi": "Önce buluş"
+      },
+      {
+        "sira": 2,
+        "sure_sn": 3,
+        "prompt": "Anonymous helmeted riders greet at a calm meeting point beside parked motorcycles.",
+        "ekran_yazisi": "Planı birlikte kur"
+      },
+      {
+        "sira": 3,
+        "sure_sn": 5,
+        "prompt": "Stable helmet-camera point of view on a calm road, safe following distance, no speeding, no traffic weaving.",
+        "ekran_yazisi": "Sakin tempo, güvenli mesafe"
+      },
+      {
+        "sira": 4,
+        "sure_sn": 3,
+        "prompt": "Coffee break after riding, helmets set down safely, riders shown only from behind.",
+        "ekran_yazisi": "Yol arkadaşlarını Kontak'ta bul"
+      }
+    ],
+    "rota": {
+      "ad": "",
+      "km": 0,
+      "duraklar": []
+    },
+    "onerilen_ses": null,
+    "id": "idea_test_3",
+    "run_id": "run_test_synthetic_2026-10-12_1231",
+    "series_id": null,
+    "gorsel_url": null,
+    "video_url": null,
+    "durum": "yeni"
+  },
+  {
     "id": "i1",
     "run_id": "run_2026-10-12_0800",
     "trend_id": "t1",

@@ -37,10 +37,28 @@ function seed(): State {
   }
 }
 
+function mergeSeedRows<T extends { id: string }>(fresh: T[], savedRows: unknown): T[] {
+  if (!Array.isArray(savedRows)) return fresh
+  const saved = savedRows.filter((row): row is T => !!row && typeof row.id === 'string')
+  const savedById = new Map(saved.map((row) => [row.id, row]))
+  const freshIds = new Set(fresh.map((row) => row.id))
+  return [...fresh.map((row) => savedById.get(row.id) ?? row), ...saved.filter((row) => !freshIds.has(row.id))]
+}
+
 function load(): State {
   try {
     const raw = localStorage.getItem(STORE_KEY)
-    if (raw) return { ...seed(), ...JSON.parse(raw) }
+    if (raw) {
+      const fresh = seed()
+      const saved = JSON.parse(raw) as Partial<State>
+      const merged = { ...fresh, ...saved }
+      merged.runs = mergeSeedRows(fresh.runs, saved.runs).sort(
+        (a, b) => Date.parse(b.baslangic) - Date.parse(a.baslangic),
+      )
+      merged.trends = mergeSeedRows(fresh.trends, saved.trends)
+      merged.ideas = mergeSeedRows(fresh.ideas, saved.ideas)
+      return merged
+    }
   } catch {
     // tarayıcı depolaması kapalıysa seed ile devam
   }

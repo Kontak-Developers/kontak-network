@@ -1,5 +1,145 @@
 [
   {
+    "id": "trend_test_1",
+    "tip": "konu",
+    "baslik": "İlk grup buluşması ve yeni sürücülerin tanışması",
+    "aciklama": "7 farklı gönderi ve hesap iki platformda ilk kez katılanların tanışma, rota ve tempoyu yola çıkmadan konuşmasını anlatıyor; 48 saatlik sentetik örneklem içi sinyal, önceki hafta kıyası yok.",
+    "platform": "ikisi",
+    "ivme": 65,
+    "ornek_linkler": [
+      "https://example.com/kontak-test/p02",
+      "https://example.com/kontak-test/p06",
+      "https://example.com/kontak-test/p18"
+    ],
+    "run_id": "run_test_synthetic_2026-10-12_1231"
+  },
+  {
+    "id": "trend_test_2",
+    "tip": "hashtag",
+    "baslik": "#grupsürüşü",
+    "aciklama": "Etiket 11 farklı gönderi ve hesapta, TikTok ve Instagram'da tekrarlandı; 48 saatlik sentetik örneklem içi sinyal, önceki hafta kıyası yok.",
+    "platform": "ikisi",
+    "ivme": 64,
+    "ornek_linkler": [
+      "https://example.com/kontak-test/p01",
+      "https://example.com/kontak-test/p05",
+      "https://example.com/kontak-test/p14"
+    ],
+    "run_id": "run_test_synthetic_2026-10-12_1231"
+  },
+  {
+    "id": "trend_test_3",
+    "tip": "hashtag",
+    "baslik": "#güvenlisürüş",
+    "aciklama": "Etiket 4 farklı gönderi ve hesapta iki platformda geçti; içerikler koşulları değerlendirme ve güvenli sürüşü destekliyor. 48 saatlik sentetik örneklem içi sinyal, önceki hafta kıyası yok.",
+    "platform": "ikisi",
+    "ivme": 59,
+    "ornek_linkler": [
+      "https://example.com/kontak-test/p07",
+      "https://example.com/kontak-test/p12",
+      "https://example.com/kontak-test/p20"
+    ],
+    "run_id": "run_test_synthetic_2026-10-12_1231"
+  },
+  {
+    "id": "trend_test_4",
+    "tip": "ses",
+    "baslik": "Yol Arkadaşı – sakin lo-fi (sentetik test sesi)",
+    "aciklama": "Aynı sentetik ses adı 10 örnek gönderide ve iki platformda yer aldı; bu gerçek bir müzik trendi değil, yalnızca prompt test sinyalidir ve önceki hafta kıyası yok.",
+    "platform": "ikisi",
+    "ivme": 58,
+    "ornek_linkler": [
+      "https://example.com/kontak-test/p01",
+      "https://example.com/kontak-test/p03",
+      "https://example.com/kontak-test/p17"
+    ],
+    "run_id": "run_test_synthetic_2026-10-12_1231"
+  },
+  {
+    "id": "trend_test_5",
+    "tip": "format",
+    "baslik": "Instagram carousel rota kartları",
+    "aciklama": "4 farklı Instagram gönderisi carousel formatında rota ve mola fikirleri sunuyor; 48 saatlik sentetik örneklem içi sinyal, önceki hafta kıyası yok.",
+    "platform": "instagram",
+    "ivme": 57,
+    "ornek_linkler": [
+      "https://example.com/kontak-test/p04",
+      "https://example.com/kontak-test/p09",
+      "https://example.com/kontak-test/p14"
+    ],
+    "run_id": "run_test_synthetic_2026-10-12_1231"
+  },
+  {
+    "id": "trend_test_6",
+    "tip": "hashtag",
+    "baslik": "#motosikletgezisi",
+    "aciklama": "Etiket 6 farklı gönderi ve hesapta TikTok ve Instagram'da geçti; paylaşımlar rota ve mola anlatımları içeriyor. 48 saatlik sentetik örneklem içi sinyal, önceki hafta kıyası yok.",
+    "platform": "ikisi",
+    "ivme": 56,
+    "ornek_linkler": [
+      "https://example.com/kontak-test/p03",
+      "https://example.com/kontak-test/p04",
+      "https://example.com/kontak-test/p16"
+    ],
+    "run_id": "run_test_synthetic_2026-10-12_1231"
+  },
+  {
+    "id": "trend_test_7",
+    "tip": "format",
+    "baslik": "Kask kamerası POV ve mola anlatımı",
+    "aciklama": "7 farklı gönderi TikTok ve Instagram'da kask kamerası POV anlatımını kullanıyor; 48 saatlik sentetik örneklem içi sinyal, önceki hafta kıyası yok.",
+    "platform": "ikisi",
+    "ivme": 56,
+    "ornek_linkler": [
+      "https://example.com/kontak-test/p01",
+      "https://example.com/kontak-test/p03",
+      "https://example.com/kontak-test/p19"
+    ],
+    "run_id": "run_test_synthetic_2026-10-12_1231"
+  },
+  {
+    "id": "trend_test_8",
+    "tip": "konu",
+    "baslik": "Sonbahar rotaları ve planlı mola",
+    "aciklama": "6 farklı gönderi Şile/Polonezköy adlarını ve mola planlarını bir araya getiriyor; bunlar yalnızca sentetik girdide geçen örneklerdir, 48 saatlik örneklem içi sinyal ve önceki hafta kıyası yok.",
+    "platform": "ikisi",
+    "ivme": 56,
+    "ornek_linkler": [
+      "https://example.com/kontak-test/p03",
+      "https://example.com/kontak-test/p04",
+      "https://example.com/kontak-test/p16"
+    ],
+    "run_id": "run_test_synthetic_2026-10-12_1231"
+  },
+  {
+    "id": "trend_test_9",
+    "tip": "hashtag",
+    "baslik": "#motovlog",
+    "aciklama": "Etiket 5 farklı gönderi ve hesapta TikTok ve Instagram'da kullanıldı; 48 saatlik sentetik örneklem içi sinyal, önceki hafta kıyası yok.",
+    "platform": "ikisi",
+    "ivme": 54,
+    "ornek_linkler": [
+      "https://example.com/kontak-test/p03",
+      "https://example.com/kontak-test/p05",
+      "https://example.com/kontak-test/p19"
+    ],
+    "run_id": "run_test_synthetic_2026-10-12_1231"
+  },
+  {
+    "id": "trend_test_10",
+    "tip": "konu",
+    "baslik": "Yağışta ekipman kontrolü ve sürüşü erteleme",
+    "aciklama": "3 farklı gönderi iki platformda hava koşullarını değerlendirme ve uygun değilse sürüşü erteleme temasını işliyor; 48 saatlik sentetik örneklem içi sinyal, önceki hafta kıyası yok.",
+    "platform": "ikisi",
+    "ivme": 49,
+    "ornek_linkler": [
+      "https://example.com/kontak-test/p07",
+      "https://example.com/kontak-test/p13",
+      "https://example.com/kontak-test/p20"
+    ],
+    "run_id": "run_test_synthetic_2026-10-12_1231"
+  },
+  {
     "id": "t1",
     "run_id": "run_2026-10-12_0800",
     "tip": "format",
@@ -7,7 +147,9 @@
     "aciklama": "Sürüş anını sürücünün gözünden gösteren 10-15 saniyelik videolar. Son 48 saatte önceki haftanın 3 katı paylaşım.",
     "platform": "tiktok",
     "ivme": 86,
-    "ornek_linkler": ["https://www.tiktok.com/tag/motovlog"]
+    "ornek_linkler": [
+      "https://www.tiktok.com/tag/motovlog"
+    ]
   },
   {
     "id": "t2",
@@ -17,7 +159,9 @@
     "aciklama": "Sarı yapraklı orman yolları ve sahil rotaları. Özellikle Şile, Polonezköy ve Kazdağları paylaşımları artıyor.",
     "platform": "ikisi",
     "ivme": 79,
-    "ornek_linkler": ["https://www.instagram.com/explore/tags/motosiklet/"]
+    "ornek_linkler": [
+      "https://www.instagram.com/explore/tags/motosiklet/"
+    ]
   },
   {
     "id": "t3",
@@ -27,7 +171,9 @@
     "aciklama": "Motor sesinin yavaşlatılıp lo-fi müzikle birleştiği ses, kısa videolarda hızla yayılıyor.",
     "platform": "tiktok",
     "ivme": 72,
-    "ornek_linkler": ["https://www.tiktok.com/tag/motorcu"]
+    "ornek_linkler": [
+      "https://www.tiktok.com/tag/motorcu"
+    ]
   },
   {
     "id": "t4",
@@ -37,7 +183,9 @@
     "aciklama": "Yeni ehliyet alanların ilk sürüş deneyimini paylaştığı etiket. Yorumlarda çok fazla \"birlikte sürelim\" mesajı var.",
     "platform": "instagram",
     "ivme": 68,
-    "ornek_linkler": ["https://www.instagram.com/explore/tags/motorcu/"]
+    "ornek_linkler": [
+      "https://www.instagram.com/explore/tags/motorcu/"
+    ]
   },
   {
     "id": "t5",
@@ -47,7 +195,9 @@
     "aciklama": "Konvoyda kullanılan el işaretlerini anlatan eğitici içerikler kaydediliyor ve paylaşılıyor.",
     "platform": "instagram",
     "ivme": 54,
-    "ornek_linkler": ["https://www.instagram.com/explore/tags/motosiklet/"]
+    "ornek_linkler": [
+      "https://www.instagram.com/explore/tags/motosiklet/"
+    ]
   },
   {
     "id": "t6",
@@ -57,7 +207,9 @@
     "aciklama": "Popüler ama durağan: paylaşım çok, büyüme düşük. Takipte kalınmalı.",
     "platform": "tiktok",
     "ivme": 31,
-    "ornek_linkler": ["https://www.tiktok.com/tag/motosiklet"]
+    "ornek_linkler": [
+      "https://www.tiktok.com/tag/motosiklet"
+    ]
   },
   {
     "id": "t7",
@@ -67,7 +219,9 @@
     "aciklama": "Cumartesi sabahı buluşup çıkılan grup sürüşlerinin paylaşımları zirve yaptı.",
     "platform": "ikisi",
     "ivme": 81,
-    "ornek_linkler": ["https://www.instagram.com/explore/tags/motorcu/"]
+    "ornek_linkler": [
+      "https://www.instagram.com/explore/tags/motorcu/"
+    ]
   },
   {
     "id": "t8",
@@ -77,7 +231,9 @@
     "aciklama": "Yeni sürücülerin ilk deneyim paylaşımları artmaya başladı.",
     "platform": "instagram",
     "ivme": 52,
-    "ornek_linkler": ["https://www.instagram.com/explore/tags/motorcu/"]
+    "ornek_linkler": [
+      "https://www.instagram.com/explore/tags/motorcu/"
+    ]
   },
   {
     "id": "t9",
@@ -87,7 +243,9 @@
     "aciklama": "Havaların bozulmasıyla güvenli sürüş içerikleri öne çıktı.",
     "platform": "ikisi",
     "ivme": 74,
-    "ornek_linkler": ["https://www.tiktok.com/tag/motosiklet"]
+    "ornek_linkler": [
+      "https://www.tiktok.com/tag/motosiklet"
+    ]
   },
   {
     "id": "t10",
@@ -97,6 +255,8 @@
     "aciklama": "Hafta içi akşam kafe buluşmalarının paylaşımları artıyor.",
     "platform": "instagram",
     "ivme": 66,
-    "ornek_linkler": ["https://www.instagram.com/explore/tags/motorcukafe/"]
+    "ornek_linkler": [
+      "https://www.instagram.com/explore/tags/motorcukafe/"
+    ]
   }
 ]
