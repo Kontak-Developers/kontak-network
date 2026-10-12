@@ -18,6 +18,8 @@ data/mock/  Sahte veri, aşağıdaki şekillerle birebir
 {
   "id": "kontak",
   "ad": "Kontak",
+  "kullanici_adi": "kontak",
+  "logo_url": "/brands/kontak/logo.png",
   "tanim": "Türkiye'de motosiklet kültürü üzerine kurulu tanışma ve topluluk uygulaması",
   "hedef_kitle": "…",
   "ton_kurallari": ["…"],
@@ -46,6 +48,11 @@ data/mock/  Sahte veri, aşağıdaki şekillerle birebir
 }
 ```
 `tetik`: cron | manuel. `durum`: calisiyor | tamamlandi | hata. `adim`: tara | analiz | uret | kaydet.
+
+İsteğe bağlı `log`: ajanın canlı günlüğü, panel çalışırken son satırları gösterir. Her adımda 1-3 kısa satır ekleyin, demoda çok etkili:
+```json
+"log": [{ "zaman": "2026-10-12T08:00:04+03:00", "mesaj": "TikTok taranıyor: #motovlog #pov #virajsever" }]
+```
 
 ## Gündem: `GET /api/trends?run=<id>`
 

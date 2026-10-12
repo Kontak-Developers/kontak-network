@@ -1,146 +1,179 @@
-import { useCallback, useEffect, useState } from 'react'
-import { api } from '../api'
-import type { Idea, Run, Trend, Weekly } from '../types'
-import { RunMeta, RunStatus, StepTrack, TrendList } from '../ui'
+import { useState } from 'react'
+import { ArrowDownRight, ArrowUpRight, Check, Loader2, Play, Sparkles } from 'lucide-react'
+import { useShownRun, useStore } from '../store'
+import { STEPS, STEP_HINT, STEP_LABEL, TREND_LABEL, fmtTime, relDay, runDuration } from '../lib'
+import { MediaGrid } from '../components/MediaCard'
+import { PlatformGlyph, TrendIcon } from '../components/bits'
+import { Avatar } from '../components/Phone'
 
-export default function Today({ onOpenIdeas }: { onOpenIdeas: () => void }) {
-  const [run, setRun] = useState<Run | null>(null)
-  const [trends, setTrends] = useState<Trend[]>([])
-  const [ideas, setIdeas] = useState<Idea[]>([])
-  const [weekly, setWeekly] = useState<Weekly | null>(null)
+export default function Today({ openAgent }: { openAgent: () => void }) {
+  const { brand, latest, trends, ideas, weekly, startRun } = useStore()
+  const shown = useShownRun()
+  const [trendId, setTrendId] = useState<string | null>(null)
   const [starting, setStarting] = useState(false)
-  const [loading, setLoading] = useState(true)
+  if (!brand) return null
 
-  const load = useCallback(async () => {
-    const latest = await api.latestRun()
-    setRun(latest)
-    // çalışan bir çalıştırma varsa son tamamlananın gündemini göster
-    const runs = latest?.durum === 'tamamlandi' ? [latest] : (await api.runs()).filter((r) => r.durum === 'tamamlandi')
-    const shown = runs[0]
-    if (shown) {
-      const [t, i] = await Promise.all([api.trends(shown.id), api.ideas(shown.id)])
-      setTrends(t)
-      setIdeas(i)
-    }
-    setLoading(false)
-  }, [])
+  const running = latest?.durum === 'calisiyor'
+  const todayTrends = trends.filter((t) => t.run_id === shown?.id)
+  const todayIdeas = ideas.filter((i) => i.run_id === shown?.id)
+  const visibleIdeas = trendId ? todayIdeas.filter((i) => i.trend_id === trendId) : todayIdeas
+  const pending = todayIdeas.filter((i) => i.durum === 'yeni').length
+  const stepIndex = latest ? STEPS.indexOf(latest.adim) : 0
 
-  useEffect(() => {
-    load()
-    api.weekly().then(setWeekly)
-  }, [load])
-
-  useEffect(() => {
-    if (run?.durum !== 'calisiyor') return
-    const timer = setInterval(load, 2000)
-    return () => clearInterval(timer)
-  }, [run?.durum, load])
-
-  async function start() {
+  async function run() {
     setStarting(true)
     try {
-      await api.startRun()
-      await load()
+      await startRun()
     } finally {
       setStarting(false)
     }
   }
 
-  if (loading) return <p className="empty">Yükleniyor…</p>
-
-  const pending = ideas.filter((i) => i.durum === 'yeni').length
-
   return (
-    <div className="stack">
-      <section className="card run-card">
-        <div className="run-card-head">
-          <div>
-            <p className="eyebrow">Ajanın son çalıştırması</p>
-            {run ? (
-              <h2>
-                {run.durum === 'calisiyor' ? 'Ajan şu an çalışıyor' : run.ozet} <RunStatus run={run} />
-              </h2>
-            ) : (
-              <h2>Ajan henüz çalışmadı</h2>
-            )}
+    <div className="page">
+      <section className={`hero ${running ? 'hero-running' : ''}`}>
+        <div className="hero-main">
+          <span className="hero-avatar">
+            <Avatar brand={brand} size={48} />
+            <span className="pulse" />
+          </span>
+          <div className="hero-text">
+            <span className="eyebrow">{running ? 'Ajan şu an çalışıyor' : shown ? `${relDay(shown.baslangic)} ${fmtTime(shown.baslangic)}` : 'Henüz çalışmadı'}</span>
+            <h1>{running ? 'Gündem taranıyor…' : (shown?.ozet ?? 'Ajanı ilk kez çalıştır')}</h1>
           </div>
-          <button className="btn btn-primary btn-lg" onClick={start} disabled={starting || run?.durum === 'calisiyor'}>
-            {run?.durum === 'calisiyor' ? 'Çalışıyor…' : 'Şimdi çalıştır'}
+          <button className="btn btn-primary btn-lg hero-btn" onClick={run} disabled={running || starting}>
+            {running ? <Loader2 size={18} className="spin" /> : <Play size={17} fill="currentColor" />}
+            {running ? 'Çalışıyor' : 'Şimdi çalıştır'}
           </button>
         </div>
-        {run && (
-          <>
-            <StepTrack run={run} />
-            <RunMeta run={run} />
-          </>
+
+        <ol className="steps">
+          {STEPS.map((s, i) => {
+            const st = !running || i < stepIndex ? 'done' : i === stepIndex ? 'active' : 'todo'
+            return (
+              <li key={s} className={`step step-${st}`}>
+                <span className="step-icon">{st === 'done' ? <Check size={14} strokeWidth={3} /> : st === 'active' ? <Loader2 size={14} className="spin" /> : i + 1}</span>
+                <span className="step-text">
+                  <b>{STEP_LABEL[s]}</b>
+                  <small>{STEP_HINT[s]}</small>
+                </span>
+              </li>
+            )
+          })}
+        </ol>
+
+        {running ? (
+          <ul className="log" aria-live="polite">
+            {(latest?.log ?? []).slice(-4).map((l) => (
+              <li key={l.zaman + l.mesaj}>
+                <span>{fmtTime(l.zaman)}</span>
+                {l.mesaj}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          shown && (
+            <div className="hero-stats">
+              <span>
+                <b>{shown.taranan_gonderi.toLocaleString('tr-TR')}</b> gönderi tarandı
+              </span>
+              <span>
+                <b>{todayTrends.length}</b> trend
+              </span>
+              <span>
+                <b>{todayIdeas.length}</b> içerik
+              </span>
+              {runDuration(shown) && (
+                <span>
+                  <b>{runDuration(shown)}</b> sürdü
+                </span>
+              )}
+              <button className="link" onClick={openAgent}>
+                Kararları gör
+              </button>
+            </div>
+          )
         )}
-        <p className="hint">Ajan her sabah 08:00'de TikTok ve Instagram'ı kendiliğinden tarar.</p>
       </section>
 
-      <div className="stats">
-        <div className="card stat">
-          <span className="stat-value">{run?.taranan_gonderi.toLocaleString('tr-TR') ?? 0}</span>
-          <span className="stat-label">taranan gönderi</span>
+      <section>
+        <div className="sec-head">
+          <h2>Gündem</h2>
+          {trendId && (
+            <button className="link" onClick={() => setTrendId(null)}>
+              Tümünü göster
+            </button>
+          )}
         </div>
-        <div className="card stat">
-          <span className="stat-value">{trends.length}</span>
-          <span className="stat-label">gündem maddesi</span>
+        <div className="trends">
+          {todayTrends.map((t) => (
+            <button
+              key={t.id}
+              className={`trend ${trendId === t.id ? 'on' : ''} ${t.ivme < 40 ? 'trend-flat' : ''}`}
+              onClick={() => setTrendId(trendId === t.id ? null : t.id)}
+              title={t.aciklama}
+            >
+              <span className="trend-top">
+                <span className="trend-tip">
+                  <TrendIcon tip={t.tip} size={14} />
+                  {TREND_LABEL[t.tip]}
+                </span>
+                <PlatformGlyph platform={t.platform} size={12} />
+              </span>
+              <b className="trend-title">{t.baslik}</b>
+              <span className="trend-ivme">
+                <span className="trend-num">{t.ivme}</span>
+                {t.ivme >= 40 ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
+                <span className="trend-bar">
+                  <span style={{ width: `${t.ivme}%` }} />
+                </span>
+              </span>
+            </button>
+          ))}
         </div>
-        <div className="card stat">
-          <span className="stat-value">{ideas.length}</span>
-          <span className="stat-label">hazır içerik</span>
-        </div>
-        <button className="card stat stat-action" onClick={onOpenIdeas}>
-          <span className="stat-value">{pending}</span>
-          <span className="stat-label">onay bekliyor →</span>
-        </button>
-      </div>
+      </section>
 
-      <div className="two-col">
-        <section className="card">
-          <div className="section-head">
-            <h2>Bugünün gündemi</h2>
-            <span className="muted">İvmeye göre sıralı</span>
+      <section>
+        <div className="sec-head">
+          <h2>
+            Hazır içerikler
+            {pending > 0 && <span className="count">{pending} onay bekliyor</span>}
+          </h2>
+        </div>
+        {visibleIdeas.length ? <MediaGrid ideas={visibleIdeas} /> : <p className="empty">Bu trendden içerik üretilmedi.</p>}
+      </section>
+
+      {weekly && (
+        <section className="week">
+          <div className="week-head">
+            <Sparkles size={18} />
+            <h2>Bu hafta</h2>
           </div>
-          <TrendList trends={trends} />
+          <p className="week-summary">{weekly.ozet}</p>
+          <div className="week-chips">
+            {weekly.yukselen.map((w) => (
+              <span key={w.baslik} className="wchip wchip-up">
+                <ArrowUpRight size={14} /> {w.baslik}
+              </span>
+            ))}
+            {weekly.kalici.map((w) => (
+              <span key={w.baslik} className="wchip">
+                {w.baslik}
+              </span>
+            ))}
+            {weekly.sonen.map((w) => (
+              <span key={w.baslik} className="wchip wchip-down">
+                <ArrowDownRight size={14} /> {w.baslik}
+              </span>
+            ))}
+          </div>
+          <ol className="week-focus">
+            {weekly.onerilen_odak.map((f) => (
+              <li key={f}>{f}</li>
+            ))}
+          </ol>
         </section>
-
-        {weekly && (
-          <section className="card weekly">
-            <div className="section-head">
-              <h2>Haftalık özet</h2>
-              <span className="muted">{weekly.hafta.replace('-W', ' · Hafta ')}</span>
-            </div>
-            <p className="weekly-summary">{weekly.ozet}</p>
-            <WeeklyGroup title="Yükselen" items={weekly.yukselen} tone="up" />
-            <WeeklyGroup title="Kalıcı" items={weekly.kalici} tone="steady" />
-            <WeeklyGroup title="Sönen" items={weekly.sonen} tone="down" />
-            <h3 className="weekly-title">Bu hafta odak</h3>
-            <ul className="focus-list">
-              {weekly.onerilen_odak.map((f) => (
-                <li key={f}>{f}</li>
-              ))}
-            </ul>
-          </section>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function WeeklyGroup({ title, items, tone }: { title: string; items: Weekly['kalici']; tone: string }) {
-  if (!items.length) return null
-  return (
-    <div className="weekly-group">
-      <h3 className="weekly-title">{title}</h3>
-      <ul>
-        {items.map((i) => (
-          <li key={i.baslik} className={`weekly-item weekly-${tone}`}>
-            <span>{i.baslik}</span>
-            <span className="weekly-ivme">{i.ivme}</span>
-          </li>
-        ))}
-      </ul>
+      )}
     </div>
   )
 }

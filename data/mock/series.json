@@ -1,0 +1,35 @@
+[
+  {
+    "id": "s1",
+    "ad": "Ruh haline göre rota",
+    "aciklama": "Her bölüm bir ruh hali için İstanbul çevresinden gerçek bir rota",
+    "format": "kisa_video",
+    "durum": "aktif",
+    "olusturan": "ajan",
+    "bolum_sayisi": 2,
+    "planlanan_bolumler": ["Mutluyken", "Üzgünken", "Kafa dağıtmak için", "Aşıkken"],
+    "neden": "Sonbahar rotaları ivme 79, POV formatı ivme 86. Duygu odaklı rota içerikleri kaydediliyor."
+  },
+  {
+    "id": "s2",
+    "ad": "Viraj severler için",
+    "aciklama": "Viraj sayısına göre sıralanmış gerçek rotalar, her bölüm bir şehir",
+    "format": "carousel",
+    "durum": "aktif",
+    "olusturan": "ajan",
+    "bolum_sayisi": 1,
+    "planlanan_bolumler": ["İstanbul", "Bursa", "Antalya", "İzmir"],
+    "neden": "#virajsever deneme etiketinde ilk 48 saatte ivme 64"
+  },
+  {
+    "id": "s3",
+    "ad": "Motorcu sözlüğü",
+    "aciklama": "Yeni motorculara tek kelimelik kısa açıklamalar: konvoy, countersteer, kafa selamı",
+    "format": "kisa_video",
+    "durum": "aktif",
+    "olusturan": "ajan",
+    "bolum_sayisi": 0,
+    "planlanan_bolumler": ["Kafa selamı", "Konvoy", "Countersteer"],
+    "neden": "#ilksürüşüm ivme 68: yeni motorcu kitlesi büyüyor"
+  }
+]

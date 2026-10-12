@@ -1,31 +1,48 @@
 import { useEffect, useState } from 'react'
-import { api, isUsingMock, onMockChange } from './api'
-import type { Brand } from './types'
-import BrandView from './views/BrandView'
-import History from './views/History'
-import Ideas from './views/Ideas'
+import { isUsingMock, onMockChange } from './api'
+import { StoreProvider, useStore } from './store'
+import Sidebar, { BottomNav, NAV } from './components/Sidebar'
+import type { Tab } from './components/Sidebar'
+import Preview from './components/Preview'
+import { Avatar } from './components/Phone'
 import Today from './views/Today'
+import Content from './views/Content'
+import SeriesView from './views/SeriesView'
+import Agent from './views/Agent'
+import BrandView from './views/BrandView'
 
-type Tab = 'bugun' | 'icerikler' | 'gecmis' | 'marka'
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'bugun', label: 'Bugün' },
-  { id: 'icerikler', label: 'İçerikler' },
-  { id: 'gecmis', label: 'Geçmiş' },
-  { id: 'marka', label: 'Marka profili' },
-]
+const TITLES: Record<Tab, string> = {
+  bugun: 'Bugün',
+  icerikler: 'İçerikler',
+  seriler: 'Seriler',
+  ajan: 'Ajan',
+  marka: 'Marka',
+}
 
 function readTab(): Tab {
   const h = location.hash.slice(1) as Tab
-  return TABS.some((t) => t.id === h) ? h : 'bugun'
+  return NAV.some((n) => n.id === h) ? h : 'bugun'
 }
 
-export default function App() {
+function useIsNarrow() {
+  const q = '(max-width: 1023px)'
+  const [narrow, setNarrow] = useState(() => matchMedia(q).matches)
+  useEffect(() => {
+    const m = matchMedia(q)
+    const on = () => setNarrow(m.matches)
+    m.addEventListener('change', on)
+    return () => m.removeEventListener('change', on)
+  }, [])
+  return narrow
+}
+
+function Shell() {
+  const { ready, brand, selectedId, select, toasts } = useStore()
   const [tab, setTab] = useState<Tab>(readTab)
-  const [brand, setBrand] = useState<Brand | null>(null)
   const [mock, setMock] = useState(isUsingMock())
+  const narrow = useIsNarrow()
 
   useEffect(() => {
-    api.brand().then(setBrand)
     const off = onMockChange(setMock)
     const onHash = () => setTab(readTab())
     window.addEventListener('hashchange', onHash)
@@ -36,53 +53,78 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (brand) document.documentElement.style.setProperty('--accent', brand.vurgu_rengi)
-  }, [brand])
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && select(null)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [select])
 
   const go = (t: Tab) => {
-    location.hash = t
+    history.replaceState(null, '', `#${t}`)
     setTab(t)
+    window.scrollTo(0, 0)
   }
 
+  if (!ready || !brand)
+    return (
+      <div className="boot">
+        <span className="boot-dot" />
+      </div>
+    )
+
   return (
-    <div className="app">
-      <header className="topbar">
-        <div className="topbar-inner">
-          <div className="brand-mark">
-            <span className="logo" aria-hidden>
-              {brand?.ad[0] ?? 'K'}
-            </span>
-            <span>
-              <strong>{brand?.ad ?? 'Kontak'}</strong>
-              <small>Sosyal medya ajanı</small>
-            </span>
-          </div>
+    <div className="shell">
+      <Sidebar tab={tab} go={go} />
+
+      <div className="center">
+        <header className="topbar">
+          <span className="topbar-brand">
+            <Avatar brand={brand} size={30} />
+          </span>
+          <h1>{TITLES[tab]}</h1>
           {mock && (
-            <span className="mock-badge" title="Backend'e ulaşılamadı, örnek veri gösteriliyor">
+            <span className="mock" title="Backend'e ulaşılamadı, örnek veri gösteriliyor">
               Örnek veri
             </span>
           )}
-        </div>
-        <nav className="tabs" aria-label="Bölümler">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              className={`tab ${tab === t.id ? 'tab-on' : ''}`}
-              aria-current={tab === t.id ? 'page' : undefined}
-              onClick={() => go(t.id)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </nav>
-      </header>
+        </header>
+        <main>
+          {tab === 'bugun' && <Today openAgent={() => go('ajan')} />}
+          {tab === 'icerikler' && <Content />}
+          {tab === 'seriler' && <SeriesView />}
+          {tab === 'ajan' && <Agent />}
+          {tab === 'marka' && <BrandView />}
+        </main>
+      </div>
 
-      <main className="main">
-        {tab === 'bugun' && <Today onOpenIdeas={() => go('icerikler')} />}
-        {tab === 'icerikler' && <Ideas />}
-        {tab === 'gecmis' && <History />}
-        {tab === 'marka' && brand && <BrandView brand={brand} onSaved={setBrand} />}
-      </main>
+      {!narrow && (
+        <aside className="right">
+          <Preview />
+        </aside>
+      )}
+
+      {narrow && selectedId && (
+        <div className="sheet" role="dialog" aria-modal="true" aria-label="Önizleme">
+          <Preview onClose={() => select(null)} />
+        </div>
+      )}
+
+      <BottomNav tab={tab} go={go} />
+
+      <div className="toasts" aria-live="polite">
+        {toasts.map((t) => (
+          <div key={t.id} className="toast">
+            {t.text}
+          </div>
+        ))}
+      </div>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <StoreProvider>
+      <Shell />
+    </StoreProvider>
   )
 }

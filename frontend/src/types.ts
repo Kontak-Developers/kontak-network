@@ -3,6 +3,8 @@
 export type Brand = {
   id: string
   ad: string
+  kullanici_adi: string
+  logo_url: string | null
   tanim: string
   hedef_kitle: string
   ton_kurallari: string[]
@@ -12,6 +14,12 @@ export type Brand = {
     tiktok_hashtagler: string[]
     instagram_hashtagler: string[]
     hesaplar: string[]
+  }
+  sinirlar?: {
+    konu_alani: string
+    yasak_konular: string[]
+    gorsel_kurallar: string[]
+    butce: { aktif_hashtag: number; deneme_hashtag: number; video_per_run: number }
   }
 }
 
@@ -26,6 +34,7 @@ export type Run = {
   bitis: string | null
   taranan_gonderi: number
   ozet: string
+  log?: { zaman: string; mesaj: string }[]
 }
 
 export type Trend = {
@@ -41,17 +50,25 @@ export type Trend = {
 
 export type IdeaStatus = 'yeni' | 'onaylandi' | 'reddedildi' | 'paylasildi'
 
+export type Scene = { sira: number; sure_sn: number; prompt: string; ekran_yazisi: string }
+
 export type Idea = {
   id: string
   run_id: string
   trend_id: string
+  series_id?: string | null
+  bolum_no?: number | null
+  bolum_adi?: string | null
   platform: 'tiktok' | 'instagram'
   format: 'kisa_video' | 'carousel' | 'gonderi'
   baslik: string
   kanca: string
   senaryo: string[]
+  sahneler?: Scene[]
   aciklama_metni: string
   hashtagler: string[]
+  onerilen_ses?: string | null
+  rota?: { ad: string; km: number; duraklar: string[] } | null
   gorsel_prompt: string
   gorsel_url: string | null
   video_url: string | null
@@ -69,4 +86,38 @@ export type Weekly = {
   yukselen: WeeklyItem[]
   sonen: WeeklyItem[]
   onerilen_odak: string[]
+}
+
+export type WatchStatus = 'aktif' | 'deneme' | 'elendi' | 'sabit' | 'yasak'
+
+export type WatchItem = {
+  id: string
+  etiket: string
+  platform: 'tiktok' | 'instagram'
+  durum: WatchStatus
+  kaynak: 'profil' | 'kesif' | 'insan'
+  skor: number
+  eklenme: string
+  neden: string
+}
+
+export type Decision = {
+  id: string
+  run_id: string
+  tur: 'hashtag_ekle' | 'hashtag_kalici' | 'hashtag_cikar' | 'seri_ac' | 'bolum_planla' | 'icerik_uret'
+  hedef: string
+  neden: string
+  zaman: string
+}
+
+export type Series = {
+  id: string
+  ad: string
+  aciklama: string
+  format: Idea['format']
+  durum: 'aktif' | 'bitti'
+  olusturan: 'ajan' | 'insan'
+  bolum_sayisi: number
+  planlanan_bolumler: string[]
+  neden: string
 }

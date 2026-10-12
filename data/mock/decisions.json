@@ -1,0 +1,10 @@
+[
+  { "id": "d1", "run_id": "run_2026-10-12_0800", "tur": "hashtag_ekle", "hedef": "#virajsever", "neden": "Yükselen 3 gönderide #motovlog ile birlikte geçti, denemeye alındı", "zaman": "2026-10-12T08:03:00+03:00" },
+  { "id": "d2", "run_id": "run_2026-10-12_0800", "tur": "hashtag_ekle", "hedef": "#kaskkamerası", "neden": "POV videolarının açıklamalarında sık geçiyor, denemeye alındı", "zaman": "2026-10-12T08:03:10+03:00" },
+  { "id": "d3", "run_id": "run_2026-10-12_0800", "tur": "hashtag_cikar", "hedef": "#scootermodifiye", "neden": "5 gündür ivme 15'in altında, bütçeyi verimli etiketlere ayırmak için çıkarıldı", "zaman": "2026-10-12T08:03:20+03:00" },
+  { "id": "d4", "run_id": "run_2026-10-12_0800", "tur": "seri_ac", "hedef": "Viraj severler için", "neden": "#virajsever ilk 48 saatte ivme 64, kaydetme oranı yüksek", "zaman": "2026-10-12T08:04:40+03:00" },
+  { "id": "d5", "run_id": "run_2026-10-12_0800", "tur": "bolum_planla", "hedef": "Ruh haline göre rota · Üzgünken", "neden": "Serinin ilk bölümü 2 günde en çok kaydedilen içerik oldu", "zaman": "2026-10-12T08:04:55+03:00" },
+  { "id": "d6", "run_id": "run_2026-10-12_0800", "tur": "icerik_uret", "hedef": "4 içerik · 1 video", "neden": "Bütçe: çalıştırma başına 1 video. Video en yüksek ivmeli POV formatına verildi", "zaman": "2026-10-12T08:05:30+03:00" },
+  { "id": "d7", "run_id": "run_2026-10-11_0800", "tur": "hashtag_kalici", "hedef": "#ilksürüşüm", "neden": "2 gün üst üste yükselen içerik getirdi", "zaman": "2026-10-11T08:03:00+03:00" },
+  { "id": "d8", "run_id": "run_2026-10-11_0800", "tur": "seri_ac", "hedef": "Ruh haline göre rota", "neden": "Sonbahar rotaları ve POV birlikte yükseliyor", "zaman": "2026-10-11T08:04:00+03:00" }
+]

@@ -1,6 +1,8 @@
 {
   "id": "kontak",
   "ad": "Kontak",
+  "kullanici_adi": "kontak",
+  "logo_url": "/brands/kontak/logo.png",
   "tanim": "Türkiye'de motosiklet kültürü üzerine kurulu tanışma ve topluluk uygulaması",
   "hedef_kitle": "20-40 yaş arası, hafta sonu sürüşe çıkan, yeni sürüş arkadaşı ve topluluk arayan motorcular",
   "ton_kurallari": [
@@ -11,14 +13,59 @@
   ],
   "vurgu_rengi": "#0000A8",
   "sutunlar": [
-    { "ad": "Topluluk", "oran": 30 },
-    { "ad": "Rota", "oran": 25 },
-    { "ad": "Tanışma", "oran": 25 },
-    { "ad": "Güvenlik", "oran": 20 }
+    {
+      "ad": "Topluluk",
+      "oran": 30
+    },
+    {
+      "ad": "Rota",
+      "oran": 25
+    },
+    {
+      "ad": "Tanışma",
+      "oran": 25
+    },
+    {
+      "ad": "Güvenlik",
+      "oran": 20
+    }
   ],
   "izlenecek": {
-    "tiktok_hashtagler": ["motosiklet", "motorcu", "motovlog", "motorcuyuz", "istanbulmotor"],
-    "instagram_hashtagler": ["motosiklet", "motorcu", "motosikletkulübü", "motorcukafe", "sürüş"],
+    "tiktok_hashtagler": [
+      "motosiklet",
+      "motorcu",
+      "motovlog",
+      "motorcuyuz",
+      "istanbulmotor"
+    ],
+    "instagram_hashtagler": [
+      "motosiklet",
+      "motorcu",
+      "motosikletkulübü",
+      "motorcukafe",
+      "sürüş"
+    ],
     "hesaplar": []
+  },
+  "sinirlar": {
+    "konu_alani": "Türkiye motosiklet kültürü: sürüş, rota, topluluk, ekipman, güvenlik",
+    "yasak_konular": [
+      "siyaset",
+      "kaza görüntüsü",
+      "yarış / sokak yarışı"
+    ],
+    "gorsel_kurallar": [
+      "Yüzü görünen gerçekçi insan yok. Kasklı ya da arkadan çekilmiş sürücü olabilir.",
+      "Güvensiz sürüş yok: kasksız sürüş, tek teker, aşırı hız",
+      "Başka markanın logosu ve okunabilir plaka yok",
+      "Üretilen görselin/videonun içine yazı yazdırılmaz; ekran yazısı ayrı alanda",
+      "Rotalar gerçek yerler; var olmayan yol veya mekân uydurulmaz",
+      "Müzik videoya gömülmez; önerilen ses paylaşırken eklenir"
+    ],
+    "butce": {
+      "aktif_hashtag": 8,
+      "deneme_hashtag": 3,
+      "video_per_run": 1
+    }
   }
 }

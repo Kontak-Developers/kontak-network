@@ -1,0 +1,16 @@
+[
+  { "id": "w1", "etiket": "motosiklet", "platform": "instagram", "durum": "sabit", "kaynak": "insan", "skor": 72, "eklenme": "2026-10-05T08:00:00+03:00", "neden": "Ekip tarafından sabitlendi" },
+  { "id": "w2", "etiket": "motovlog", "platform": "tiktok", "durum": "aktif", "kaynak": "profil", "skor": 86, "eklenme": "2026-10-05T08:00:00+03:00", "neden": "POV formatının ana kaynağı" },
+  { "id": "w3", "etiket": "motorcu", "platform": "tiktok", "durum": "aktif", "kaynak": "profil", "skor": 70, "eklenme": "2026-10-05T08:00:00+03:00", "neden": "Geniş ve istikrarlı" },
+  { "id": "w4", "etiket": "istanbulmotor", "platform": "instagram", "durum": "aktif", "kaynak": "profil", "skor": 66, "eklenme": "2026-10-05T08:00:00+03:00", "neden": "Yerel topluluk paylaşımları" },
+  { "id": "w5", "etiket": "sonbaharrotası", "platform": "instagram", "durum": "aktif", "kaynak": "kesif", "skor": 79, "eklenme": "2026-10-09T08:04:00+03:00", "neden": "3 gün üst üste yükselen içerik getirdi, kalıcı yapıldı" },
+  { "id": "w6", "etiket": "ilksürüşüm", "platform": "instagram", "durum": "aktif", "kaynak": "kesif", "skor": 68, "eklenme": "2026-10-10T08:03:00+03:00", "neden": "Yeni motorcu kitlesi, yorumlarda yol arkadaşı arayışı" },
+  { "id": "w7", "etiket": "motorcukafe", "platform": "instagram", "durum": "aktif", "kaynak": "profil", "skor": 58, "eklenme": "2026-10-05T08:00:00+03:00", "neden": "Buluşma noktaları" },
+  { "id": "w8", "etiket": "pov", "platform": "tiktok", "durum": "aktif", "kaynak": "kesif", "skor": 81, "eklenme": "2026-10-08T08:05:00+03:00", "neden": "#motovlog ile sık birlikte geçiyor" },
+  { "id": "w9", "etiket": "virajsever", "platform": "tiktok", "durum": "deneme", "kaynak": "kesif", "skor": 64, "eklenme": "2026-10-12T08:03:00+03:00", "neden": "Yükselen 3 gönderide #motovlog ile birlikte geçti" },
+  { "id": "w10", "etiket": "kaskkamerası", "platform": "tiktok", "durum": "deneme", "kaynak": "kesif", "skor": 57, "eklenme": "2026-10-12T08:03:00+03:00", "neden": "POV videolarının açıklamalarında sık geçiyor" },
+  { "id": "w11", "etiket": "şilerotası", "platform": "instagram", "durum": "deneme", "kaynak": "kesif", "skor": 49, "eklenme": "2026-10-11T08:04:00+03:00", "neden": "Sonbahar rotaları içinde öne çıkan yer" },
+  { "id": "w12", "etiket": "scootermodifiye", "platform": "tiktok", "durum": "elendi", "kaynak": "kesif", "skor": 12, "eklenme": "2026-10-06T08:04:00+03:00", "neden": "5 gündür ivme 15'in altında" },
+  { "id": "w13", "etiket": "motorkiralama", "platform": "instagram", "durum": "elendi", "kaynak": "kesif", "skor": 18, "eklenme": "2026-10-07T08:04:00+03:00", "neden": "Reklam ağırlıklı, topluluk içeriği yok" },
+  { "id": "w14", "etiket": "sokakyarışı", "platform": "tiktok", "durum": "yasak", "kaynak": "insan", "skor": 0, "eklenme": "2026-10-05T08:00:00+03:00", "neden": "Marka sınırı: yarış / sokak yarışı" }
+]

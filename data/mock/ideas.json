@@ -3,20 +3,121 @@
     "id": "i1",
     "run_id": "run_2026-10-12_0800",
     "trend_id": "t1",
+    "series_id": null,
+    "bolum_no": null,
+    "bolum_adi": null,
     "platform": "tiktok",
     "format": "kisa_video",
-    "baslik": "Kontak'ta tanıştık, ilk sürüş: POV",
+    "baslik": "Kontak'ta tanıştık, ilk sürüş",
     "kanca": "Uygulamada tanıştığım biriyle ilk kez sürüşe çıktım.",
     "senaryo": [
-      "Sahne 1 (0-2 sn): Telefonda Kontak eşleşme ekranı, ekranda yazı: \"Pazar 09:00, Şile?\"",
-      "Sahne 2 (2-8 sn): Kask kamerası POV, buluşma noktasında iki motor yan yana park ediyor, el sallama",
-      "Sahne 3 (8-13 sn): Sahil yolunda arkadan giden motorun POV görüntüsü, yavaşlatılmış egzoz sesi + lo-fi",
-      "Sahne 4 (13-15 sn): Kafe molası, iki kask masada. Yazı: \"Sürüş arkadaşın bir eşleşme uzağında\""
+      "Eşleşme ekranı",
+      "Buluşma noktası",
+      "Sahil yolu POV",
+      "Kafe molası"
     ],
-    "aciklama_metni": "Tek başına sürmekten sıkıldıysan, sürüş arkadaşın bir eşleşme uzağında. Pazar Şile'deydik, sıradaki rota senin.",
-    "hashtagler": ["#motosiklet", "#motovlog", "#pov", "#şile", "#kontak"],
-    "gorsel_prompt": "First-person POV from a motorcycle helmet camera on a coastal road in autumn, another motorcycle riding ahead, soft morning light, deep navy blue (#0000A8) accent on the rider's jacket, cinematic, no visible faces, no logos, vertical 1080x1350",
-    "gorsel_url": null,
+    "sahneler": [
+      {
+        "sira": 1,
+        "sure_sn": 2,
+        "prompt": "Close-up of a phone on a motorcycle tank showing a match notification, morning light, no readable text, no faces",
+        "ekran_yazisi": "Pazar 09:00 · Şile?"
+      },
+      {
+        "sira": 2,
+        "sure_sn": 4,
+        "prompt": "Helmet camera POV arriving at a seaside meeting point, another rider in a helmet waving, autumn, cinematic",
+        "ekran_yazisi": "Uygulamada tanıştık"
+      },
+      {
+        "sira": 3,
+        "sure_sn": 5,
+        "prompt": "Helmet camera POV following another motorcycle on a coastal road, golden hour, smooth motion",
+        "ekran_yazisi": "İlk sürüşümüz"
+      },
+      {
+        "sira": 4,
+        "sure_sn": 3,
+        "prompt": "Two helmets resting on a cafe table by the sea, warm light, no people visible",
+        "ekran_yazisi": "Yol arkadaşın bir eşleşme uzağında"
+      }
+    ],
+    "aciklama_metni": "Tek başına sürmekten sıkıldıysan, yol arkadaşın bir eşleşme uzağında. Pazar Şile'deydik, sıradaki rota senin.",
+    "hashtagler": [
+      "#motosiklet",
+      "#motovlog",
+      "#pov",
+      "#şile"
+    ],
+    "onerilen_ses": "Yavaşlatılmış egzoz + lo-fi",
+    "rota": null,
+    "gorsel_prompt": "Helmet camera POV following another motorcycle on a coastal road, golden hour",
+    "gorsel_url": "/mock/ornek-3.jpg",
+    "video_url": null,
+    "durum": "yeni"
+  },
+  {
+    "id": "i6",
+    "run_id": "run_2026-10-12_0800",
+    "trend_id": "t2",
+    "series_id": "s1",
+    "bolum_no": 2,
+    "bolum_adi": "Üzgünken",
+    "platform": "instagram",
+    "format": "kisa_video",
+    "baslik": "Üzgünken gidilecek rota",
+    "kanca": "Kafan doluysa bu yolu dene.",
+    "senaryo": [
+      "Açılış",
+      "Sisli sahil yolu",
+      "Rota bilgisi",
+      "Gün batımı molası"
+    ],
+    "sahneler": [
+      {
+        "sira": 1,
+        "sure_sn": 3,
+        "prompt": "Empty misty coastal road at dawn, slow drone shot, melancholic, no people",
+        "ekran_yazisi": "Üzgünken gidilecek rota"
+      },
+      {
+        "sira": 2,
+        "sure_sn": 5,
+        "prompt": "Rider in a dark helmet seen from behind riding slowly along a quiet sea road, overcast sky",
+        "ekran_yazisi": "Riva → Ağva → Şile"
+      },
+      {
+        "sira": 3,
+        "sure_sn": 4,
+        "prompt": "Wide shot of the Black Sea coast road winding through green hills, soft fog",
+        "ekran_yazisi": "64 km · sakin tempo"
+      },
+      {
+        "sira": 4,
+        "sure_sn": 3,
+        "prompt": "Parked motorcycle facing the sea at sunset, calm water, no people",
+        "ekran_yazisi": "Bazen tek ihtiyacın yol"
+      }
+    ],
+    "aciklama_metni": "Ruh haline göre rota · Bölüm 2. Kafan doluysa Riva'dan Şile'ye sahil boyunca sakin bir sürüş. Gün batımında Şile feneri önünde mola ver.",
+    "hashtagler": [
+      "#motosiklet",
+      "#rota",
+      "#şilerotası",
+      "#sonbaharrotası"
+    ],
+    "onerilen_ses": "Sakin akustik gitar",
+    "rota": {
+      "ad": "Riva – Ağva – Şile",
+      "km": 64,
+      "duraklar": [
+        "Riva",
+        "Ağva",
+        "Şile"
+      ]
+    },
+    "gorsel_prompt": "Parked motorcycle facing the sea at sunset",
+    "gorsel_url": "/mock/ornek-1.jpg",
     "video_url": null,
     "durum": "yeni"
   },
@@ -24,21 +125,72 @@
     "id": "i2",
     "run_id": "run_2026-10-12_0800",
     "trend_id": "t2",
+    "series_id": "s2",
+    "bolum_no": 1,
+    "bolum_adi": "İstanbul",
     "platform": "instagram",
     "format": "carousel",
-    "baslik": "İstanbul'dan 3 sonbahar rotası",
-    "kanca": "Yapraklar dökülmeden gitmen gereken 3 rota.",
+    "baslik": "Viraj severler için: İstanbul",
+    "kanca": "Viraj seviyorsan bu 3 rotayı kaydet.",
     "senaryo": [
-      "Kart 1: Kapak: \"Yapraklar dökülmeden: 3 sonbahar rotası\"",
-      "Kart 2: Polonezköy orman yolu: 35 km, kolay, kahvaltı molası önerisi",
-      "Kart 3: Şile sahil yolu: 70 km, orta, rüzgâra dikkat",
-      "Kart 4: Ağva–Kandıra: 110 km, orta-zor, yakıt noktaları",
-      "Kart 5: \"Rotayı Kontak'ta paylaş, birlikte gidecek arkadaş bul\""
+      "Kapak",
+      "Polonezköy",
+      "Şile",
+      "Ağva – Kandıra",
+      "Kapanış"
     ],
-    "aciklama_metni": "Sonbahar sürüş için yılın en güzel zamanı. Bu üç rotayı kaydet, hafta sonu birini seç. Yalnız gitme: Kontak'ta rotanı paylaş, aynı yöne giden motorcularla buluş.",
-    "hashtagler": ["#motosiklet", "#motorcu", "#sonbahar", "#rota", "#polonezköy"],
-    "gorsel_prompt": "Minimal illustrated route map card of a winding forest road in autumn near Istanbul, warm orange and yellow foliage, route line in deep navy blue (#0000A8), clean flat design, no text, no logos, vertical 1080x1350",
-    "gorsel_url": null,
+    "sahneler": [
+      {
+        "sira": 1,
+        "sure_sn": 0,
+        "prompt": "Winding forest road from above in autumn",
+        "ekran_yazisi": "Viraj severler için · İstanbul"
+      },
+      {
+        "sira": 2,
+        "sure_sn": 0,
+        "prompt": "Forest road in Polonezköy",
+        "ekran_yazisi": "1 · Polonezköy · 35 km"
+      },
+      {
+        "sira": 3,
+        "sure_sn": 0,
+        "prompt": "Coastal road to Şile",
+        "ekran_yazisi": "2 · Şile sahil · 70 km"
+      },
+      {
+        "sira": 4,
+        "sure_sn": 0,
+        "prompt": "Hilly road Ağva to Kandıra",
+        "ekran_yazisi": "3 · Ağva – Kandıra · 110 km"
+      },
+      {
+        "sira": 5,
+        "sure_sn": 0,
+        "prompt": "Two motorcycles parked at a viewpoint",
+        "ekran_yazisi": "Rotanı Kontak'ta paylaş"
+      }
+    ],
+    "aciklama_metni": "Viraj severler için · İstanbul. Kaydet, hafta sonu birini seç. Yalnız gitme: rotanı Kontak'ta paylaş, aynı yöne giden motorcularla buluş.",
+    "hashtagler": [
+      "#motosiklet",
+      "#virajsever",
+      "#polonezköy",
+      "#rota"
+    ],
+    "onerilen_ses": null,
+    "rota": {
+      "ad": "Polonezköy · Şile · Ağva – Kandıra",
+      "km": 215,
+      "duraklar": [
+        "Polonezköy",
+        "Şile",
+        "Ağva",
+        "Kandıra"
+      ]
+    },
+    "gorsel_prompt": "Winding forest road from above in autumn",
+    "gorsel_url": "/mock/ornek-3.jpg",
     "video_url": null,
     "durum": "onaylandi"
   },
@@ -46,34 +198,140 @@
     "id": "i3",
     "run_id": "run_2026-10-12_0800",
     "trend_id": "t4",
+    "series_id": null,
+    "bolum_no": null,
+    "bolum_adi": null,
     "platform": "instagram",
     "format": "gonderi",
-    "baslik": "#ilksürüşüm: yeni motorculara çağrı",
+    "baslik": "İlk sürüşüne yalnız çıkma",
     "kanca": "Ehliyeti yeni aldın, kiminle sürüşe çıkacağını bilmiyor musun?",
     "senaryo": [
-      "Tek görsel: Boş bir sabah yolunda tek bir motor, yanında ikinci motor için boş alan",
-      "Görsel üstü yazı: \"İlk sürüşüne yalnız çıkma\""
+      "Tek görsel"
     ],
-    "aciklama_metni": "Herkesin bir ilk sürüşü var. Seninki nasıl geçti? Yorumlara yaz, #ilksürüşüm etiketiyle paylaş. Henüz çıkmadıysan Kontak'ta deneyimli bir sürüş arkadaşı bul.",
-    "hashtagler": ["#ilksürüşüm", "#motosiklet", "#yenimotorcu", "#kontak"],
-    "gorsel_prompt": "A single motorcycle parked on an empty early morning road with space next to it for another bike, misty light, deep navy blue (#0000A8) motorcycle tank, calm and inviting mood, no people, no logos, vertical 1080x1350",
-    "gorsel_url": null,
+    "sahneler": [
+      {
+        "sira": 1,
+        "sure_sn": 0,
+        "prompt": "Two riders in helmets on a city street, seen from the side, no visible faces",
+        "ekran_yazisi": "İlk sürüşüne yalnız çıkma"
+      }
+    ],
+    "aciklama_metni": "Herkesin bir ilk sürüşü var. Seninki nasıl geçti? #ilksürüşüm ile paylaş. Henüz çıkmadıysan Kontak'ta deneyimli bir yol arkadaşı bul.",
+    "hashtagler": [
+      "#ilksürüşüm",
+      "#motosiklet",
+      "#yenimotorcu"
+    ],
+    "onerilen_ses": null,
+    "rota": null,
+    "gorsel_prompt": "Two riders in helmets on a city street",
+    "gorsel_url": "/mock/ornek-2.jpg",
     "video_url": null,
     "durum": "yeni"
+  },
+  {
+    "id": "i7",
+    "run_id": "run_2026-10-11_0800",
+    "trend_id": "t7",
+    "series_id": "s1",
+    "bolum_no": 1,
+    "bolum_adi": "Mutluyken",
+    "platform": "tiktok",
+    "format": "kisa_video",
+    "baslik": "Mutluyken gidilecek rota",
+    "kanca": "Keyfin yerindeyse bu yol tam sana göre.",
+    "senaryo": [
+      "Açılış",
+      "Orman yolu",
+      "Rota bilgisi",
+      "Kahvaltı molası"
+    ],
+    "sahneler": [
+      {
+        "sira": 1,
+        "sure_sn": 3,
+        "prompt": "Sunlit forest road, bright morning",
+        "ekran_yazisi": "Mutluyken gidilecek rota"
+      },
+      {
+        "sira": 2,
+        "sure_sn": 5,
+        "prompt": "Group of riders in helmets on a curvy forest road",
+        "ekran_yazisi": "Polonezköy orman yolu"
+      },
+      {
+        "sira": 3,
+        "sure_sn": 3,
+        "prompt": "Breakfast table in a village garden, helmets on the bench",
+        "ekran_yazisi": "35 km · köy kahvaltısı"
+      }
+    ],
+    "aciklama_metni": "Ruh haline göre rota · Bölüm 1. Keyfin yerindeyse Polonezköy orman yolu ve köy kahvaltısı.",
+    "hashtagler": [
+      "#motosiklet",
+      "#polonezköy",
+      "#rota"
+    ],
+    "onerilen_ses": "Neşeli indie pop",
+    "rota": {
+      "ad": "Polonezköy",
+      "km": 35,
+      "duraklar": [
+        "Beykoz",
+        "Polonezköy"
+      ]
+    },
+    "gorsel_prompt": "Group of riders in helmets on a curvy forest road",
+    "gorsel_url": "/mock/ornek-1.jpg",
+    "video_url": null,
+    "durum": "paylasildi"
   },
   {
     "id": "i4",
     "run_id": "run_2026-10-11_0800",
     "trend_id": "t7",
+    "series_id": null,
+    "bolum_no": null,
+    "bolum_adi": null,
     "platform": "instagram",
     "format": "carousel",
     "baslik": "Grup sürüşü öncesi 5 kural",
     "kanca": "Konvoyda herkesin bilmesi gereken 5 kural.",
-    "senaryo": ["Kart 1: Kapak", "Kart 2-6: Her karta bir kural", "Kart 7: Kontak'ta grup sürüşü oluştur"],
-    "aciklama_metni": "Grup sürüşü keyiflidir, kuralları biliniyorsa. Kaydet, ekibine gönder.",
-    "hashtagler": ["#grupsürüşü", "#motosiklet", "#güvenlisürüş"],
-    "gorsel_prompt": "Group of motorcycles riding in staggered formation on a highway, aerial view, deep navy blue (#0000A8) accents, no faces, no logos, vertical 1080x1350",
-    "gorsel_url": null,
+    "senaryo": [
+      "Kapak",
+      "Kurallar",
+      "Kapanış"
+    ],
+    "sahneler": [
+      {
+        "sira": 1,
+        "sure_sn": 0,
+        "prompt": "Riders in staggered formation",
+        "ekran_yazisi": "Grup sürüşü öncesi 5 kural"
+      },
+      {
+        "sira": 2,
+        "sure_sn": 0,
+        "prompt": "Riders keeping distance",
+        "ekran_yazisi": "1 · Zikzak dizil"
+      },
+      {
+        "sira": 3,
+        "sure_sn": 0,
+        "prompt": "Rider signalling with hand",
+        "ekran_yazisi": "2 · El işaretlerini bil"
+      }
+    ],
+    "aciklama_metni": "Grup sürüşü keyiflidir, kurallar biliniyorsa. Kaydet, ekibine gönder.",
+    "hashtagler": [
+      "#grupsürüşü",
+      "#motosiklet",
+      "#güvenlisürüş"
+    ],
+    "onerilen_ses": null,
+    "rota": null,
+    "gorsel_prompt": "Riders in staggered formation",
+    "gorsel_url": "/mock/ornek-2.jpg",
     "video_url": null,
     "durum": "paylasildi"
   },
@@ -81,15 +339,42 @@
     "id": "i5",
     "run_id": "run_2026-10-10_0800",
     "trend_id": "t9",
+    "series_id": null,
+    "bolum_no": null,
+    "bolum_adi": null,
     "platform": "tiktok",
     "format": "kisa_video",
     "baslik": "Yağmurda 3 hayati ipucu",
-    "kanca": "Yağmurda frene böyle basarsan düşersin.",
-    "senaryo": ["Sahne 1: Islak yol yakın çekim", "Sahne 2-4: Her sahnede bir ipucu", "Sahne 5: Güvenli sür, Kontak'ta buluşalım"],
-    "aciklama_metni": "Yağmur sürüşü bitirmez, dikkatsizlik bitirir. Bu üç ipucunu kaydet.",
-    "hashtagler": ["#yağmurdasürüş", "#motosiklet", "#güvenlik"],
-    "gorsel_prompt": "Close-up of a motorcycle tire on a wet asphalt road with reflections, rainy evening, deep navy blue (#0000A8) tones, no logos, vertical 1080x1350",
-    "gorsel_url": null,
+    "kanca": "Yağmurda frene böyle basarsan kayarsın.",
+    "senaryo": [
+      "Islak yol",
+      "İpuçları",
+      "Kapanış"
+    ],
+    "sahneler": [
+      {
+        "sira": 1,
+        "sure_sn": 3,
+        "prompt": "Wet asphalt close-up",
+        "ekran_yazisi": "Yağmurda 3 hayati ipucu"
+      },
+      {
+        "sira": 2,
+        "sure_sn": 4,
+        "prompt": "Rider in rain gear from behind",
+        "ekran_yazisi": "1 · Frene yumuşak bas"
+      }
+    ],
+    "aciklama_metni": "Yağmur sürüşü bitirmez, dikkatsizlik bitirir.",
+    "hashtagler": [
+      "#yağmurdasürüş",
+      "#motosiklet",
+      "#güvenlik"
+    ],
+    "onerilen_ses": null,
+    "rota": null,
+    "gorsel_prompt": "Wet asphalt close-up",
+    "gorsel_url": "/mock/ornek-2.jpg",
     "video_url": null,
     "durum": "reddedildi"
   }

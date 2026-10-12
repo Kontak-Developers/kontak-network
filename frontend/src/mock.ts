@@ -5,13 +5,24 @@ import runsSeed from '../../data/mock/runs.json'
 import trendsSeed from '../../data/mock/trends.json'
 import ideasSeed from '../../data/mock/ideas.json'
 import weeklySeed from '../../data/mock/weekly.json'
-import type { Brand, Idea, Run, RunStep, Trend, Weekly } from './types'
+import watchSeed from '../../data/mock/watchlist.json'
+import decisionsSeed from '../../data/mock/decisions.json'
+import seriesSeed from '../../data/mock/series.json'
+import type { Brand, Decision, Idea, Run, RunStep, Series, Trend, WatchItem, Weekly } from './types'
 
-const STORE_KEY = 'kontak-panel-mock-v1'
-const STEPS: RunStep[] = ['tara', 'analiz', 'uret', 'kaydet']
-const STEP_MS = 3000
+const STORE_KEY = 'kontak-network-mock-v2'
+const STEP_MS = 3200
 
-type State = { brand: Brand; runs: Run[]; trends: Trend[]; ideas: Idea[]; weekly: Weekly }
+type State = {
+  brand: Brand
+  runs: Run[]
+  trends: Trend[]
+  ideas: Idea[]
+  weekly: Weekly
+  watchlist: WatchItem[]
+  decisions: Decision[]
+  series: Series[]
+}
 
 function seed(): State {
   return {
@@ -20,6 +31,9 @@ function seed(): State {
     trends: trendsSeed as Trend[],
     ideas: ideasSeed as Idea[],
     weekly: weeklySeed as Weekly,
+    watchlist: watchSeed as WatchItem[],
+    decisions: decisionsSeed as Decision[],
+    series: seriesSeed as Series[],
   }
 }
 
@@ -37,19 +51,40 @@ const state = load()
 
 function save() {
   try {
-    localStorage.setItem(
-      STORE_KEY,
-      JSON.stringify({ brand: state.brand, runs: state.runs, trends: state.trends, ideas: state.ideas }),
-    )
+    const { weekly: _w, ...rest } = state
+    localStorage.setItem(STORE_KEY, JSON.stringify(rest))
   } catch {
     // önemli değil, sadece bu oturumda kalır
   }
 }
 
-// "Şimdi çalıştır": adımları sırayla ilerletir, bitince son günün gündemini yeni çalıştırmaya kopyalar
+// Ajanın canlı günlüğü: her adımda birkaç satır
+const LOG: Record<RunStep, string[]> = {
+  tara: [
+    'Takip listesi yüklendi: 8 aktif, 3 deneme etiket',
+    'TikTok taranıyor: #motovlog #pov #virajsever',
+    'Instagram taranıyor: #motosiklet #sonbaharrotası #ilksürüşüm',
+    '428 gönderi toplandı, 7 günlük referansla karşılaştırılıyor',
+  ],
+  analiz: [
+    'Manus gündemi analiz ediyor',
+    'Yükselen: Kask kamerası POV (ivme 88)',
+    'Yeni etiket bulundu: #kaskkamerası, denemeye alındı',
+    '#scootermodifiye 5 gündür durağan, listeden çıkarıldı',
+  ],
+  uret: [
+    'Seri seçildi: Ruh haline göre rota, sıradaki bölüm planlanıyor',
+    '4 içerik fikri yazıldı',
+    'fal.ai görselleri üretiyor (3/3)',
+    'fal.ai videosu üretiliyor: POV, 14 sn',
+  ],
+  kaydet: ['İçerikler panele kaydedildi', 'Ajan tamamlandı'],
+}
+
 function startRun(): Run {
   const now = new Date()
-  const id = `run_manuel_${now.getTime()}`
+  const t0 = now.getTime()
+  const id = `run_manuel_${t0}`
   const run: Run = {
     id,
     tetik: 'manuel',
@@ -59,16 +94,22 @@ function startRun(): Run {
     bitis: null,
     taranan_gonderi: 0,
     ozet: 'Ajan çalışıyor…',
+    log: [],
   }
   state.runs.unshift(run)
   save()
 
-  STEPS.forEach((step, i) => {
-    setTimeout(() => {
-      run.adim = step
-      run.taranan_gonderi = Math.min(430, 140 * (i + 1))
-      save()
-    }, STEP_MS * i)
+  const steps: RunStep[] = ['tara', 'analiz', 'uret', 'kaydet']
+  steps.forEach((step, i) => {
+    const lines = LOG[step]
+    lines.forEach((mesaj, j) => {
+      setTimeout(() => {
+        run.adim = step
+        run.taranan_gonderi = step === 'tara' ? Math.round((428 * (j + 1)) / lines.length) : 428
+        run.log = [...(run.log ?? []), { zaman: new Date().toISOString(), mesaj }]
+        save()
+      }, STEP_MS * i + (STEP_MS / lines.length) * j)
+    })
   })
 
   setTimeout(() => {
@@ -78,7 +119,7 @@ function startRun(): Run {
       const trends = state.trends
         .filter((t) => t.run_id === source.id)
         .map((t) => {
-          const nid = `${t.id}_${now.getTime()}`
+          const nid = `${t.id}_${t0}`
           idMap.set(t.id, nid)
           return { ...t, id: nid, run_id: id }
         })
@@ -86,7 +127,7 @@ function startRun(): Run {
         .filter((x) => x.run_id === source.id)
         .map((x) => ({
           ...x,
-          id: `${x.id}_${now.getTime()}`,
+          id: `${x.id}_${t0}`,
           run_id: id,
           trend_id: idMap.get(x.trend_id) ?? x.trend_id,
           durum: 'yeni' as const,
@@ -97,10 +138,9 @@ function startRun(): Run {
     }
     run.durum = 'tamamlandi'
     run.adim = 'kaydet'
-    run.taranan_gonderi = 428
     run.bitis = new Date().toISOString()
     save()
-  }, STEP_MS * STEPS.length)
+  }, STEP_MS * steps.length)
 
   return run
 }
@@ -108,7 +148,7 @@ function startRun(): Run {
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v))
 
 export async function mockRequest(method: string, path: string, body?: unknown): Promise<unknown> {
-  await new Promise((r) => setTimeout(r, 150))
+  await new Promise((r) => setTimeout(r, 120))
   const url = new URL(path, 'http://mock')
   const p = url.pathname
   const run = url.searchParams.get('run')
@@ -137,21 +177,25 @@ export async function mockRequest(method: string, path: string, body?: unknown):
   }
   const ideaMatch = p.match(/^\/api\/ideas\/(.+)$/)
   if (method === 'PATCH' && ideaMatch) {
-    const idea = state.ideas.find((x) => x.id === ideaMatch[1])
+    const idea = state.ideas.find((x) => x.id === decodeURIComponent(ideaMatch[1]))
     if (!idea) throw new Error('İçerik bulunamadı')
     Object.assign(idea, body)
     save()
     return clone(idea)
   }
   if (method === 'GET' && p === '/api/weekly/latest') return clone(state.weekly)
+  if (method === 'GET' && p === '/api/watchlist') return clone(state.watchlist)
+  const watchMatch = p.match(/^\/api\/watchlist\/(.+)$/)
+  if (method === 'PATCH' && watchMatch) {
+    const w = state.watchlist.find((x) => x.id === decodeURIComponent(watchMatch[1]))
+    if (!w) throw new Error('Etiket bulunamadı')
+    Object.assign(w, body, { kaynak: 'insan' })
+    save()
+    return clone(w)
+  }
+  if (method === 'GET' && p === '/api/decisions')
+    return clone(state.decisions.filter((d) => !run || d.run_id === run).sort((a, b) => b.zaman.localeCompare(a.zaman)))
+  if (method === 'GET' && p === '/api/series') return clone(state.series)
 
   throw new Error(`Sahte API'de yok: ${method} ${p}`)
-}
-
-export function resetMock() {
-  try {
-    localStorage.removeItem(STORE_KEY)
-  } catch {
-    // yoksay
-  }
 }
