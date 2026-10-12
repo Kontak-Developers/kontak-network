@@ -14,7 +14,7 @@ import type { Env } from './tipler';
 import { jsonCikar } from './yardimci';
 import { PROMPTLAR } from './promptlar.gen';
 
-export type PromptAdi = 'analiz' | 'uretim' | 'haftalik';
+export type PromptAdi = 'analiz' | 'uretim' | 'haftalik' | 'sok';
 
 // ─────────────────────────────────────────────
 // Şemalar. Manus kuralı: her nesnede additionalProperties:false ve
@@ -119,6 +119,37 @@ export const SEMALAR: Record<PromptAdi, Record<string, unknown>> = {
       }),
     },
   }),
+  /**
+   * SÖK (v2, 12 Ekim): patlayan videolardan FORMAT kütüphanesi. Derinlik:
+   * kök{} → formatlar[] → format{} → ornek_linkler[] — 4 seviye, Manus
+   * sınırının (5) içinde. İç içe nesne YOK (iki kez 400 yedik).
+   */
+  sok: nesne({
+    formatlar: {
+      type: 'array',
+      description: 'Bu turdaki videolardan çıkan formatlar (en fazla 8), en güçlüden zayıfa',
+      items: nesne({
+        mevcut_id: { ...S, description: 'Girdideki mevcut_formatlar içindeki aynı formatın id\'si; yeni formatsa boş string' },
+        ad: { ...S, description: 'Kısa, akılda kalan format adı (ör. "POV: ilk grup sürüşünde ben")' },
+        ozet: S,
+        kanca_kalibi: { ...S, description: 'İlk 1-2 saniyenin kalıbı, doldurulabilir şablon olarak' },
+        yapi: { ...S, description: 'Sahne sahne yapı, her sahne ayrı satırda, saniyeleriyle' },
+        kurgu: { ...S, description: 'Toplam süre, tempo, kesme sıklığı, geçişler, kamera dili' },
+        ses: { ...S, description: 'Trend ses / müzik türü / ses tasarımı; trend sesin adı varsa yaz' },
+        ekran_yazisi: { ...S, description: 'Ekran yazısı kalıbı ve yerleşimi' },
+        neden_tuttu: { ...S, description: 'İzleyici psikolojisi: neden izletti, neden paylaştırdı/kaydettirdi' },
+        kontak_acisi: { ...S, description: 'Kontak (motorcu tanışma + topluluk uygulaması) bu formatı nasıl kullanır: 2-3 somut fikir' },
+        seslendirme: { type: 'boolean', description: 'Format anlatımlı/seslendirmeli mi' },
+        guc: { ...N, description: '0-100: kanıt gücü (kaç bağımsız hesapta, ne kadar patlama)' },
+        ornek_linkler: { ...SD, description: 'Yalnız girdideki linkler' },
+      }),
+    },
+    tr_trend_uygun: {
+      ...SD,
+      description: 'Girdideki Türkiye trend hashtaglerinden marka için GÜVENLE kullanılabilecekler (# olmadan). Haber, siyaset, trajedi, suç, şiddet, kişi davası ASLA.',
+    },
+    tr_trend_not: { ...S, description: 'Uygun trendleri Kontak nasıl kullanabilir, tek paragraf' },
+  }),
   haftalik: nesne({
     ozet: S,
     kalici: { type: 'array', items: nesne({ baslik: S, ivme: N }) },
@@ -130,6 +161,7 @@ export const SEMALAR: Record<PromptAdi, Record<string, unknown>> = {
 
 // Nida'nın prompts/*.md dosyası yoksa bunlar kullanılır.
 const VARSAYILAN: Record<PromptAdi, string> = {
+  sok: `Sen kısa video formatlarını söken kıdemli bir kreatif stratejistsin. Ekteki patlayan videoları izle, tekrar kullanılabilir FORMATLARI çıkar (kanca, yapı, kurgu, ses, ekran yazısı, neden tuttu, Kontak açısı). Haber/siyaset/trajedi/suç asla. Yalnız şemaya uygun JSON döndür.`,
   analiz: `Sen Kontak'ın sosyal medya ajanısın. Kontak, Türkiye'de motosiklet kültürü üzerine kurulu tanışma ve topluluk uygulaması.
 Girdi: marka profili, takip listesi, son 48 saatin en güçlü TikTok/Instagram gönderileri ve her hashtag/ses için ivme puanı (0-100; 50 durağan, 75 iki kat büyüme, 100 dört kat).
 Görev:
@@ -170,13 +202,17 @@ export type BrainYoklama =
  *    geçiyor. Bu yüzden Workflow bu adımı beklemeli yeniden dener,
  *    ancak tükenince Workers AI'ye düşer.
  */
+/** Manus'a giden ek dosya (ör. patlayan videolar, herkese açık fal adresi). */
+export type BrainEki = { url: string; ad: string; mime: string };
+
 export async function brainBaslat(
   env: Env,
   ad: PromptAdi,
   girdi: unknown,
-  baslik: string
+  baslik: string,
+  ekler: BrainEki[] = []
 ): Promise<BrainBaslangic> {
-  if (env.MANUS_API_KEY) return manusBaslat(env, ad, girdi, baslik);
+  if (env.MANUS_API_KEY) return manusBaslat(env, ad, girdi, baslik, ekler);
   return { saglayici: 'workersai', sonuc: await workersAi(env, ad, girdi) };
 }
 
@@ -228,7 +264,7 @@ function base64Utf8(metin: string): string {
   return btoa(ikili);
 }
 
-async function manusBaslat(env: Env, ad: PromptAdi, girdi: unknown, baslik: string): Promise<BrainBaslangic> {
+async function manusBaslat(env: Env, ad: PromptAdi, girdi: unknown, baslik: string, ekler: BrainEki[] = []): Promise<BrainBaslangic> {
   // Manus metin mesajı ~5000 token sınırlı; veri dosya olarak eklenir.
   const veri = JSON.stringify(girdi);
   const r = await manus(env, '/task.create', {
@@ -241,6 +277,8 @@ async function manusBaslat(env: Env, ad: PromptAdi, girdi: unknown, baslik: stri
           filename: 'girdi.json',
           mime_type: 'application/json',
         },
+        // Videolar adresle (file_url ≤ 20 MB): Manus indirip izliyor.
+        ...ekler.map((e) => ({ type: 'file', file_url: e.url, filename: e.ad, mime_type: e.mime })),
       ],
     },
     agent_profile: env.MANUS_PROFIL || 'standard',

@@ -3,7 +3,7 @@
 
 import type { Env, RunParams } from './tipler';
 import { fikirCikti, haftaCikti, runCikti, seriCikti, trendCikti } from './db';
-import { hata, json, runIdUret, simdiIst } from './yardimci';
+import { hata, json, jsonAc, runIdUret, simdiIst } from './yardimci';
 import {
   instagramPublish, instagramPublishComplete, instagramPublishPreview, instagramPublishStatus, socialConnectUrl,
   socialOAuthCallback, socialStatus, SocialError,
@@ -201,6 +201,26 @@ async function api(req: Request, env: Env, url: URL): Promise<Response> {
   }
   if (yol === '/api/kontak-rotalar/senkron' && m === 'POST') {
     return json(await rotaSenkron(env, req.headers.get('authorization') ?? ''));
+  }
+
+  // ── v2: format kütüphanesi, patlayanlar, harcama ──
+  if (yol === '/api/formats' && m === 'GET') {
+    const r = await DB.prepare(
+      `SELECT * FROM formatlar ORDER BY CASE durum WHEN 'zirvede' THEN 0 WHEN 'yukseliyor' THEN 1 ELSE 2 END, skor DESC LIMIT 60`
+    ).all<any>();
+    return json(r.results.map((f) => ({ ...f, seslendirme: f.seslendirme === 1, ornekler: jsonAc(f.ornekler, []) })));
+  }
+  if (yol === '/api/patlayanlar' && m === 'GET') {
+    const r = run
+      ? await DB.prepare('SELECT * FROM patlayanlar WHERE run_id = ? ORDER BY patlama DESC').bind(run).all()
+      : await DB.prepare('SELECT * FROM patlayanlar ORDER BY bulunma DESC, patlama DESC LIMIT 60').all();
+    return json(r.results);
+  }
+  if (yol === '/api/harcamalar' && m === 'GET') {
+    const toplam = await DB.prepare('SELECT servis, ROUND(SUM(tutar_usd), 3) AS usd, COUNT(*) AS kalem FROM harcamalar GROUP BY servis').all();
+    const bugun = await DB.prepare('SELECT servis, ROUND(SUM(tutar_usd), 3) AS usd FROM harcamalar WHERE zaman >= ? GROUP BY servis')
+      .bind(simdiIst().slice(0, 10)).all();
+    return json({ toplam: toplam.results, bugun: bugun.results });
   }
 
   if (yol === '/api/series' && m === 'GET') {

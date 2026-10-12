@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const kok = join(dirname(fileURLToPath(import.meta.url)), '..');
 const promptlar = join(kok, '..', 'prompts');
 const cikti = {};
-for (const ad of ['analiz', 'uretim', 'haftalik']) {
+for (const ad of ['analiz', 'uretim', 'haftalik', 'sok']) {
   const yol = join(promptlar, `${ad}.md`);
   if (existsSync(yol)) cikti[ad] = readFileSync(yol, 'utf8');
 }

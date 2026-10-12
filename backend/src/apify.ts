@@ -26,7 +26,7 @@ const ALANLAR: Record<Platform, string> = {
     'url,ownerUsername,caption,hashtags,likesCount,commentsCount,videoViewCount,videoPlayCount,timestamp,type,musicInfo',
 };
 
-async function apify(env: Env, yol: string, init?: RequestInit): Promise<any> {
+export async function apify(env: Env, yol: string, init?: RequestInit): Promise<any> {
   const y = await fetch(API + yol, {
     ...init,
     headers: {

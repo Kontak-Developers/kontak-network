@@ -11,7 +11,9 @@ import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep, type Workflo
 import type { Brand, Env, Etiket, Gonderi, Platform, RunParams } from './tipler';
 import { taramaBaslat, taramaDurumu, taramaSonuclari, sahteTarama, type ApifyIs } from './apify';
 import { ivmeHesapla, ornekGonderiler } from './ivme';
-import { brainBaslat, brainYokla, workersAi, type PromptAdi } from './brain';
+import { brainBaslat, brainYokla, workersAi, type BrainEki, type PromptAdi } from './brain';
+import { avAdaylari, avBaslat, avMaliyeti, dokum, falaTasi, indirilenler, indirmeBaslat, patlayanlariSec, trTrendleri, type Aday, type AvIs, type TrTrend } from './avci';
+import { formatlariYaz, harcamaYaz, kazananFormatlar, mevcutFormatlar, patlayanlariYaz, trTrendleriniYaz, uygunTrTrendleri } from './formatlar';
 import { DIKEY_4_5, DIKEY_9_16, gorselUret, sahnePromptu, videoBaslat, videoYokla, type Uretilen } from './fal';
 import { gonderileriYaz, markaOku, gonderileriOku } from './db';
 import { syncSocialPerformance } from './social';
@@ -56,21 +58,28 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       });
 
       let taranan = 0;
+      let avSonucu: { toplam: number; secilen: Aday[]; tr: TrTrend[] } | null = null;
       if (env.APIFY_TOKEN) {
         // İlk çalıştırmada referans boş: 7 günlük geçmiş için daha çok gönderi.
         const adet = sayi(env.GONDERI_PER_ETIKET) * (plan.ilk ? 3 : 1);
+        /**
+         * v2 (12 Ekim akşam): TikTok artık AVCI'dan (avci.ts) — patlama
+         * oranı için takipçi sayısı gerekiyor, eski tarama bunu almıyordu.
+         * Instagram eski taramayla sürüyor (ivme ve panel gündemi için).
+         */
         const isler = await yap(step, 'apify-baslat', TEKRAR, async () => {
           const out: ApifyIs[] = [];
-          for (const p of ['tiktok', 'instagram'] as Platform[]) {
-            const e = plan.etiketler.filter((x) => x.platform === p).map((x) => x.etiket);
-            if (e.length) out.push(await taramaBaslat(env, p, e, adet));
-          }
+          const ig = plan.etiketler.filter((x) => x.platform === 'instagram').map((x) => x.etiket);
+          if (ig.length) out.push(await taramaBaslat(env, 'instagram', ig, adet));
           return out;
         });
+        const avIsler = await yap(step, 'av-baslat', TEKRAR, () =>
+          avBaslat(env, plan.etiketler.filter((x) => x.platform === 'tiktok').map((x) => x.etiket), sayi(env.GONDERI_PER_ETIKET) || 30)
+        );
         for (let i = 0; i < 40; i++) {
           await step.sleep(`apify-bekle-${i}`, '30 seconds');
           const bitti = await yap(step, `apify-durum-${i}`, TEKRAR, async () => {
-            const d = await Promise.all(isler.map((x) => taramaDurumu(env, x.runId)));
+            const d = await Promise.all([...isler, ...avIsler].map((x) => taramaDurumu(env, x.runId)));
             return d.every((s) => BITMIS_APIFY.has(s));
           });
           if (bitti) break;
@@ -83,6 +92,32 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
             return g.length;
           });
         }
+        const av = await yap(step, 'av-topla', TEKRAR, async () => {
+          let adaylar: Aday[] = [];
+          let tr: TrTrend[] = [];
+          for (const is of avIsler) {
+            if (is.kaynak === 'tr_trend') tr = await trTrendleri(env, is).catch(() => []);
+            else adaylar = adaylar.concat(await avAdaylari(env, is).catch(() => []));
+            await harcamaYaz(env, runId, 'apify', `av:${is.kaynak}`, await avMaliyeti(env, is.runId).catch(() => 0), false);
+          }
+          // TR motor videoları eski ivme hesabını da beslesin (panel gündemi).
+          await gonderileriYaz(
+            env,
+            adaylar.filter((a) => a.kaynak === 'tr_motor').map((a) => ({
+              link: a.link, platform: 'tiktok' as const, hesap: a.hesap, aciklama: a.aciklama,
+              hashtagler: (a.aciklama.match(/#[\p{L}\p{N}_]+/gu) ?? []).map((h) => h.slice(1).toLocaleLowerCase('tr')),
+              ses: a.ses, format: 'video' as const, izlenme: a.izlenme, begeni: a.begeni, yorum: a.yorum,
+              paylasim: a.paylasim, tarih: a.tarih,
+            })),
+            runId
+          );
+          const secilen = patlayanlariSec(adaylar);
+          await patlayanlariYaz(env, runId, secilen);
+          await trTrendleriniYaz(env, runId, tr);
+          return { toplam: adaylar.length, secilen, tr };
+        });
+        taranan += av.toplam;
+        avSonucu = av;
       } else {
         taranan = await yap(step, 'sahte-tara', async () => {
           const g = sahteTarama(plan.ilk ? 9 : 2);
@@ -96,6 +131,74 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
 
       // ───────────── 2. ANALİZ ─────────────
       await adim('analiz');
+
+      /**
+       * SÖK (v2): patlayanların videoları → fal depolama → döküm → Manus
+       * videoları izleyip formatları söküyor → kütüphane. Bir halkası
+       * düşerse analiz/üretim eski yoldan sürüyor (format yoksa da içerik
+       * çıkıyor, yalnız daha zayıf).
+       */
+      if (avSonucu && avSonucu.secilen.length && env.FAL_KEY) {
+        try {
+          const secilen = avSonucu.secilen;
+          const indirIs = await yap(step, 'sok-indir', TEKRAR, () => indirmeBaslat(env, secilen.map((a) => a.link)));
+          for (let i = 0; i < 20; i++) {
+            await step.sleep(`sok-indir-bekle-${i}`, '15 seconds');
+            const bitti = await yap(step, `sok-indir-durum-${i}`, TEKRAR, async () =>
+              BITMIS_APIFY.has(await taramaDurumu(env, indirIs.runId))
+            );
+            if (bitti) break;
+          }
+          const dosyalar = await yap(step, 'sok-fal', { ...TEKRAR, timeout: '10 minutes' as const }, async () => {
+            const kaynak = await indirilenler(env, indirIs);
+            await harcamaYaz(env, runId, 'apify', 'indir:tiktok-video', await avMaliyeti(env, indirIs.runId).catch(() => 0), false);
+            const out: Record<string, string> = {};
+            const liste = secilen.filter((a) => kaynak[a.link]);
+            // 2'şerli: video ≤ 19 MB, Worker belleği 128 MB (4'erli ~76 MB sınırda).
+            for (let i = 0; i < liste.length; i += 2) {
+              await Promise.all(
+                liste.slice(i, i + 2).map(async (a, j) => {
+                  const url = await falaTasi(env, kaynak[a.link], `patlayan-${i + j + 1}`).catch(() => null);
+                  if (url) out[a.link] = url;
+                })
+              );
+            }
+            return out;
+          });
+          const dokumler = await yap(step, 'sok-dokum', { ...TEKRAR, timeout: '10 minutes' as const }, async () => {
+            const out: Record<string, string> = {};
+            await Promise.all(
+              Object.entries(dosyalar).map(async ([link, url]) => {
+                const d = await dokum(env, url).catch(() => null);
+                if (d) {
+                  out[link] = d;
+                  await env.DB.prepare('UPDATE patlayanlar SET dokum = ? WHERE link = ?').bind(d, link).run();
+                }
+              })
+            );
+            // Wizper ~ saniye başı tahmini (tahmini=1).
+            await harcamaYaz(env, runId, 'fal', 'fal-ai/wizper', Object.keys(dosyalar).length * 0.01);
+            return out;
+          });
+          const linkSirasi = Object.keys(dosyalar);
+          const ekler: BrainEki[] = linkSirasi.map((l, i) => ({ url: dosyalar[l], ad: `video-${i + 1}.mp4`, mime: 'video/mp4' }));
+          const sokGirdi = await yap(step, 'sok-girdi', async () => ({
+            patlayanlar: secilen.map((a) => ({
+              link: a.link, kaynak: a.kaynak, hesap: a.hesap, takipci: a.takipci, izlenme: a.izlenme, patlama: a.patlama,
+              begeni: a.begeni, yorum: a.yorum, paylasim: a.paylasim, kaydetme: a.kaydetme, sure_sn: a.sure_sn,
+              aciklama: a.aciklama, ses: a.ses, tarih: a.tarih, dokum: dokumler[a.link] ?? null,
+              dosya: linkSirasi.includes(a.link) ? `video-${linkSirasi.indexOf(a.link) + 1}.mp4` : null,
+            })),
+            mevcut_formatlar: await mevcutFormatlar(env),
+            tr_trendleri: avSonucu!.tr.slice(0, 40),
+          }));
+          const sok = await this.beyin(step, runId, 'sok', sokGirdi, ekler, 35);
+          await yap(step, 'sok-kaydet', () => formatlariYaz(env, runId, sok, secilen));
+        } catch (e) {
+          console.error('sök zinciri düştü, eski yoldan devam:', hataMetni(e));
+        }
+      }
+
       const analizGirdi = await yap(step, 'analiz-girdi', async () => {
         const gonderiler = await gonderileriOku(env, 9);
         const ivme = ivmeHesapla(gonderiler);
@@ -171,6 +274,9 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
             ).all()
           ).results,
           hesap_performansi: hesapPerformansi,
+          // v2: "trend OLMUŞ" kalıplar (formatlar.ts) ve marka için güvenli TR trendleri.
+          kazanan_formatlar: await kazananFormatlar(env, 8),
+          tr_trend_uygun: await uygunTrTrendleri(env, runId),
         };
       });
       const uretimHam = (await this.beyin(step, runId, 'uretim', uretimGirdi)) as any;
@@ -305,12 +411,19 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
   }
 
   /** Manus'u başlatır ve bekler; düşerse ya da süre dolarsa Workers AI. */
-  private async beyin(step: WorkflowStep, runId: string, ad: PromptAdi, girdi: unknown): Promise<unknown> {
+  private async beyin(
+    step: WorkflowStep,
+    runId: string,
+    ad: PromptAdi,
+    girdi: unknown,
+    ekler: BrainEki[] = [],
+    sureDk?: number
+  ): Promise<unknown> {
     const env = this.env;
     let bas: any;
     try {
       bas = await yap(step, `${ad}-baslat`, MANUS_BASLAT, async () => {
-      const b = await brainBaslat(env, ad, girdi, `Kontak Network · ${ad} · ${runId}`);
+      const b = await brainBaslat(env, ad, girdi, `Kontak Network · ${ad} · ${runId}`, ekler);
       if (b.saglayici === 'manus') {
         // Sunumda kanıt: görev linkleri çalıştırmaya yazılır.
         const r = await env.DB.prepare('SELECT manus_linkleri FROM runs WHERE id = ?').bind(runId).first<{ manus_linkleri: string }>();
@@ -326,7 +439,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
     }
     if (bas.saglayici === 'workersai') return bas.sonuc;
 
-    const tur = Math.max(1, Math.round((sayi(env.MANUS_SURE_DK) || 20) * 3)); // 20 sn'de bir
+    const tur = Math.max(1, Math.round((sureDk ?? (sayi(env.MANUS_SURE_DK) || 20)) * 3)); // 20 sn'de bir
     for (let i = 0; i < tur; i++) {
       await step.sleep(`${ad}-bekle-${i}`, '20 seconds');
       const y = await yap(step, `${ad}-yokla-${i}`, TEKRAR, () => brainYokla(env, bas.taskId) as Promise<any>);
