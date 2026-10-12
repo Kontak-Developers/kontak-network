@@ -476,7 +476,16 @@ async function fikirleriYaz(env: Env, runId: string, uretim: any, trendIdleri: s
     const sahneler = dizi<any>(f?.sahneler).slice(0, 8).map((s, i) => {
       // Eski şekil (tur yok): videoda video, diğerlerinde foto
       const tur = ['foto', 'video', 'tasarim'].includes(s?.tur) ? s.tur : fmt === 'kisa_video' ? 'video' : 'foto';
-      const t = s?.tasarim && typeof s.tasarim === 'object' && s.tasarim.sablon && s.tasarim.sablon !== 'yok' ? s.tasarim : null;
+      // Şema düz alan veriyor (tasarim_*); eski/yedek çıktı iç içe tasarim verebilir.
+      const ham = s?.tasarim && typeof s.tasarim === 'object'
+        ? s.tasarim
+        : {
+            sablon: s?.tasarim_sablon, baslik: s?.tasarim_baslik, alt_baslik: s?.tasarim_alt_baslik, rota_id: s?.tasarim_rota_id,
+            maddeler: Array.isArray(s?.tasarim_maddeler)
+              ? s.tasarim_maddeler
+              : metin(s?.tasarim_maddeler).split('\n').map((x) => x.trim()).filter(Boolean),
+          };
+      const t = ham.sablon && ham.sablon !== 'yok' ? ham : null;
       return {
         sira: sayi(s?.sira) || i + 1, sure_sn: sayi(s?.sure_sn), tur: tur === 'tasarim' && !t ? 'foto' : tur,
         prompt: metin(s?.prompt).slice(0, 1200), ekran_yazisi: metin(s?.ekran_yazisi).slice(0, 160),

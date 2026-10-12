@@ -99,13 +99,17 @@ export const SEMALAR: Record<PromptAdi, Record<string, unknown>> = {
             },
             prompt: { ...S, description: 'foto/video için İngilizce kare tarifi; tasarim için boş string' },
             ekran_yazisi: S,
-            tasarim: nesne({
-              sablon: { type: 'string', enum: ['yok', 'rota', 'liste', 'metin', 'karsilastirma', 'soru'], description: 'tur tasarim değilse yok' },
-              baslik: S,
-              alt_baslik: S,
-              maddeler: { ...SD, description: 'liste: maddeler · karsilastirma: [sol başlık, sol..., "|", sağ başlık, sağ...] · soru: seçenekler' },
-              rota_id: { ...S, description: 'rota şablonunda uygulama_rotalari içindeki id; yoksa boş string' },
-            }),
+            // ⚠️ tasarim alanları DÜZ ve dizisiz: iç içe nesne/dizi Manus'ta 400 verdi
+            // (derinlik sınırı, 12 Ekim). Workflow kaydederken tasarim nesnesine toplar.
+            tasarim_sablon: { type: 'string', enum: ['yok', 'rota', 'liste', 'metin', 'karsilastirma', 'soru'], description: 'tur tasarim değilse yok' },
+            tasarim_baslik: S,
+            tasarim_alt_baslik: S,
+            // Dizi DEĞİL, satır satır metin: sahne içindeki dizi Manus derinlik sınırını aşıyor (400).
+            tasarim_maddeler: {
+              ...S,
+              description: 'Her madde ayrı satırda (\\n). liste: maddeler · karsilastirma: sol başlık, sol maddeler, "|" satırı, sağ başlık, sağ maddeler · soru: seçenekler · yoksa boş string',
+            },
+            tasarim_rota_id: { ...S, description: 'rota şablonunda uygulama_rotalari içindeki id; yoksa boş string' },
           }),
         },
         // anyOf(nesne | null) Manus'ta 400 verdi (12 Ekim); rota hep nesne,
