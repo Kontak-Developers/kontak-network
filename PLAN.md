@@ -23,6 +23,8 @@ Cloudflare Workflow: adım adım, her adım tekrar denenebilir
 Panel: Bugün'ün gündemi, hazır içerikler (onayla / reddet / metni kopyala), çalıştırma geçmişi
 ```
 
+**Roller:** Apify araştırır, Manus şef (takip listesi, seri ve içerik kararlarını o verir), fal.ai görsel ve videoyu üretir. Ajan hangi hashtag'leri izleyeceğine kendisi karar verir (8 aktif + 3 deneme), tek tek gönderi değil seri düşünür. Ayrıntı: SOZLESME.md sonundaki "Ek".
+
 **Ajan beyni:** Manus API (Manus işi koordine ediyor, jüri kriteri). Manus API çalışmazsa yedek: Cloudflare Workers AI (anahtar gerektirmez). Beyin tek bir fonksiyonun arkasında, değiştirmek bir satır.
 
 **Otomatik paylaşım yok:** Instagram ve TikTok'a otomatik paylaşım için onaylı iş hesabı API'si gerekiyor, bugün yetişmez. Ajan hazırlar, insan onaylar ve paylaşır. Bu aynı zamanda marka güvenliği için doğru tercih.

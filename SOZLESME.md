@@ -117,3 +117,100 @@ Her pazartesi 08:00'deki çalıştırma, günlük işin üstüne haftalık özet
   "onerilen_odak": ["Hafta boyunca 3 POV videosu", "Cumartesi grup sürüşü çağrısı"]
 }
 ```
+
+---
+
+# Ek: Otonom ajan, seriler, video (12 Ekim, karar)
+
+**Roller:** Apify araştırır, Manus şef (her kararı o verir), fal.ai görsel ve videoyu üretir. Promptlar Nida'da (`prompts/`).
+
+## Marka profiline `sinirlar` alanı
+
+Ajan hashtag listesi almaz, sınır alır. İçinde kendisi karar verir.
+
+```json
+"sinirlar": {
+  "konu_alani": "Türkiye motosiklet kültürü: sürüş, rota, topluluk, ekipman, güvenlik",
+  "yasak_konular": ["siyaset", "kaza görüntüsü", "yarış / sokak yarışı"],
+  "gorsel_kurallar": [
+    "Yüzü görünen gerçekçi insan yok. Kasklı ya da arkadan çekilmiş sürücü olabilir.",
+    "Güvensiz sürüş yok: kasksız sürüş, tek teker, aşırı hız",
+    "Başka markanın logosu ve okunabilir plaka yok",
+    "Üretilen görselin/videonun içine yazı yazdırılmaz; ekran yazısı ayrı alanda",
+    "Rotalar gerçek yerler; var olmayan yol veya mekân uydurulmaz",
+    "Müzik videoya gömülmez; önerilen ses paylaşırken eklenir"
+  ],
+  "butce": { "aktif_hashtag": 8, "deneme_hashtag": 3, "video_per_run": 1 }
+}
+```
+
+## Takip listesi: `GET /api/watchlist`, `PATCH /api/watchlist/:id`
+
+Ajan her çalıştırmada kendi günceller: **keşfet** (taranan gönderilerde sık birlikte geçen yeni etiketi `deneme`ye al), **değerlendir** (deneme birkaç gün yükselen içerik getirdiyse `aktif` yap), **ele** (üst üste verimsizse `elendi`). Bütçe aşılmaz: en fazla 8 aktif + 3 deneme. `sabit` ve `yasak` sadece insanın kararıdır, ajan dokunmaz.
+
+```json
+{
+  "id": "w1",
+  "etiket": "virajsever",
+  "platform": "tiktok",
+  "durum": "deneme",
+  "kaynak": "kesif",
+  "skor": 64,
+  "eklenme": "2026-10-12T08:03:00+03:00",
+  "neden": "Yükselen 3 gönderide #motovlog ile birlikte geçti"
+}
+```
+`durum`: aktif | deneme | elendi | sabit | yasak. `kaynak`: profil | kesif | insan.
+`PATCH` gövdesi: `{ "durum": "sabit" }` ya da `{ "durum": "yasak" }`.
+
+## Ajanın kararları: `GET /api/decisions?run=<id>`
+
+Her otonom karar gerekçesiyle kaydedilir. Panelde "Ajanın kararları" ekranı bunu gösterir.
+
+```json
+{
+  "id": "d1",
+  "run_id": "run_2026-10-12_0800",
+  "tur": "hashtag_ekle",
+  "hedef": "#virajsever",
+  "neden": "Yükselen 3 gönderide #motovlog ile birlikte geçti, denemeye alındı",
+  "zaman": "2026-10-12T08:03:00+03:00"
+}
+```
+`tur`: hashtag_ekle | hashtag_kalici | hashtag_cikar | seri_ac | bolum_planla | icerik_uret.
+
+## Seriler: `GET /api/series`
+
+Ajan tek tek gönderi değil seri düşünür. Gündeme göre yeni seri açar ya da var olan serinin sıradaki bölümünü planlar.
+
+```json
+{
+  "id": "s1",
+  "ad": "Ruh haline göre rota",
+  "aciklama": "Her bölüm bir ruh hali için İstanbul çevresinden gerçek bir rota",
+  "format": "kisa_video",
+  "durum": "aktif",
+  "olusturan": "ajan",
+  "bolum_sayisi": 2,
+  "planlanan_bolumler": ["Mutluyken", "Üzgünken", "Kafa dağıtmak için"],
+  "neden": "Sonbahar rotaları ivme 79, POV formatı ivme 86"
+}
+```
+
+## İçerik fikrine eklenen alanlar
+
+```json
+{
+  "series_id": "s1",
+  "bolum_no": 2,
+  "bolum_adi": "Üzgünken",
+  "sahneler": [
+    { "sira": 1, "sure_sn": 3, "prompt": "fal.ai için İngilizce video promptu", "ekran_yazisi": "Üzgünken gidilecek rota" },
+    { "sira": 2, "sure_sn": 5, "prompt": "…", "ekran_yazisi": "Riva – Şile sahil yolu · 42 km" }
+  ],
+  "rota": { "ad": "Riva – Şile", "km": 42, "duraklar": ["Riva", "Ağva", "Şile"] },
+  "onerilen_ses": "Trend sesin adı",
+  "video_url": "https://… (fal.ai)"
+}
+```
+`series_id`, `bolum_no`, `bolum_adi`, `rota` isteğe bağlı (seri dışı içerikte boş). Çalıştırma başına en fazla 1 fikre video üretilir (`butce.video_per_run`), diğerleri görsel.
