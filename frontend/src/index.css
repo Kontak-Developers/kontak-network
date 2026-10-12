@@ -1586,6 +1586,7 @@ textarea:focus {
 }
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding: 8px 8px 8px 12px;
@@ -1595,7 +1596,13 @@ textarea:focus {
   box-shadow: var(--golge);
 }
 .actions-spacer {
-  flex: 1;
+  flex: 1 1 8px;
+  min-width: 8px;
+}
+.actions .btn-primary {
+  flex: 1 1 100%;
+  min-width: 0;
+  white-space: normal;
 }
 .pill {
   font-size: 12px;
