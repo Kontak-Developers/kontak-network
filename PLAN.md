@@ -2,53 +2,70 @@
 
 ## Ne yapıyoruz
 
-Kontak'ın haftalık büyüme işini yapan bir otomasyon. Panel, otomasyonun ürettiğini gösterdiğimiz ve ekibin onayladığı ekran.
+Kontak için **her gün kendi kendine çalışan bir sosyal medya ajanı.** Ajan sabah uyanıyor, TikTok ve Instagram'da motosiklet gündemine bakıyor, neyin yükseldiğini analiz ediyor ve Kontak'a hazır içerik üretiyor: fikir, senaryo, açıklama metni, görsel, kısa video. Kimse elle araştırma yapmıyor. Ekip sadece panelden bakıp onaylıyor ve paylaşıyor.
 
-- **Öncesi:** Kontak ekibi her hafta elle motorcu grubu arıyor, gönderi yazıyor, görsel hazırlıyor, tek tek mesaj atıyor.
-- **Sonrası:** otomasyon haftada bir çalışıyor, ekip panelden sadece onaylayıp gönderiyor.
+- **Öncesi:** Kontak ekibi her gün elle TikTok ve Instagram'da geziniyor, trend arıyor, fikir buluyor, içerik hazırlıyor. Saatler gidiyor, tutarlılık yok.
+- **Sonrası:** ajan her sabah 08:00'de çalışıyor, ekip güne hazır içerikle başlıyor.
 
 ## Sistem nasıl çalışıyor
 
 ```
-Tetik (haftalık zamanlayıcı ya da paneldeki "Şimdi çalıştır")
-  → 1. Keşif:   Manus + Apify   → topluluklar ve buluşma noktaları
-  → 2. Üretim:  Manus + fal.ai  → 7 günlük takvim, görseller, iş birliği mesajları
-  → 3. Kayıt:   sonuç POST /api/ingest ile Cloudflare D1'e yazılır
-  → 4. Onay:    panelde ekip bakar, düzenler, gönderir, kanban'da takip eder
+08:00 Cloudflare Cron (ya da paneldeki "Şimdi çalıştır")
+  ↓
+Cloudflare Workflow: adım adım, her adım tekrar denenebilir
+  1. Tara       Apify → TikTok + Instagram: marka profilindeki hashtag'ler ve hesaplar
+                (son 24-48 saatin gönderileri: izlenme, beğeni, ses, format)
+  2. Analiz     Ajan beyni → yükselen konular, sesler, formatlar = günlük gündem raporu
+  3. Üret       Ajan beyni → 3 içerik fikri: kanca, senaryo, açıklama, hashtag
+                fal.ai → her fikre görsel, en iyisine kısa video
+  4. Kaydet     D1 (veri) + R2 (görsel/video)
+  ↓
+Panel: Bugün'ün gündemi, hazır içerikler (onayla / reddet / metni kopyala), çalıştırma geçmişi
 ```
 
-Motordan bağımsız tasarım: sonucu kim üretirse üretsin (Manus'ta elle çalıştırılan görev, Manus'un zamanlanmış görevi, Manus API ya da yedek bir script), `POST /api/ingest`'e aynı JSON'u gönderiyor. Panel sadece D1'i okuyor.
+**Ajan beyni:** Manus API (Manus işi koordine ediyor, jüri kriteri). Manus API çalışmazsa yedek: Cloudflare Workers AI (anahtar gerektirmez). Beyin tek bir fonksiyonun arkasında, değiştirmek bir satır.
+
+**Otomatik paylaşım yok:** Instagram ve TikTok'a otomatik paylaşım için onaylı iş hesabı API'si gerekiyor, bugün yetişmez. Ajan hazırlar, insan onaylar ve paylaşır. Bu aynı zamanda marka güvenliği için doğru tercih.
 
 ## Kim ne yapıyor
 
-| Kişi | İş | Manus promptu |
+| Kişi | Rol | İş |
 |---|---|---|
-| Burak | 1. Keşif: Apify ile topluluk ve buluşma noktası taraması | `prompts/1-burak-kesif.md` |
-| Nida | 2. Üretim: takvim, metinler, fal.ai görselleri, mesajlar + sunum | `prompts/2-nida-uretim.md` |
-| Kemal | Cloudflare (D1, API, zamanlayıcı), panel, uçtan uca bağlantı. 13:00'te iki promptu tek bir "haftalık çalıştırma" görevinde birleştirir. | `prompts/3-kemal-haftalik-gorev.md` |
+| **Burak** | **Backend** | Cloudflare Worker, Cron, Workflow, Apify entegrasyonu, D1 + R2, API uçları, gizli anahtarlar |
+| **Kemal** | **Frontend + entegrasyon** | Panel (gündem, içerik kartları, onay, geçmiş, "Şimdi çalıştır"), fal.ai modülü, uçtan uca test, deploy |
+| **Nida** | **Ajan beyni + sunum** | Manus API'yi doğrulamak, marka profili, analiz ve üretim promptları (`prompts/`), fal.ai stil testleri, sunum ve demo akışı |
+
+## API sözleşmesi (Burak ↔ Kemal)
+
+```
+GET  /api/brand                  → marka profili
+PUT  /api/brand                  → profili düzenle
+GET  /api/runs                   → çalıştırma geçmişi (zaman, durum, taranan gönderi sayısı)
+GET  /api/runs/latest            → son çalıştırma + gündem raporu
+POST /api/runs                   → "Şimdi çalıştır" (Workflow başlatır)
+GET  /api/trends?run=<id>        → yükselen konular/sesler/formatlar
+GET  /api/ideas?run=<id>         → içerik fikirleri (+ görsel/video linki, durum)
+PATCH /api/ideas/:id             → durum: yeni / onaylandı / reddedildi / paylaşıldı
+```
+
+Kemal, Burak hazır olana kadar `data/mock/` altındaki sahte JSON ile çalışır.
 
 ## Saat saat
 
 | Saat | Burak | Nida | Kemal |
 |---|---|---|---|
-| 09:30 | Repo, Apify hesabı, prompt 1'i Manus'a at | Prompt 2'nin A bölümünü at (marka profili + takvim) | Cloudflare hesabı, iskelet (Claude Code) |
-| 11:00 | İlk `community.json`'ı repoya yükle | Burak'ın listesiyle prompt 2'nin B bölümünü at (mesajlar) | Panel sahte veriyle çalışıyor |
-| 12:00 | Veriyi temizle, haritaya konum ekle | Görseller hazır, repoya yükle | Gerçek veri D1'de |
-| 13:00 | Kemal'e yardım: test | Sunum metni | Haftalık görev promptu, `/api/ingest` uçtan uca |
-| 13:30 | Panel canlıda | | |
-| 14:15 | Yeni özellik yok, prova | | |
+| 09:30 | Cloudflare iskeleti, D1 şeması | Manus API anahtarı var mı, test | Panel iskeleti, sahte veri |
+| 10:30 | Apify TikTok + Instagram aktörleri Worker'dan çalışıyor | Marka profili + analiz promptu | fal.ai görsel modülü |
+| 12:00 | Workflow: tara → kaydet çalışıyor | Üretim promptu, beyin Workflow'a bağlı | Panel API'ye bağlı |
+| 13:00 | Cron + "Şimdi çalıştır" | Gerçek bir çalıştırmanın sonucunu kontrol | fal.ai video, uçtan uca test |
+| 13:30 | **İlk tam otomatik çalıştırma, canlıda** | | |
+| 14:15 | Yeni özellik yok, sunum provası | | |
 | 14:45 | Teslim (son saat 15:00) | | |
 
-## Dosyalar nereye
-
-- `data/community.json`, `data/places.json`: Burak
-- `data/brand.json`, `data/calendar.json`, `data/outreach.json`: Nida
-- `public/images/`: Nida'nın görselleri (`gun-1.png` … `gun-7.png`)
-
-Kod bilmeyen için yükleme yolu: GitHub'da klasöre gir, **Add file → Upload files**.
+**Demo güvenliği:** Apify ve video üretimi dakikalar sürebilir. Sahnede "Şimdi çalıştır"a basıp canlı log gösteriyoruz, ama 13:30'daki gerçek çalıştırmanın sonucu da panelde hazır duruyor.
 
 ## Kurallar
 
-- Kişisel veri yok. Sadece herkese açık hesaplar (kulüp, grup, kafe, işletme, içerik üreticisi sayfası). Bireylerin özel profilleri yok.
-- API anahtarı repoya, ekrana, sunuma girmez.
-- Manus'ta kullandığınız promptları ve görev linklerini saklayın, sunumda "Manus ne yaptı" sorusuna kanıt olacak.
+- Kişisel veri yok: sadece herkese açık gönderi istatistikleri ve hesap adları.
+- API anahtarları sadece Cloudflare secret olarak (`wrangler secret put`). Repoya, ekrana, sunuma girmez.
+- Manus görev linklerini saklayın, sunumda kanıt olacak.
