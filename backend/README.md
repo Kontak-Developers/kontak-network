@@ -86,7 +86,10 @@ npx wrangler secret put IG_APP_ID
 npx wrangler secret put IG_APP_SECRET
 npx wrangler secret put TIKTOK_CLIENT_KEY
 npx wrangler secret put TIKTOK_CLIENT_SECRET
-openssl rand -base64 32 | npx wrangler secret put SOCIAL_TOKEN_ENCRYPTION_KEY
+# Önce üret; çıktıyı parola kasasında güvenli biçimde yedekle.
+openssl rand -base64 32
+# Ardından kasadaki aynı değeri Wrangler'ın istemine yapıştır.
+npx wrangler secret put SOCIAL_TOKEN_ENCRYPTION_KEY
 npm run deploy
 ```
 
