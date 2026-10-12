@@ -99,18 +99,27 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
         const gonderiler = await gonderileriOku(env, 9);
         const ivme = ivmeHesapla(gonderiler);
         const takip = await env.DB.prepare('SELECT etiket, platform, durum, skor FROM watchlist').all();
+        // Alan adları prompts/analiz.md "Girdi" bölümüyle aynı (Nida).
         return {
+          calisma_zamani: simdiIst(),
+          gonderiler: ornekGonderiler(gonderiler, 30).map((g) => ({
+            platform: g.platform, link: g.link, hesap: g.hesap, aciklama: g.aciklama, hashtagler: g.hashtagler,
+            izlenme: g.izlenme, begeniler: g.begeni, yorumlar: g.yorum, paylasimlar: g.paylasim,
+            ses_adi: g.ses, tarih: g.tarih, icerik_formati: g.format,
+          })),
+          gecmis_karsilastirma: ivme.slice(0, 40),
           marka: await markaOku(env),
           takip_listesi: takip.results,
-          ivme_hashtag: ivme.filter((s) => s.tur === 'hashtag').slice(0, 25),
-          ivme_ses: ivme.filter((s) => s.tur === 'ses').slice(0, 15),
-          gonderiler: ornekGonderiler(gonderiler, 30),
         };
       });
-      const analiz = (await this.beyin(step, runId, 'analiz', analizGirdi)) as any;
+      const analizHam = (await this.beyin(step, runId, 'analiz', analizGirdi)) as any;
+      // Şema dışı (Workers AI yedeği / prompt kendi şekliyle) yanıtları da kabul et.
+      const analiz = Array.isArray(analizHam)
+        ? { trendler: analizHam }
+        : { ...analizHam, trendler: analizHam?.trendler ?? analizHam?.gundem ?? [] };
 
       const trendler = await yap(step, 'analiz-kaydet', async () => {
-        const gecerliLink = new Set(analizGirdi.gonderiler.map((g) => g.link));
+        const gecerliLink = new Set(analizGirdi.gonderiler.map((g: { link: string }) => g.link));
         const satirlar = dizi<any>(analiz?.trendler).slice(0, 10).map((t) => ({
           id: kisaId('t'),
           run_id: runId,
@@ -130,22 +139,25 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
           )
         );
         await env.DB.prepare('UPDATE runs SET ozet = ? WHERE id = ?').bind(metin(analiz?.ozet).slice(0, 300), runId).run();
-        await takipKararlari(env, runId, dizi<any>(analiz?.takip), analizGirdi.ivme_hashtag);
+        await takipKararlari(env, runId, dizi<any>(analiz?.takip), analizGirdi.gecmis_karsilastirma.filter((s) => s.tur === 'hashtag'));
         return satirlar;
       });
 
       // ───────────── 3. ÜRET ─────────────
       await adim('uret');
+      // Şekil prompts/uretim.md "Girdi" bölümüyle aynı: gundem.{ozet, gundem[]}.
       const uretimGirdi = await yap(step, 'uretim-girdi', async () => ({
         marka: await markaOku(env),
-        gundem: trendler.map(({ run_id, ...t }) => t),
+        gundem: { ozet: metin(analiz?.ozet), gundem: trendler.map(({ run_id, ...t }) => t) },
         aktif_seriler: (
           await env.DB.prepare(
             "SELECT id, ad, aciklama, format, bolum_sayisi, planlanan_bolumler FROM series WHERE durum = 'aktif' ORDER BY olusturma DESC LIMIT 5"
           ).all()
         ).results,
       }));
-      const uretim = (await this.beyin(step, runId, 'uretim', uretimGirdi)) as any;
+      const uretimHam = (await this.beyin(step, runId, 'uretim', uretimGirdi)) as any;
+      // uretim.md kökte 3 elemanlı dizi istiyor; şema {seriler, fikirler}. İkisi de olur.
+      const uretim = Array.isArray(uretimHam) ? { fikirler: uretimHam, seriler: [] } : uretimHam;
 
       const fikirler = await yap(step, 'uretim-kaydet', () => fikirleriYaz(env, runId, uretim, trendler.map((t) => t.id)));
 
