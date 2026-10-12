@@ -52,9 +52,32 @@ export type Trend = {
 
 export type IdeaStatus = 'yeni' | 'onaylandi' | 'reddedildi' | 'paylasildi'
 
+export type DesignSpec = {
+  sablon: 'rota' | 'liste' | 'metin' | 'karsilastirma' | 'soru'
+  baslik: string
+  alt_baslik: string
+  maddeler: string[]
+  rota_id: string
+}
+
+export type KontakRota = {
+  id: string
+  ad: string
+  aciklama: string | null
+  sehir: string
+  mesafe_m: number
+  sure_s: number
+  zorluk: string
+  en_iyi_zaman: string | null
+  noktalar: { ad: string; lat: number; lon: number }[]
+  cizgi: string | null
+}
+
 export type Scene = {
   sira: number
   sure_sn: number
+  tur?: 'foto' | 'video' | 'tasarim'
+  tasarim?: DesignSpec | null
   prompt: string
   ekran_yazisi: string
   gorsel_url?: string | null

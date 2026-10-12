@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { ApiError, api, onAuthChange } from './api'
+import { ApiError, api, canSync, onAuthChange } from './api'
 import type { AuthState } from './api'
-import type { Brand, Decision, Idea, IdeaStatus, Run, Series, Trend, WatchItem, WatchStatus, Weekly } from './types'
+import type { Brand, Decision, Idea, IdeaStatus, KontakRota, Run, Series, Trend, WatchItem, WatchStatus, Weekly } from './types'
 
 type Toast = { id: number; text: string }
 
@@ -19,6 +19,7 @@ type Store = {
   watchlist: WatchItem[]
   decisions: Decision[]
   weekly: Weekly | null
+  kontakRotalar: KontakRota[]
   selectedId: string | null
   select: (id: string | null) => void
   setIdeaStatus: (id: string, durum: IdeaStatus) => Promise<void>
@@ -49,6 +50,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [watchlist, setWatchlist] = useState<WatchItem[]>([])
   const [decisions, setDecisions] = useState<Decision[]>([])
   const [weekly, setWeekly] = useState<Weekly | null>(null)
+  const [kontakRotalar, setKontakRotalar] = useState<KontakRota[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(() => new URLSearchParams(location.search).get('icerik'))
   const [toasts, setToasts] = useState<Toast[]>([])
   const toastId = useRef(0)
@@ -78,6 +80,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       soft(api.decisions(), []),
       soft(api.weekly(), null),
     ])
+    soft(api.kontakRotalar(), []).then(setKontakRotalar)
     setBrand(normalizeBrand(b))
     setRuns(r)
     setTrends(t)
@@ -96,6 +99,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const off = onAuthChange(setAuth)
     loadAll()
+    // Kontak uygulamasındaki rotaları ajana kopyala (sabah çalıştırması jetonsuz)
+    if (canSync)
+      api
+        .rotaSenkron()
+        .then(() => api.kontakRotalar())
+        .then(setKontakRotalar)
+        .catch((e) => console.warn('rota senkronu', e))
     return off
   }, [loadAll])
 
@@ -170,6 +180,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       watchlist,
       decisions,
       weekly,
+      kontakRotalar,
       selectedId,
       select: setSelectedId,
       setIdeaStatus,
@@ -179,7 +190,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       toast,
       toasts,
     }),
-    [ready, error, auth, brand, runs, latest, trends, ideas, series, watchlist, decisions, weekly, selectedId, setIdeaStatus, setWatch, startRun, saveBrand, toast, toasts],
+    [ready, error, auth, brand, runs, latest, trends, ideas, series, watchlist, decisions, weekly, kontakRotalar, selectedId, setIdeaStatus, setWatch, startRun, saveBrand, toast, toasts],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

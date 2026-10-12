@@ -8,9 +8,10 @@ import weeklySeed from '../../data/mock/weekly.json'
 import watchSeed from '../../data/mock/watchlist.json'
 import decisionsSeed from '../../data/mock/decisions.json'
 import seriesSeed from '../../data/mock/series.json'
+import rotaSeed from '../../data/mock/kontak_rotalar.json'
 import type { Brand, Decision, Idea, Run, RunStep, Series, Trend, WatchItem, Weekly } from './types'
 
-const STORE_KEY = 'kontak-network-mock-v2'
+const STORE_KEY = 'kontak-network-mock-v3'
 const STEP_MS = 3200
 
 type State = {
@@ -214,6 +215,8 @@ export async function mockRequest(method: string, path: string, body?: unknown):
   if (method === 'GET' && p === '/api/decisions')
     return clone(state.decisions.filter((d) => !run || d.run_id === run).sort((a, b) => b.zaman.localeCompare(a.zaman)))
   if (method === 'GET' && p === '/api/series') return clone(state.series)
+  if (method === 'GET' && p === '/api/kontak-rotalar') return clone(rotaSeed)
+  if (method === 'POST' && p === '/api/kontak-rotalar/senkron') return { sayi: rotaSeed.length }
 
   throw new Error(`Sahte API'de yok: ${method} ${p}`)
 }

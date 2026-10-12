@@ -1,5 +1,5 @@
 import { mockRequest } from './mock'
-import type { Brand, Decision, Idea, IdeaStatus, Run, Series, Trend, WatchItem, WatchStatus, Weekly } from './types'
+import type { Brand, Decision, Idea, IdeaStatus, KontakRota, Run, Series, Trend, WatchItem, WatchStatus, Weekly } from './types'
 
 // Panel iki yerde çalışır:
 //  - yerelde (localhost): /api → wrangler dev; erişilemeyen uç örnek veriye düşer
@@ -139,7 +139,12 @@ export const api = {
     request<WatchItem>('PATCH', `/api/watchlist/${encodeURIComponent(id)}`, { durum }),
   decisions: (run?: string) => request<Decision[]>('GET', `/api/decisions${q(run)}`),
   series: () => request<Series[]>('GET', '/api/series'),
+  kontakRotalar: () => request<KontakRota[]>('GET', '/api/kontak-rotalar'),
+  rotaSenkron: () => request<{ sayi: number; hata?: string }>('POST', '/api/kontak-rotalar/senkron'),
 }
+
+/** Prod'da (moderatör oturumu varken) Kontak rotaları senkronlanır */
+export const canSync = !LOCAL && !FORCE_MOCK
 
 /** Göreli medya yolu (ör. "mock/ornek-1.jpg") /ag/ altında da doğru çözülsün */
 export function assetUrl(u: string | null | undefined) {

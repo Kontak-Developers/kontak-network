@@ -1,15 +1,5 @@
 [
   {
-    "id": "run_test_synthetic_2026-10-12_1231",
-    "tetik": "manuel",
-    "durum": "tamamlandi",
-    "adim": "kaydet",
-    "baslangic": "2026-10-12T12:31:26+03:00",
-    "bitis": "2026-10-12T12:45:19+03:00",
-    "taranan_gonderi": 20,
-    "ozet": "SENTETİK TEST — 20 uydurma gönderi işlendi; 10 örnek gündem maddesi ve 3 fikir üretildi. Canlı sosyal medya verisi değildir."
-  },
-  {
     "id": "run_2026-10-12_0800",
     "tetik": "cron",
     "durum": "tamamlandi",
@@ -58,5 +48,15 @@
     "bitis": "2026-10-09T08:05:21+03:00",
     "taranan_gonderi": 376,
     "ozet": "Motorcu kafe buluşmaları ve kısa rota önerileri yükselişte."
+  },
+  {
+    "id": "run_test_synthetic_2026-10-12_1231",
+    "tetik": "manuel",
+    "durum": "tamamlandi",
+    "adim": "kaydet",
+    "baslangic": "2026-10-12T12:31:26+03:00",
+    "bitis": "2026-10-12T12:45:19+03:00",
+    "taranan_gonderi": 20,
+    "ozet": "SENTETİK TEST — 20 uydurma gönderi işlendi; 10 örnek gündem maddesi ve 3 fikir üretildi. Canlı sosyal medya verisi değildir."
   }
 ]

@@ -4,9 +4,11 @@ import { assetUrl } from '../api'
 import { FORMAT_LABEL, STATUS_LABEL, hasVideo, scenesOf } from '../lib'
 import { Images, Play } from 'lucide-react'
 import { FormatIcon, PlatformGlyph, SeriesIcon } from './bits'
+import DesignCard from './DesignCard'
 
 export function MediaCard({ idea, series }: { idea: Idea; series?: Series }) {
-  const { selectedId, select } = useStore()
+  const { selectedId, select, brand } = useStore()
+  const cover = scenesOf(idea)[0]
   const on = selectedId === idea.id
   return (
     <button
@@ -15,7 +17,15 @@ export function MediaCard({ idea, series }: { idea: Idea; series?: Series }) {
       aria-pressed={on}
       aria-label={`${idea.baslik}, ${STATUS_LABEL[idea.durum]}`}
     >
-      {idea.gorsel_url ? <img src={assetUrl(idea.gorsel_url)!} alt="" loading="lazy" /> : <span className="mcard-empty" />}
+      {cover?.tur === 'tasarim' && cover.tasarim && brand ? (
+        <span className="mcard-design">
+          <DesignCard spec={cover.tasarim} brand={brand} />
+        </span>
+      ) : idea.gorsel_url ? (
+        <img src={assetUrl(idea.gorsel_url)!} alt="" loading="lazy" />
+      ) : (
+        <span className="mcard-empty" />
+      )}
       <span className="mcard-shade" />
       <span className="mcard-top">
         <span className="mcard-chip">

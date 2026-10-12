@@ -1871,7 +1871,7 @@ textarea:focus {
   background: linear-gradient(160deg, var(--marka), #000);
 }
 .kenburns {
-  animation: kb 7s ease-out both;
+  animation: none;
 }
 .kb-0 {
   transform-origin: 30% 40%;
@@ -2867,4 +2867,391 @@ a.btn {
   color: #fff;
   font-size: 10.5px;
   font-weight: 700;
+}
+
+/* ══════════ Tasarım kartları (Kontak tasarım dili) ══════════ */
+.media-still {
+  /* Fotoğraf sabit; hareket yalnız gerçek videoda */
+  animation: none;
+}
+.media-design,
+.mcard-design {
+  position: absolute;
+  inset: 0;
+}
+.dc-host {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.dc {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 360px;
+  transform-origin: top left;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12.6px;
+  padding: 32.4px 28.8px 28.8px;
+  font-family: 'Sora', sans-serif;
+  letter-spacing: -0.01em;
+  color: #fff;
+  background:
+    radial-gradient(90% 60% at 100% 0%, rgba(59, 77, 232, 0.55), transparent 60%),
+    linear-gradient(160deg, #0000a8, #000063);
+}
+.dc::after {
+  content: '';
+  position: absolute;
+  right: -43.2px;
+  bottom: -36.0px;
+  width: 216.0px;
+  height: 158.4px;
+  background: #fff;
+  opacity: 0.06;
+  -webkit-mask: url(/brands/kontak/logo.png) center / contain no-repeat;
+  mask: url(/brands/kontak/logo.png) center / contain no-repeat;
+  pointer-events: none;
+}
+.dc-etiket {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5.0px;
+  padding: 5.0px 10.8px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dc-baslik {
+  font-size: 25.9px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+.dc-alt {
+  font-size: 14.0px;
+  line-height: 1.4;
+  opacity: 0.8;
+}
+.dc-imza {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7.2px;
+  font-size: 11.9px;
+  font-weight: 600;
+  opacity: 0.85;
+  position: relative;
+  z-index: 1;
+}
+.dc-imza .avatar {
+  width: 21.6px !important;
+  height: 21.6px !important;
+}
+
+/* Rota kartı: açık zemin, uygulamadaki rota ekranı gibi */
+.dc-rota {
+  background: #f4f5fb;
+  color: #16203a;
+  padding: 0;
+  gap: 0;
+}
+.dc-rota::after {
+  display: none;
+}
+.dc-rota-ust {
+  position: absolute;
+  z-index: 2;
+  top: 18.0px;
+  left: 18.0px;
+  right: 18.0px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 7px;
+  align-items: center;
+}
+.dc-rota .dc-etiket {
+  background: #fff;
+  color: #0000a8;
+  box-shadow: 0 1px 4px rgba(16, 24, 40, 0.12);
+}
+.dc-sehir {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5.0px 10.8px;
+  border-radius: 99px;
+  background: rgba(22, 32, 58, 0.75);
+  color: #fff;
+}
+.dc-harita {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background:
+    linear-gradient(rgba(0, 0, 168, 0.05) 1px, transparent 1px) 0 0 / 28.8px 28.8px,
+    linear-gradient(90deg, rgba(0, 0, 168, 0.05) 1px, transparent 1px) 0 0 / 28.8px 28.8px,
+    radial-gradient(120% 90% at 30% 30%, #e6ebf8, #dfe5f4);
+}
+.dc-svg {
+  position: absolute;
+  inset: 43.2px 21.6px 14.4px;
+  width: calc(100% - 43.2px);
+  height: calc(100% - 57.6px);
+  overflow: visible;
+}
+.dc-yol-golge {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 4.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-width: 9px;
+}
+.dc-yol {
+  fill: none;
+  stroke: #0000a8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-width: 4.5px;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: cizgi 2.2s ease-out forwards;
+}
+.dc-bas {
+  fill: #fff;
+  stroke: #0000a8;
+  stroke-width: 1.6;
+}
+.dc-son {
+  fill: #0000a8;
+  stroke: #fff;
+  stroke-width: 1.6;
+}
+.dc-rota-alt {
+  display: flex;
+  flex-direction: column;
+  gap: 7.9px;
+  padding: 19.8px 21.6px 21.6px;
+  background: #fff;
+  border-radius: 21.6px 21.6px 0 0;
+  box-shadow: 0 -4px 16px rgba(16, 24, 40, 0.06);
+}
+.dc-rota .dc-baslik {
+  font-size: 22.3px;
+  color: #16203a;
+}
+.dc-guzergah {
+  display: inline-flex;
+  align-items: center;
+  gap: 4.3px;
+  font-size: 12.6px;
+  color: #5b6885;
+  font-weight: 600;
+}
+.dc-istatistik {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6.5px;
+}
+.dc-istatistik span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4.3px;
+  padding: 5.8px 10.8px;
+  border-radius: 99px;
+  background: #eef0ff;
+  color: #0000a8;
+  font-size: 12.2px;
+  font-weight: 700;
+}
+.dc-rota .dc-alt {
+  color: #5b6885;
+  opacity: 1;
+}
+.dc-rota .dc-imza {
+  margin-top: 3.6px;
+  color: #8b97b3;
+  opacity: 1;
+}
+
+/* Liste */
+.dc-liste {
+  list-style: none;
+  padding: 0;
+  margin: 7.2px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10.8px;
+  position: relative;
+  z-index: 1;
+}
+.dc-liste li {
+  display: flex;
+  align-items: center;
+  gap: 12.6px;
+  font-size: 15.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  padding: 10.8px 12.6px;
+  border-radius: 14.4px;
+  background: rgba(255, 255, 255, 0.09);
+}
+.dc-liste li span {
+  flex: none;
+  width: 25.2px;
+  height: 25.2px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: #0000a8;
+  font-size: 13.0px;
+  font-weight: 800;
+}
+
+/* Metin */
+.dc-metin {
+  justify-content: center;
+}
+.dc-tirnak {
+  font-size: 108.0px;
+  line-height: 0.6;
+  height: 43.2px;
+  font-weight: 800;
+  opacity: 0.25;
+}
+.dc-buyuk {
+  font-size: 34.2px;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  position: relative;
+  z-index: 1;
+}
+.dc-metin .dc-imza {
+  margin-top: 28.8px;
+}
+
+/* Karşılaştırma */
+.dc-kolonlar {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10.8px;
+  margin-top: 7.2px;
+  position: relative;
+  z-index: 1;
+}
+.dc-kolon {
+  display: flex;
+  flex-direction: column;
+  gap: 10.8px;
+  padding: 18.0px 16.2px;
+  border-radius: 18.0px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.dc-kolon b {
+  font-size: 18.0px;
+}
+.dc-kolon ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9.4px;
+}
+.dc-kolon li {
+  font-size: 13.3px;
+  line-height: 1.35;
+  opacity: 0.85;
+}
+.dc-kolon-vurgu {
+  background: #fff;
+  color: #0000a8;
+}
+.dc-kolon-vurgu li {
+  opacity: 1;
+  color: #16203a;
+}
+
+/* Soru: açık zemin, anket gibi */
+.dc-soru {
+  background: #fff;
+  color: #16203a;
+  justify-content: center;
+}
+.dc-soru::after {
+  background: #0000a8;
+  opacity: 0.05;
+}
+.dc-soru .dc-etiket {
+  background: #eef0ff;
+  color: #0000a8;
+}
+.dc-soru .dc-baslik {
+  font-size: 27.4px;
+}
+.dc-secenekler {
+  display: flex;
+  flex-direction: column;
+  gap: 9.4px;
+  margin-top: 7.2px;
+  position: relative;
+  z-index: 1;
+}
+.dc-secenekler span {
+  padding: 13.0px 16.2px;
+  border-radius: 99px;
+  border: 1.8px solid #dfe4f2;
+  font-size: 15.1px;
+  font-weight: 600;
+}
+.dc-secenekler span:first-child {
+  border-color: #0000a8;
+  background: #eef0ff;
+  color: #0000a8;
+}
+.dc-soru .dc-alt {
+  color: #5b6885;
+  opacity: 1;
+}
+.dc-soru .dc-imza {
+  margin-top: 14.4px;
+  color: #8b97b3;
+  opacity: 1;
+}
+@keyframes cizgi {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+/* TikTok / Reels foto modu: kart güvenli alanda, siyah zemin */
+.media-design {
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 96px 62px 176px 14px;
+}
+.media-design-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  max-height: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.is-design .shade-top,
+.is-design .shade-bottom {
+  display: none;
 }

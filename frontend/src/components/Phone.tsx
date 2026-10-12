@@ -22,6 +22,7 @@ import {
 import type { Brand, Idea } from '../types'
 import { sceneImage, scenesOf } from '../lib'
 import { assetUrl } from '../api'
+import DesignCard from './DesignCard'
 
 /* ───────────── Çerçeve ───────────── */
 
@@ -103,14 +104,20 @@ export function Avatar({ brand, size = 32, ring }: { brand: Brand; size?: number
  * Sahneleri sırayla oynatır. Sahnenin gerçek video klibi varsa klip oynar ve
  * bitince sıradakine geçer; yoksa görseli sure_sn kadar gösterir.
  */
-function usePlayback(idea: Idea) {
+/** ?sahne=3 ile belirli sahneden başla (demo ve test için) */
+const ilkSahne = () => Math.max(0, Number(new URLSearchParams(location.search).get('sahne') ?? 1) - 1)
+
+function usePlayback(idea: Idea, brand: Brand) {
   const scenes = scenesOf(idea)
-  const [index, setIndex] = useState(0)
+  const [index, setIndex] = useState(() => Math.min(ilkSahne(), scenes.length - 1))
   const [frac, setFrac] = useState(0)
   const cur = scenes[Math.min(index, scenes.length - 1)]
   const isVideo = !!cur.video_url
 
+  const onceki = useRef(idea.id)
   useEffect(() => {
+    if (onceki.current === idea.id) return
+    onceki.current = idea.id
     setIndex(0)
     setFrac(0)
   }, [idea.id])
@@ -150,8 +157,14 @@ function usePlayback(idea: Idea) {
           onTimeUpdate={(e) => setFrac(e.currentTarget.currentTime / (e.currentTarget.duration || 5))}
           onEnded={next}
         />
+      ) : cur.tur === 'tasarim' && cur.tasarim ? (
+        <div key={`${idea.id}-${index}`} className="media-fill media-design">
+          <div className="media-design-box">
+            <DesignCard spec={cur.tasarim} brand={brand} />
+          </div>
+        </div>
       ) : sceneImage(idea, cur) ? (
-        <img key={`${idea.id}-${index}`} className={`media-fill kenburns kb-${index % 3}`} src={assetUrl(sceneImage(idea, cur))!} alt="" />
+        <img key={`${idea.id}-${index}`} className="media-fill media-still" src={assetUrl(sceneImage(idea, cur))!} alt="" />
       ) : (
         <div className="media-fill media-empty" />
       )}
@@ -195,10 +208,10 @@ function Caption({ idea, brand, light }: { idea: Idea; brand: Brand; light?: boo
 
 export function TikTokView({ idea, brand }: { idea: Idea; brand: Brand }) {
   const isSlides = idea.format !== 'kisa_video'
-  const { scenes, index, scene, progress, media } = usePlayback(idea)
+  const { scenes, index, scene, progress, media } = usePlayback(idea, brand)
 
   return (
-    <div className="tt">
+    <div className={`tt ${scene.tur === 'tasarim' ? 'is-design' : ''}`}>
       {media}
       <div className="shade-top" />
       <div className="shade-bottom" />
@@ -207,7 +220,7 @@ export function TikTokView({ idea, brand }: { idea: Idea; brand: Brand }) {
         <span className="tt-top-on">Sana Özel</span>
         <Search size={20} className="tt-search" />
       </div>
-      <OverlayText text={scene.ekran_yazisi} variant="tiktok" />
+      {scene.tur !== 'tasarim' && <OverlayText text={scene.ekran_yazisi} variant="tiktok" />}
       {isSlides && scenes.length > 1 && (
         <div className="tt-dots">
           {scenes.map((s, i) => (
@@ -283,9 +296,9 @@ export function TikTokView({ idea, brand }: { idea: Idea; brand: Brand }) {
 /* ───────────── Instagram Reels ───────────── */
 
 export function ReelsView({ idea, brand }: { idea: Idea; brand: Brand }) {
-  const { scene, progress, media } = usePlayback(idea)
+  const { scene, progress, media } = usePlayback(idea, brand)
   return (
-    <div className="reels">
+    <div className={`reels ${scene.tur === 'tasarim' ? 'is-design' : ''}`}>
       {media}
       <div className="shade-top" />
       <div className="shade-bottom" />
@@ -293,7 +306,7 @@ export function ReelsView({ idea, brand }: { idea: Idea; brand: Brand }) {
         <b>Reels</b>
         <Camera size={22} />
       </div>
-      <OverlayText text={scene.ekran_yazisi} variant="reels" />
+      {scene.tur !== 'tasarim' && <OverlayText text={scene.ekran_yazisi} variant="reels" />}
       <div className="reels-rail">
         <span>
           <Heart size={26} />
@@ -337,15 +350,22 @@ export function ReelsView({ idea, brand }: { idea: Idea; brand: Brand }) {
 
 export function FeedView({ idea, brand }: { idea: Idea; brand: Brand }) {
   const scenes = scenesOf(idea)
-  const [slide, setSlide] = useState(0)
+  const [slide, setSlide] = useState(() => Math.min(ilkSahne(), scenes.length - 1))
+  const [auto, setAuto] = useState(!new URLSearchParams(location.search).has('sahne'))
   const startX = useRef<number | null>(null)
 
-  useEffect(() => setSlide(0), [idea.id])
+  const oncekiKare = useRef(idea.id)
   useEffect(() => {
-    if (scenes.length < 2) return
+    if (oncekiKare.current === idea.id) return
+    oncekiKare.current = idea.id
+    setSlide(0)
+    setAuto(true)
+  }, [idea.id])
+  useEffect(() => {
+    if (scenes.length < 2 || !auto) return
     const t = setInterval(() => setSlide((s) => (s + 1) % scenes.length), 3200)
     return () => clearInterval(t)
-  }, [scenes.length, idea.id])
+  }, [scenes.length, idea.id, auto])
 
   const go = (d: number) => setSlide((s) => Math.min(scenes.length - 1, Math.max(0, s + d)))
 
@@ -378,6 +398,10 @@ export function FeedView({ idea, brand }: { idea: Idea; brand: Brand }) {
           <div className="feed-track" style={{ transform: `translateX(-${slide * 100}%)` }}>
             {scenes.map((s, i) => (
               <div className="feed-slide" key={s.sira}>
+                {s.tur === 'tasarim' && s.tasarim ? (
+                  <DesignCard spec={s.tasarim} brand={brand} />
+                ) : (
+                  <>
                 {sceneImage(idea, s) && (
                   <img
                     src={assetUrl(sceneImage(idea, s))!}
@@ -389,6 +413,8 @@ export function FeedView({ idea, brand }: { idea: Idea; brand: Brand }) {
                   <div className={`slide-card ${i === 0 ? 'slide-cover' : ''}`}>
                     <span>{s.ekran_yazisi}</span>
                   </div>
+                )}
+                  </>
                 )}
               </div>
             ))}
@@ -465,7 +491,11 @@ export function ProfileView({ brand, ideas, onPick }: { brand: Brand; ideas: Ide
       <div className="profile-grid">
         {ideas.map((i) => (
           <button key={i.id} onClick={() => onPick(i.id)} aria-label={i.baslik}>
-            {i.gorsel_url && <img src={assetUrl(i.gorsel_url)!} alt="" />}
+            {i.gorsel_url ? (
+              <img src={assetUrl(i.gorsel_url)!} alt="" />
+            ) : (
+              scenesOf(i).find((x) => x.tasarim)?.tasarim && <DesignCard spec={scenesOf(i).find((x) => x.tasarim)!.tasarim!} brand={brand} />
+            )}
             {i.format === 'kisa_video' && <Clapperboard size={14} className="grid-badge" />}
           </button>
         ))}

@@ -151,6 +151,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       const uretimGirdi = await yap(step, 'uretim-girdi', async () => ({
         marka: await markaOku(env),
         gundem: { ozet: metin(analiz?.ozet), gundem: trendler.map(({ run_id, ...t }) => t) },
+        uygulama_rotalari: await uygulamaRotalari(env),
         aktif_seriler: (
           await env.DB.prepare(
             "SELECT id, ad, aciklama, format, bolum_sayisi, planlanan_bolumler FROM series WHERE durum = 'aktif' ORDER BY olusturma DESC LIMIT 5"
@@ -172,8 +173,11 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
             uretilen[f.id] = await yap(step, `gorsel-${f.id}`, { ...TEKRAR, retries: { ...TEKRAR.retries, limit: 2 } }, async () => {
               const kareler = kareListesi(f);
               const boyut = f.format === 'kisa_video' ? DIKEY_9_16 : DIKEY_4_5;
+              if (!kareler.some(Boolean)) return kareler.map(() => null); // hepsi tasarım kartı
               const sonuc = await Promise.allSettled(
-                kareler.map((k, i) => gorselUret(env, sahnePromptu(k, f.gorsel_prompt), `${runId}/${f.id}-${i + 1}.jpg`, boyut))
+                kareler.map((k, i) =>
+                  k ? gorselUret(env, sahnePromptu(k, f.gorsel_prompt), `${runId}/${f.id}-${i + 1}.jpg`, boyut) : Promise.resolve(null)
+                )
               );
               const out = sonuc.map((r) => (r.status === 'fulfilled' ? r.value : null));
               sonuc.forEach((r, i) => r.status === 'rejected' && console.error('görsel üretilemedi', f.id, i + 1, hataMetni(r.reason)));
@@ -188,14 +192,21 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
 
         // Video: bütçe kadar kısa video fikri; her sahne görselinden 5 sn'lik gerçek klip.
         const butce = sayi((await markaOku(env)).sinirlar?.butce?.video_per_run ?? 1);
-        const videoFikirleri = fikirler.filter((f) => f.format === 'kisa_video').slice(0, Math.max(0, butce));
+        // Ajan hangi sahnenin video olacağına kendisi karar verir (tur: video); bütçe yalnız üst sınır.
+        const videoFikirleri = fikirler.filter((f) => f.sahneler.some((s) => s.tur === 'video')).slice(0, Math.max(0, butce));
         if (env.VIDEO_AKTIF === '1') {
           for (const vf of videoFikirleri) {
             try {
-              const kareler = kareListesi(vf).slice(0, VIDEO_SAHNE_SINIRI);
               const gorseller = uretilen[vf.id] ?? [];
+              // Yalnız tur=video sahneler, görseli olanlar; en fazla VIDEO_SAHNE_SINIRI klip
+              let kalan = VIDEO_SAHNE_SINIRI;
+              const kareler = vf.sahneler.map((s, i) =>
+                s.tur === 'video' && gorseller[i] && kalan-- > 0 ? s.prompt || vf.gorsel_prompt : null
+              );
               const isler = await yap(step, `video-baslat-${vf.id}`, TEKRAR, async () => {
-                const r = await Promise.allSettled(kareler.map((k, i) => videoBaslat(env, k, gorseller[i]?.falUrl)));
+                const r = await Promise.allSettled(
+                  kareler.map((k, i) => (k ? videoBaslat(env, k, gorseller[i]?.falUrl) : Promise.resolve(null)))
+                );
                 r.forEach((x, i) => x.status === 'rejected' && console.error('video başlatılamadı', vf.id, i + 1, hataMetni(x.reason)));
                 return r.map((x) => (x.status === 'fulfilled' ? x.value : null));
               });
@@ -371,16 +382,38 @@ async function takipKararlari(
   }
 }
 
-type FikirOzet = { id: string; format: string; gorsel_prompt: string; video_prompt: string; sahne_promptlari: string[] };
+type SahneOzet = { prompt: string; tur: 'foto' | 'video' | 'tasarim' };
+type FikirOzet = { id: string; format: string; gorsel_prompt: string; video_prompt: string; sahneler: SahneOzet[] };
+
+/** Kontak uygulamasındaki onaylı rotalar (panelden senkronlanır). Tablo yoksa boş. */
+async function uygulamaRotalari(env: Env) {
+  try {
+    const r = await env.DB.prepare('SELECT veri FROM kontak_rotalar ORDER BY guncelleme DESC LIMIT 40').all<{ veri: string }>();
+    return r.results.map((x) => {
+      const v = jsonAc<any>(x.veri, {});
+      return {
+        id: v.id, ad: v.ad, sehir: v.sehir, km: Math.round((v.mesafe_m ?? 0) / 1000), sure_dk: Math.round((v.sure_s ?? 0) / 60),
+        zorluk: v.zorluk, en_iyi_zaman: v.en_iyi_zaman ?? null, duraklar: (v.noktalar ?? []).map((n: any) => n.ad),
+      };
+    });
+  } catch {
+    return [];
+  }
+}
 
 /** Kısa videoda en fazla bu kadar sahne klibe dönüşür (kredi). */
 const VIDEO_SAHNE_SINIRI = 4;
 
-/** Üretilecek kareler: gönderide 1, carousel'de en fazla 7, videoda en fazla 5. Sahne yoksa ortak stil. */
-function kareListesi(f: FikirOzet): string[] {
-  const enFazla = f.format === 'gonderi' ? 1 : f.format === 'carousel' ? 7 : 5;
-  const k = f.sahne_promptlari.filter((p) => p.trim()).slice(0, enFazla);
-  return k.length ? k : [f.gorsel_prompt];
+/**
+ * Görseli üretilecek sahneler (sahne sırasıyla, tasarım kartları null).
+ * Tasarım kartı panelde uygulamanın tasarım diliyle çizilir, fal.ai'a gitmez.
+ * Hiç sahne yoksa ortak stilden tek kare.
+ */
+function kareListesi(f: FikirOzet): (string | null)[] {
+  const enFazla = f.format === 'gonderi' ? 2 : f.format === 'carousel' ? 7 : 5;
+  const s = f.sahneler.slice(0, enFazla);
+  if (!s.length) return [f.gorsel_prompt];
+  return s.map((x) => (x.tur === 'tasarim' ? null : x.prompt.trim() || f.gorsel_prompt));
 }
 
 /** Sahnelerin R2 anahtarlarını sahneler JSON'una işler; kapak = ilk görsel. */
@@ -439,9 +472,22 @@ async function fikirleriYaz(env: Env, runId: string, uretim: any, trendIdleri: s
       stmts.push(env.DB.prepare('UPDATE series SET bolum_sayisi = bolum_sayisi + 1 WHERE id = ?').bind(seri.id));
       karar('bolum_planla', `${baslik}`, `Seri bölümü ${bolumNo}${f?.bolum_adi ? ': ' + metin(f.bolum_adi) : ''}`);
     }
-    const sahneler = dizi<any>(f?.sahneler).slice(0, 8).map((s, i) => ({
-      sira: sayi(s?.sira) || i + 1, sure_sn: sayi(s?.sure_sn), prompt: metin(s?.prompt), ekran_yazisi: metin(s?.ekran_yazisi),
-    }));
+    const fmt = ['kisa_video', 'carousel', 'gonderi'].includes(f?.format) ? f.format : 'gonderi';
+    const sahneler = dizi<any>(f?.sahneler).slice(0, 8).map((s, i) => {
+      // Eski şekil (tur yok): videoda video, diğerlerinde foto
+      const tur = ['foto', 'video', 'tasarim'].includes(s?.tur) ? s.tur : fmt === 'kisa_video' ? 'video' : 'foto';
+      const t = s?.tasarim && typeof s.tasarim === 'object' && s.tasarim.sablon && s.tasarim.sablon !== 'yok' ? s.tasarim : null;
+      return {
+        sira: sayi(s?.sira) || i + 1, sure_sn: sayi(s?.sure_sn), tur: tur === 'tasarim' && !t ? 'foto' : tur,
+        prompt: metin(s?.prompt).slice(0, 1200), ekran_yazisi: metin(s?.ekran_yazisi).slice(0, 160),
+        tasarim: t
+          ? {
+              sablon: metin(t.sablon).slice(0, 20), baslik: metin(t.baslik).slice(0, 120), alt_baslik: metin(t.alt_baslik).slice(0, 200),
+              maddeler: dizi<string>(t.maddeler).map((m) => metin(m).slice(0, 140)).slice(0, 8), rota_id: metin(t.rota_id).slice(0, 60),
+            }
+          : null,
+      };
+    });
     const rota = f?.rota && typeof f.rota === 'object' && metin(f.rota.ad).trim()
       ? { ad: metin(f.rota.ad), km: sayi(f.rota.km), duraklar: dizi<string>(f.rota.duraklar).map((d) => metin(d)) }
       : null;
@@ -465,7 +511,7 @@ async function fikirleriYaz(env: Env, runId: string, uretim: any, trendIdleri: s
     ozet.push({
       id, format, gorsel_prompt: gorselPrompt,
       video_prompt: sahneler.map((s) => s.prompt).filter(Boolean).join(' Then: ') || gorselPrompt,
-      sahne_promptlari: sahneler.map((s) => s.prompt),
+      sahneler: sahneler.map((s) => ({ prompt: s.prompt, tur: s.tur as SahneOzet['tur'] })),
     });
   }
   if (stmts.length) await env.DB.batch(stmts);

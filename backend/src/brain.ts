@@ -89,7 +89,24 @@ export const SEMALAR: Record<PromptAdi, Record<string, unknown>> = {
         gorsel_prompt: { ...S, description: 'fal.ai için İngilizce, dikey 1080x1350, görsel kurallara uygun' },
         sahneler: {
           type: 'array',
-          items: nesne({ sira: N, sure_sn: N, prompt: S, ekran_yazisi: S }),
+          items: nesne({
+            sira: N,
+            sure_sn: N,
+            tur: {
+              type: 'string',
+              enum: ['foto', 'video', 'tasarim'],
+              description: 'foto: fal.ai fotoğraf · video: fotoğraftan 5 sn klip · tasarim: uygulamanın tasarım dilinde kart (görsel üretilmez)',
+            },
+            prompt: { ...S, description: 'foto/video için İngilizce kare tarifi; tasarim için boş string' },
+            ekran_yazisi: S,
+            tasarim: nesne({
+              sablon: { type: 'string', enum: ['yok', 'rota', 'liste', 'metin', 'karsilastirma', 'soru'], description: 'tur tasarim değilse yok' },
+              baslik: S,
+              alt_baslik: S,
+              maddeler: { ...SD, description: 'liste: maddeler · karsilastirma: [sol başlık, sol..., "|", sağ başlık, sağ...] · soru: seçenekler' },
+              rota_id: { ...S, description: 'rota şablonunda uygulama_rotalari içindeki id; yoksa boş string' },
+            }),
+          }),
         },
         // anyOf(nesne | null) Manus'ta 400 verdi (12 Ekim); rota hep nesne,
         // rota yoksa ad boş string ve duraklar boş dizi.

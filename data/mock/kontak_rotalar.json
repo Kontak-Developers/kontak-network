@@ -1,0 +1,126 @@
+[
+  {
+    "id": "r_sile",
+    "ad": "Riva – Ağva – Şile sahil yolu",
+    "aciklama": "Karadeniz kıyısı boyunca, köy yolları ve sahil.",
+    "sehir": "İstanbul",
+    "mesafe_m": 71000,
+    "sure_s": 6300,
+    "zorluk": "kolay",
+    "en_iyi_zaman": "Hafta içi akşamüstü",
+    "cizgi": null,
+    "noktalar": [
+      {
+        "ad": "Riva",
+        "lat": 41.218,
+        "lon": 29.226
+      },
+      {
+        "ad": "Kömürcüoğlu",
+        "lat": 41.205,
+        "lon": 29.3
+      },
+      {
+        "ad": "Hasanlı",
+        "lat": 41.17,
+        "lon": 29.38
+      },
+      {
+        "ad": "Kabakoz",
+        "lat": 41.165,
+        "lon": 29.47
+      },
+      {
+        "ad": "Şile",
+        "lat": 41.175,
+        "lon": 29.61
+      },
+      {
+        "ad": "Kumbaba",
+        "lat": 41.165,
+        "lon": 29.7
+      },
+      {
+        "ad": "Ağva",
+        "lat": 41.137,
+        "lon": 29.853
+      }
+    ]
+  },
+  {
+    "id": "r_polonez",
+    "ad": "Beykoz – Polonezköy orman yolu",
+    "aciklama": "Kısa, gölgeli, kahvaltı molalı.",
+    "sehir": "İstanbul",
+    "mesafe_m": 28000,
+    "sure_s": 2700,
+    "zorluk": "kolay",
+    "en_iyi_zaman": "Pazar sabahı erken",
+    "cizgi": null,
+    "noktalar": [
+      {
+        "ad": "Beykoz",
+        "lat": 41.134,
+        "lon": 29.092
+      },
+      {
+        "ad": "Paşabahçe",
+        "lat": 41.12,
+        "lon": 29.1
+      },
+      {
+        "ad": "Çubuklu",
+        "lat": 41.11,
+        "lon": 29.13
+      },
+      {
+        "ad": "Mahmutşevketpaşa",
+        "lat": 41.12,
+        "lon": 29.17
+      },
+      {
+        "ad": "Polonezköy",
+        "lat": 41.115,
+        "lon": 29.21
+      }
+    ]
+  },
+  {
+    "id": "r_kandira",
+    "ad": "Ağva – Kandıra – Kerpe",
+    "aciklama": "Tepeler arası virajlı yol, deneyim ister.",
+    "sehir": "Kocaeli",
+    "mesafe_m": 96000,
+    "sure_s": 8400,
+    "zorluk": "orta",
+    "en_iyi_zaman": "Bahar ve sonbahar",
+    "cizgi": null,
+    "noktalar": [
+      {
+        "ad": "Ağva",
+        "lat": 41.137,
+        "lon": 29.853
+      },
+      {
+        "ad": "Karaağaç",
+        "lat": 41.12,
+        "lon": 29.95
+      },
+      {
+        "ad": "Kandıra",
+        "lat": 41.071,
+        "lon": 30.153
+      },
+      {
+        "ad": "Kefken",
+        "lat": 41.17,
+        "lon": 30.23
+      },
+      {
+        "ad": "Kerpe",
+        "lat": 41.162,
+        "lon": 30.18
+      }
+    ]
+  }
+]

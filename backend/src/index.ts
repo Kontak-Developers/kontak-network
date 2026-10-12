@@ -142,12 +142,59 @@ async function api(req: Request, env: Env, url: URL): Promise<Response> {
     return json(r.results);
   }
 
+  // Kontak uygulamasındaki onaylı rotalar. Panel açılınca moderatör jetonuyla
+  // senkronlanır; sabah çalıştırması (jetonsuz) bu kopyayı kullanır.
+  if (yol === '/api/kontak-rotalar' && m === 'GET') {
+    await rotaTablosu(env);
+    const r = await DB.prepare('SELECT veri FROM kontak_rotalar ORDER BY guncelleme DESC LIMIT 100').all<{ veri: string }>();
+    return json(r.results.map((x) => JSON.parse(x.veri)));
+  }
+  if (yol === '/api/kontak-rotalar/senkron' && m === 'POST') {
+    return json(await rotaSenkron(env, req.headers.get('authorization') ?? ''));
+  }
+
   if (yol === '/api/series' && m === 'GET') {
     const r = await DB.prepare("SELECT * FROM series ORDER BY durum = 'aktif' DESC, olusturma DESC").all();
     return json(r.results.map(seriCikti));
   }
 
   return hata('yok', 'Böyle bir uç yok.', 404);
+}
+
+async function rotaTablosu(env: Env) {
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS kontak_rotalar (id TEXT PRIMARY KEY, veri TEXT NOT NULL, guncelleme TEXT NOT NULL)').run();
+}
+
+async function rotaSenkron(env: Env, yetkiBasligi: string) {
+  await rotaTablosu(env);
+  const api = (yol: string) =>
+    env.KONTAK_API.fetch(new Request(`https://api.kontakdating.com${yol}`, { headers: { Authorization: yetkiBasligi } }));
+  const l = await api('/api/yonetim/rotalar?durum=onayli&limit=60');
+  if (!l.ok) return { sayi: 0, hata: `Kontak rotaları alınamadı (${l.status})` };
+  const liste = ((await l.json()) as any)?.rotalar ?? [];
+  // Çizgi listede yok; rota ayrıntısından (Google kodlu polyline)
+  const ayrinti = await Promise.all(
+    liste.slice(0, 40).map(async (r: any) => {
+      try {
+        const y = await api(`/api/rota/${encodeURIComponent(r.id)}`);
+        if (!y.ok) return null;
+        const d: any = await y.json();
+        return d?.rota?.cizgi ?? d?.cizgi ?? null;
+      } catch {
+        return null;
+      }
+    })
+  );
+  const zaman = simdiIst();
+  const stmts = liste.slice(0, 40).map((r: any, i: number) =>
+    env.DB.prepare('INSERT INTO kontak_rotalar (id, veri, guncelleme) VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET veri = excluded.veri, guncelleme = excluded.guncelleme')
+      .bind(String(r.id), JSON.stringify({
+        id: r.id, ad: r.ad, aciklama: r.aciklama ?? null, sehir: r.sehir, mesafe_m: r.mesafe_m, sure_s: r.sure_s,
+        zorluk: r.zorluk, en_iyi_zaman: r.en_iyi_zaman ?? null, noktalar: r.noktalar ?? [], cizgi: ayrinti[i],
+      }), zaman)
+  );
+  if (stmts.length) await env.DB.batch(stmts);
+  return { sayi: stmts.length };
 }
 
 async function runBaslat(env: Env, tetik: RunParams['tetik']): Promise<string> {

@@ -58,3 +58,7 @@ Yanıt **yalnızca** geçerli JSON olsun; Markdown, açıklama, yorum veya şema
 ```
 
 `tip`: `konu|ses|format|hashtag`; `platform`: `tiktok|instagram|ikisi`; `ivme`: 0–100 tam sayı; `takip.karar`: `ekle|kalici|cikar`. `etiket` başında `#` olmadan küçük harf olmalıdır. Kanıt yoksa `trendler: []` ve/veya `takip: []` döndür; her durumda `ozet` tek cümle olsun.
+
+## Niş filtresi
+
+Kontak'ın nişi: **yol arkadaşı arayan yeni nesil motorcu** (0–3 yıllık, 125–250 cc ağırlıklı, büyük şehirde, hafta sonu şehirden çıkmak isteyen; kadınlar dahil). Gündem maddelerini seçerken ivmenin yanında bu nişe yakınlığı da tart: rota, yol kültürü, yol arkadaşlığı ve herkesin yaşadığı motorcu anlarıyla ilgili yükselen konuları, sesleri ve formatları öne çıkar. Fiyat/kampanya, yarış, hız, modifiye gösterisi ve kaza içeriklerini, ivmeleri yüksek olsa da öne çıkarma; `aciklama`'da bir trendin nişe nasıl çevrilebileceğini tek cümleyle belirt.
