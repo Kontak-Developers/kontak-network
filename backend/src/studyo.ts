@@ -48,9 +48,13 @@ export type CekimPlani = {
   muzik: string | null;
 };
 
+// ⚠️ PLAKA / TABELA (13 Ekim ilk reel): "no readable license plates" yetmedi,
+//    son karede sarı plakanın parçası okunuyordu; arka planda kafe tabelası
+//    vardı. Plaka kadraj dışında ya da boş, tabelalar yazısız/bulanık.
 const KURALLAR =
   'photorealistic, cinematic, natural motion, no text, no letters, no captions, no watermark, no logos, ' +
-  'no readable license plates, no visible faces (closed full-face helmets or seen from behind), safe calm riding';
+  'license plates out of frame or completely blank with no characters, storefront signs blurred and without any lettering, ' +
+  'no visible faces (closed full-face helmets or seen from behind), safe calm riding';
 
 const FIYAT = {
   kare: 0.06,
@@ -133,7 +137,7 @@ export async function klipBaslat(env: Env, c: Cekim, kare: string, heroVeo: bool
       duration: sure,
       resolution: '1080p',
       generate_audio: !seslendirmeVar,
-      negative_prompt: 'text, watermark, logo, face, crash, wheelie, distorted motorcycle, extra wheels',
+      negative_prompt: 'text, letters, license plate characters, readable signage, watermark, logo, face, crash, wheelie, distorted motorcycle, extra wheels',
       safety_tolerance: '2',
     });
   }
@@ -141,7 +145,7 @@ export async function klipBaslat(env: Env, c: Cekim, kare: string, heroVeo: bool
     prompt,
     image_url: kare,
     duration: '5',
-    negative_prompt: 'text, watermark, logo, face, crash, wheelie, distorted motorcycle, extra wheels, blur, low quality',
+    negative_prompt: 'text, letters, license plate characters, readable signage, watermark, logo, face, crash, wheelie, distorted motorcycle, extra wheels, blur, low quality',
     cfg_scale: 0.5,
   });
 }
