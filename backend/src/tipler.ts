@@ -32,7 +32,12 @@ export interface Env {
   FAL_GUNLUK_TAVAN?: string;
 }
 
-export type RunParams = { runId: string; tetik: 'cron' | 'manuel' };
+export type RunParams = {
+  runId: string;
+  tetik: 'cron' | 'manuel';
+  /** Stok modu: tarama/sökme yok, kütüphanedeki formatlarla art arda kreatif turları. */
+  stok?: { tur: number; tavan: number; odaklar?: string[] };
+};
 
 export type Platform = 'tiktok' | 'instagram';
 

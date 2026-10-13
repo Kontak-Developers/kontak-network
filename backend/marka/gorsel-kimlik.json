@@ -1,0 +1,117 @@
+{
+  "surum": "2026-10-13",
+  "ozet": "Kontak bir motorcunun kendi telefonundan, iyi bir gün geçirdiği anı çekmiş gibi görünür: gerçek, sıcak, sinematik ama parlatılmamış. Gece ve alacakaranlık ağırlıklı; lacivert, grafit ve zeytin üstüne kehribar sokak ışığı. Reklam stüdyosu, neon, aşırı doygun renk yok.",
+  "palet": [
+    {
+      "ad": "Kontak laciverti",
+      "hex": "#0000A8",
+      "kullanim": "Tek vurgu: kask şeridi, ceket detayı, mavi saat gökyüzü, ekran yazısı kutusu. Kadrajın %10-15'ini geçmez."
+    },
+    {
+      "ad": "Grafit",
+      "hex": "#2B2D31",
+      "kullanim": "Kask, motor gövdesi, asfalt, gölgeler."
+    },
+    {
+      "ad": "Mat siyah",
+      "hex": "#111214",
+      "kullanim": "Motor, deri ceket, gece zemini."
+    },
+    {
+      "ad": "Zeytin",
+      "hex": "#5B6236",
+      "kullanim": "Ceket, çanta, orman yolu, Ege bitki örtüsü."
+    },
+    {
+      "ad": "Sokak kehribarı",
+      "hex": "#E8A33D",
+      "kullanim": "Sodyum sokak lambası, gün batımı, far yansıması. Sıcaklığı bu verir."
+    },
+    {
+      "ad": "Kemik beyazı",
+      "hex": "#EDEAE3",
+      "kullanim": "Beyaz kask, scooter, sis, gökyüzü açık tonları. Saf beyaz değil."
+    }
+  ],
+  "isik": "Altın saat, mavi saat ya da gece sokak lambası. Tek yönlü, yumuşak, doğal ışık; kehribar sıcak ışık + lacivert gölge kontrastı. Düz öğlen güneşi ve stüdyo flaşı yok.",
+  "lens": "35mm ya da 50mm, sığ alan derinliği; arka plan bokeh. Kask POV için geniş açı ama balık gözü yok. Göz hizası ya da hafif alçak açı.",
+  "renk_gradi": "Teal-amber değil: lacivert-kehribar. Hafif soluk siyahlar, ince film greni, düşük-orta doygunluk, sıcak orta tonlar. Kodak Portra / Cinestill 800T hissi.",
+  "karakterler": [
+    {
+      "kod": "K1",
+      "ad": "Zeytin ceketli",
+      "tarif_en": "rider in an olive waxed-cotton riding jacket, matte graphite full-face helmet with dark smoked visor closed, black jeans, brown leather boots, on a black unbranded naked roadster motorcycle"
+    },
+    {
+      "kod": "K2",
+      "ad": "Beyaz kasklı",
+      "tarif_en": "female rider with a bone-white full-face helmet with one thin deep navy (#0000A8) stripe, visor closed, black leather jacket, light-blue denim, on a matte grey unbranded retro cafe-racer motorcycle"
+    },
+    {
+      "kod": "K3",
+      "ad": "Scooter'cı",
+      "tarif_en": "rider in a matte navy full-face helmet, visor closed, beige cotton overshirt, dark chinos, white sneakers, on a cream-white unbranded 125cc scooter"
+    },
+    {
+      "kod": "K4",
+      "ad": "Grup",
+      "tarif_en": "small group of three to five riders in staggered formation mixing an olive jacket and graphite helmet, a white helmet with a navy stripe and a navy helmet, all visors closed, unbranded bikes"
+    }
+  ],
+  "mekanlar": [
+    "İstanbul Boğaz sahil yolu (Sarıyer–Rumeli Feneri), sabah 06:30 boş yol",
+    "Riva / Polonezköy orman yolu, sisli sonbahar",
+    "Moda / Karaköy arka sokak kafe önü, tabelasız, sokak lambası",
+    "Gece benzin istasyonu, logosuz kanopi ışığı",
+    "Ege kıyı virajı, zeytinlikler, gün batımı",
+    "Anadolu bozkırı, düz sonsuz yol, mavi saat"
+  ],
+  "asla": [
+    "Görünen yüz (kask vizörü hep kapalı ya da arkadan/uzaktan)",
+    "Plaka karakteri (plaka kadraj dışı ya da tamamen boş)",
+    "Tabela, afiş, ekran ya da kıyafette okunur yazı",
+    "Marka logosu (motor, kask, kıyafet, benzinlik dahil)",
+    "Kasksız sürüş, açık yüz kask, tek teker, aşırı hız, trafikte makas, kaza",
+    "Alkol, sigara, silah, siyasi/dini sembol, bayrak",
+    "Neon cyberpunk ışıklar, aşırı doygun renkler, HDR parlatma, CGI/oyun görünümü",
+    "Bozuk motor geometrisi (fazla tekerlek, eriyen jant, havada asılı sürücü)",
+    "Çocuk, evcil hayvan motor üstünde",
+    "Stok fotoğraf pozları, kameraya el sallama, başparmak yukarı"
+  ],
+  "asla_en": "visible faces, open-face helmets, raised visors, readable license plates, any text or letters on signs, screens or clothing, brand logos or badges on bikes, helmets, clothing or gas stations, riding without a helmet, wheelies, speeding, lane splitting, crashes, alcohol, cigarettes, flags or political and religious symbols, neon cyberpunk lighting, oversaturated HDR look, CGI or video-game look, deformed motorcycle geometry, extra wheels, melted rims, floating riders, children or pets on motorcycles, stock-photo poses, thumbs up, waving at camera",
+  "stil_eki": "Brand look: shot on 35mm, shallow depth of field, soft directional natural light, warm amber streetlight against deep navy shadows, muted saturation, slightly lifted blacks, fine film grain, Cinestill 800T and Kodak Portra feel, real Turkish locations, documentary realism, feels filmed by a rider not an ad agency. Motorcycles always seen from the front or the side, never from directly behind; plain unbranded bikes and gear; plain unsigned storefronts with blank awnings; clean uncluttered frame",
+  "altin_promptlar": [
+    {
+      "tur": "hero_sinematik",
+      "ne_zaman": "Hero çekim, açılış ya da kapanış karesi",
+      "prompt_en": "Side tracking shot alongside a rider in an olive waxed-cotton jacket and matte graphite full-face helmet, visor down, on a black unbranded naked roadster, cruising an empty Bosphorus coastal road at dawn, blue hour sky turning amber over the water, damp asphalt reflecting the last streetlights, 35mm, shallow depth of field, calm pace"
+    },
+    {
+      "tur": "kask_pov",
+      "ne_zaman": "POV formatları, 'ben' anlatısı, iç ses",
+      "prompt_en": "First-person helmet POV of a rider's gloved hands on the handlebars of an unbranded motorcycle, analog gauge cluster softly lit, empty forest road in Riva curving ahead through light autumn fog, amber low sun through the trees, dashboard and road in sharp focus, no text on gauges"
+    },
+    {
+      "tur": "detay_asmr",
+      "ne_zaman": "ASMR, ritüel, hazırlık, kapanış",
+      "prompt_en": "Extreme close-up of a gloved hand closing the smoked visor of a matte graphite full-face helmet, warm amber streetlight sliding across the helmet curve, deep navy night background with soft bokeh, fine film grain, quiet and tactile"
+    },
+    {
+      "tur": "kafe_sosyal",
+      "ne_zaman": "Tanışma, sohbet, 'kim hesabı öder', dating tarafı",
+      "prompt_en": "Two unbranded motorcycles parked nose-first toward the camera in front of a small cafe with a plain blank awning on a narrow Moda back street at dusk, a bone-white full-face helmet with a thin navy stripe and a matte graphite full-face helmet resting side by side on a small metal table with two tulip glasses of Turkish tea, two riders in riding jackets sitting on the curb seen from the side, helmets on the table so only their backs and shoulders face us, warm window light"
+    },
+    {
+      "tur": "grup_surus",
+      "ne_zaman": "Grup sürüşü, kulüp, etkinlik, 'ilk grup sürüşüm'",
+      "prompt_en": "Elevated front view of four riders approaching the camera in staggered formation on an empty Aegean coastal curve lined with olive trees at golden hour, an olive jacket with a graphite full-face helmet, a white full-face helmet with a navy stripe and a navy full-face helmet, visors down, unbranded bikes, long soft shadows, safe spacing"
+    },
+    {
+      "tur": "rota_manzara",
+      "ne_zaman": "Rota kartı, rota carousel'i, 'pazar sabahı' formatları",
+      "prompt_en": "Side profile of a lone rider in a matte navy full-face helmet, visor down, on a cream-white unbranded scooter stopped at a roadside overlook, endless straight Anatolian steppe road below under a deep blue hour sky with a thin amber horizon, 50mm, quiet and vast"
+    }
+  ],
+  "asla_en_not": "Prompta EKLENMEZ: flux'ta negatif prompt yok; bu kelimeler kareye girer ve güvenlik filtresi kareyi karartır (13 Eki testi). Yalnız kreatif direktör için.",
+  "cekim_kurali": "Motorlar önden ya da yandan: Türkiye'de motorda ön plaka yok, arkadan çekim = plaka. Tabela yerine boş tente/düz cephe."
+}

@@ -9,9 +9,11 @@
 
 import type { Env } from './tipler';
 
+// Olumlu tarif (bkz. studyo.ts KURALLAR notu): "no plates/text" plakayı kareye sokuyor.
 const KURALLAR =
-  'photorealistic, high detail, no text, no letters, no captions, no watermark, no logos, no brand names, ' +
-  'no readable license plates, no visible faces, any rider wears a closed full-face helmet, safe calm riding';
+  'photorealistic, high detail, clean frame free of typography and watermarks, ' +
+  'motorcycles seen from the front or the side, plain unbranded bikes, plain unsigned storefronts with blank awnings, ' +
+  'riders wearing closed full-face helmets with visors down, calm safe riding';
 
 const VIDEO_NEGATIF =
   'text, letters, watermark, logo, distorted motorcycle, extra wheels, melting, morphing, face, crash, wheelie, blur, low quality';

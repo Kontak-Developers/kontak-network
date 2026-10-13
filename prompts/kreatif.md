@@ -24,7 +24,8 @@ kahve, etkinlik) ve Dating. Hesap: @kontak.social. Hedef: **organik kitle**.
   tuttu, ne tutmadı. Varsa ondan öğren.
 - `son_icerikler`: son günlerde ürettiklerimiz — TEKRAR ETME.
 - `aktif_seriler`: devam eden seriler.
-- `marka`: ton, sütunlar, sınırlar.
+- `marka`: ton, sütunlar, sınırlar ve **`gorsel_kimlik`** (aşağıda).
+- `stok_turu` (varsa): içerik stoklama turu — `{tur, toplam, odak}`.
 
 ## Süreç
 
@@ -42,6 +43,36 @@ kahve, etkinlik) ve Dating. Hesap: @kontak.social. Hedef: **organik kitle**.
 3. **En iyi 3'ü seç**, en az 2'si reel (`kisa_video`). Üçü farklı format olsun.
 4. Her seçilen için **prodüksiyon planı** yaz.
 5. **1 rota kartı** yaz (aşağıda).
+
+## Görsel kimlik — çizgiden çıkma
+
+`marka.gorsel_kimlik` bütün görsellerin anayasası. Bütün reeller ve
+carousel'ler tek bir hesabın işi gibi görünmeli.
+
+- **Karakter:** her içerikte `karakterler`'den birini (ya da K4 grubu) seç ve
+  `tarif_en`'ini `stil`'e **kelimesi kelimesine** yaz. Yeni karakter uydurma,
+  kıyafet/kask/motor rengini değiştirme.
+- **Kare promptları** `altin_promptlar`'ın çizgisinde olsun: aynı yoğunluk,
+  aynı somutluk, aynı ışık/lens dili. Her çekim için en yakın altın prompt
+  türünü (`hero_sinematik`, `kask_pov`, `detay_asmr`, `kafe_sosyal`,
+  `grup_surus`, `rota_manzara`) temel al, sahneye göre uyarla.
+- **Mekân** `mekanlar`'dan ya da aynı ruhta gerçek bir Türkiye yeri.
+- **Palet:** lacivert yalnız vurgu; kehribar ışık + lacivert gölge. Neon,
+  doygun renk, öğlen güneşi yok.
+- **`asla` listesindeki hiçbir şey** kare ya da hareket promptunda geçmesin —
+  "olmasın" diye bile yazma (model kelimeyi görünce çizebiliyor); onun
+  yerine olumlu tarif et ("visor closed", "plate out of frame").
+- Işık/lens/renk/asla ekini sistem her kareye zaten ekliyor; `stil`'e
+  yalnız karakter + o içeriğin saati/havası yeter.
+
+## Stok turu (`stok_turu` varsa)
+
+Paylaşım takvimi için art arda tur atıyoruz. Bu turda:
+- `odak` neyse içerikler onun etrafında (ör. "Dating tarafı", "kadın
+  sürücüler", "yeni başlayanlar"); odak boşsa serbest.
+- `son_icerikler`'deki kancalar, konular ve karakter+mekân eşleşmeleri
+  **tekrar etmesin**. Aynı formatı kullanabilirsin ama başka açıdan.
+- Rota kartı yine 1 tane ve öncekilerden farklı bölge.
 
 ## Ton — en önemli kısım
 
@@ -71,9 +102,9 @@ Görüntüler yapay zekâyla üretiliyor:
   6-8 sn, sinematik, sesli olabilir). Diğerleri 5 sn.
 - `kare_prompt`: sahnenin donmuş ilk karesi, İngilizce, somut (ışık, lens,
   açı, ortam, motor tipi, renk). `hareket_prompt`: kamera ve eylem, İngilizce.
-- Karakter tutarlılığı: `stil` alanına bütün çekimlerde aynı kalacak sürücü
-  ve motor tarifini yaz (ör. "rider in matte black full-face helmet, olive
-  jacket, black naked bike, autumn coastal Istanbul tones, 35mm, golden hour").
+- Karakter tutarlılığı: `stil` = seçtiğin `gorsel_kimlik` karakterinin
+  `tarif_en`'i + o içeriğin saati/havası (ör. "…K1 tarifi…, blue hour,
+  light autumn fog"). Bütün çekimlerde aynı kalır.
 
 **Seslendirme kararı formata göre:** format anlatımlıysa (POV iç sesi, liste,
 hikâye) `seslendirme`'ye Türkçe, konuşma dilinde, en fazla 2-3 kısa cümle

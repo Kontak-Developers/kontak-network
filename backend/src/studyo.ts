@@ -51,10 +51,28 @@ export type CekimPlani = {
 // ⚠️ PLAKA / TABELA (13 Ekim ilk reel): "no readable license plates" yetmedi,
 //    son karede sarı plakanın parçası okunuyordu; arka planda kafe tabelası
 //    vardı. Plaka kadraj dışında ya da boş, tabelalar yazısız/bulanık.
+// ⚠️ 13 Eki kimlik testi: "no readable plates/text" yazmak plakayı ve
+//    tabelayı kareye SOKUYOR (MILKVERKÉU CAFÉ, "10778"). Olumlu tarif:
+//    motor önden/yandan (Türkiye'de ön plaka yok), düz tenteli cephe.
 const KURALLAR =
-  'photorealistic, cinematic, natural motion, no text, no letters, no captions, no watermark, no logos, ' +
-  'license plates out of frame or completely blank with no characters, storefront signs blurred and without any lettering, ' +
-  'no visible faces (closed full-face helmets or seen from behind), safe calm riding';
+  'photorealistic, cinematic, natural motion, clean frame free of typography and watermarks, ' +
+  'motorcycles seen from the front or the side, plain unbranded bikes, plain unsigned storefronts with blank awnings, ' +
+  'riders wearing closed full-face helmets with visors down, calm safe riding';
+
+/**
+ * Marka görsel kimliği (brands.veri.gorsel_kimlik) → her kareye eklenen
+ * İngilizce ek. Kreatif direktörün `stil`'i sahneye özgü; bu ek ise bütün
+ * içeriklerde aynı: palet, ışık, lens, renk ve "asla" listesi. Böylece
+ * farklı günlerin reelleri tek bir hesabın işi gibi görünüyor.
+ */
+export function gorselKimlikEki(marka: any): string {
+  const k = marka?.gorsel_kimlik;
+  if (!k) return '';
+  // ⚠️ asla_en prompta GİRMEZ: flux'ta negatif prompt yok, "alcohol, crash,
+  //    children" gibi kelimeler kareye sızıyor ve güvenlik filtresi kareyi
+  //    simsiyah döndürüyor (13 Eki testi). Yasaklar stil_eki'de olumlu tarif.
+  return metin(k.stil_eki);
+}
 
 const FIYAT = {
   kare: 0.06,

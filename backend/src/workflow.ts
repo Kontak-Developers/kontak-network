@@ -20,6 +20,7 @@ import { kreatifNormalize, kreatifYaz, rotaKartiYaz, sonIcerikler, type KreatifI
 import {
   altyaziAdresi, altyaziBaslat, bugunkuFal, kareUret, klipAdresi, klipBaslat, kuyrukYokla, maliyetTahmini,
   montajAdresi, montajBaslat, muzikBaslat, sesAdresi, seslendir, type KuyrukIsi,
+  gorselKimlikEki,
 } from './studyo';
 import { syncSocialPerformance } from './social';
 import {
@@ -64,10 +65,55 @@ const BITMIS_APIFY = new Set(['SUCCEEDED', 'FAILED', 'TIMED-OUT', 'ABORTED']);
 
 export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
   async run(event: WorkflowEvent<RunParams>, step: WorkflowStep) {
-    const { runId, tetik } = event.payload;
+    const { runId, tetik, stok } = event.payload;
     const env = this.env;
     const adim = (ad: string) =>
       yap(step, `adim-${ad}`, () => env.DB.prepare('UPDATE runs SET adim = ? WHERE id = ?').bind(ad, runId).run().then(() => ad));
+
+    /**
+     * STOK MODU (13 Ekim): fal/Apify kredisi 2 gün içinde bitiyor; paylaşım
+     * stoğu için kütüphanedeki kazanan formatlarla art arda kreatif turu.
+     * Tarama ve sökme yok (formatlar zaten taze). Her tur farklı bir odakla
+     * ve son_icerikler'e bakarak tekrar etmeden 3 içerik çıkarır.
+     */
+    if (stok) {
+      try {
+        await adim('uret');
+        const temel = await yap(step, 'stok-girdi', async () => {
+          const sonRun = await env.DB.prepare('SELECT run_id FROM tr_trendleri ORDER BY rowid DESC LIMIT 1').first<{ run_id: string }>();
+          return {
+            marka: await markaOku(env),
+            kazanan_formatlar: await kazananFormatlar(env, 8),
+            tr_trend_uygun: sonRun ? await uygunTrTrendleri(env, sonRun.run_id) : [],
+            aktif_seriler: (
+              await env.DB.prepare(
+                "SELECT id, ad, aciklama, format, bolum_sayisi, planlanan_bolumler FROM series WHERE durum = 'aktif' ORDER BY olusturma DESC LIMIT 5"
+              ).all()
+            ).results,
+            hesap_performansi: { note: 'Stok modu: hesap verisi alınmadı.' },
+          };
+        });
+        const tur = Math.min(Math.max(1, Math.round(stok.tur)), 12);
+        for (let t = 1; t <= tur; t++) {
+          const odak = stok.odaklar?.[(t - 1) % stok.odaklar.length] ?? '';
+          try {
+            await this.kreatifUret(step, runId, { ...temel, stok_turu: { tur: t, toplam: tur, odak } }, { onek: `s${t}`, tavan: stok.tavan });
+          } catch (e) {
+            console.error(`stok turu ${t} düştü:`, hataMetni(e));
+          }
+        }
+        await adim('kaydet');
+        await yap(step, 'bitir', () =>
+          env.DB.prepare("UPDATE runs SET durum = 'tamamlandi', bitis = ? WHERE id = ?").bind(simdiIst(), runId).run().then(() => true)
+        );
+      } catch (e) {
+        await yap(step, 'hata-kaydet', () =>
+          env.DB.prepare("UPDATE runs SET durum = 'hata', hata = ?, bitis = ? WHERE id = ?")
+            .bind(hataMetni(e).slice(0, 500), simdiIst(), runId).run().then(() => true)
+        );
+      }
+      return;
+    }
 
     try {
       // ───────────── 1. TARA ─────────────
@@ -478,29 +524,33 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
    * stüdyoda üretiliyor, carousel'lerin her kartına görsel, rota kartına
    * görsel.
    */
-  private async kreatifUret(step: WorkflowStep, runId: string, uretimGirdi: any) {
+  private async kreatifUret(step: WorkflowStep, runId: string, uretimGirdi: any, o: { onek?: string; tavan?: number } = {}) {
     const env = this.env;
-    await nefes(step, 'kreatif');
-    const girdi = await yap(step, 'kreatif-girdi', async () => ({
+    const p = o.onek ? `${o.onek}-` : '';
+    const kimlik = gorselKimlikEki(uretimGirdi.marka);
+    const stilli = (stil: string) => [stil, kimlik].filter(Boolean).join('. ');
+    await nefes(step, `${p}kreatif`);
+    const girdi = await yap(step, `${p}kreatif-girdi`, async () => ({
       kazanan_formatlar: uretimGirdi.kazanan_formatlar,
       tr_trend_uygun: uretimGirdi.tr_trend_uygun,
       hesap_performansi: uretimGirdi.hesap_performansi,
       aktif_seriler: uretimGirdi.aktif_seriler,
       marka: uretimGirdi.marka,
       son_icerikler: await sonIcerikler(env),
+      ...(uretimGirdi.stok_turu ? { stok_turu: uretimGirdi.stok_turu } : {}),
     }));
-    const k = (await this.beyin(step, runId, 'kreatif', girdi, [], 30)) as any;
-    await nefes(step, 'kreatif-kaydet');
-    const icerikler = await yap(step, 'kreatif-kaydet', () =>
+    const k = (await this.beyin(step, runId, 'kreatif', girdi, [], 30, `${p}kreatif`)) as any;
+    await nefes(step, `${p}kreatif-kaydet`);
+    const icerikler = await yap(step, `${p}kreatif-kaydet`, () =>
       kreatifYaz(env, runId, kreatifNormalize(k), dizi<any>(uretimGirdi.kazanan_formatlar).map((f) => f.id))
     );
-    const rota = await yap(step, 'rota-kaydet', () => rotaKartiYaz(env, runId, kreatifNormalize(k)?.rota_karti));
+    const rota = await yap(step, `${p}rota-kaydet`, () => rotaKartiYaz(env, runId, kreatifNormalize(k)?.rota_karti));
     if (!env.FAL_KEY) return;
 
     if (rota?.prompt) {
-      await nefes(step, 'rota-gorsel');
-      await yap(step, 'rota-gorsel', TEKRAR, async () => {
-        const g = await gorselUret(env, sahnePromptu(rota.prompt, ''), `${runId}/rota-${rota.id}.jpg`, DIKEY_4_5);
+      await nefes(step, `${p}rota-gorsel`);
+      await yap(step, `${p}rota-gorsel`, TEKRAR, async () => {
+        const g = await gorselUret(env, sahnePromptu(rota.prompt, kimlik), `${runId}/rota-${rota.id}.jpg`, DIKEY_4_5);
         await env.DB.prepare('UPDATE rota_kartlari SET gorsel_anahtar = ? WHERE id = ?').bind(g.anahtar, rota.id).run();
         await harcamaYaz(env, runId, 'fal', 'fal-ai/flux-pro (rota)', 0.04);
         return g.anahtar;
@@ -512,7 +562,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       await yap(step, `carousel-${c.id}`, TEKRAR, async () => {
         const sonuc = await Promise.allSettled(
           c.plan.cekimler.map((ck, i) =>
-            gorselUret(env, sahnePromptu(ck.kare_prompt, c.plan.stil), `${runId}/${c.id}-${i + 1}.jpg`, DIKEY_4_5)
+            gorselUret(env, sahnePromptu(ck.kare_prompt, stilli(c.plan.stil)), `${runId}/${c.id}-${i + 1}.jpg`, DIKEY_4_5)
           )
         );
         await sahneMedyasiYaz(env, c.id, sonuc.map((r) => (r.status === 'fulfilled' ? { gorsel_anahtar: r.value.anahtar } : {})));
@@ -524,7 +574,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
     const reeller = icerikler.filter((x) => x.format === 'kisa_video').sort((a, b) => b.puan - a.puan);
     for (const r of reeller) {
       try {
-        await this.reelUret(step, runId, r);
+        await this.reelUret(step, runId, { ...r, plan: { ...r.plan, stil: stilli(r.plan.stil) } }, o.tavan);
       } catch (e) {
         console.error('reel üretilemedi', r.id, hataMetni(e));
         await yap(step, `reel-hata-${r.id}`, () =>
@@ -535,13 +585,13 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
   }
 
   /** Bir reel: bütçe → kareler → klipler (+ses, müzik) → montaj → altyazı → R2. */
-  private async reelUret(step: WorkflowStep, runId: string, r: KreatifIcerik) {
+  private async reelUret(step: WorkflowStep, runId: string, r: KreatifIcerik, tavanUst?: number) {
     const env = this.env;
     const plan = r.plan;
     if (!plan.cekimler.length) return;
     await nefes(step, `reel-butce-${r.id}`);
     const karar = await yap(step, `reel-butce-${r.id}`, async () => {
-      const tavan = sayi(env.FAL_GUNLUK_TAVAN) || 3;
+      const tavan = tavanUst ?? (sayi(env.FAL_GUNLUK_TAVAN) || 3);
       const harcanan = await bugunkuFal(env, simdiIst().slice(0, 10));
       let heroVeo = true;
       let tahmin = maliyetTahmini(plan, true);
@@ -621,12 +671,13 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
     ad: PromptAdi,
     girdi: unknown,
     ekler: BrainEki[] = [],
-    sureDk?: number
+    sureDk?: number,
+    onek: string = ad
   ): Promise<unknown> {
     const env = this.env;
     let bas: any;
     try {
-      bas = await yap(step, `${ad}-baslat`, MANUS_BASLAT, async () => {
+      bas = await yap(step, `${onek}-baslat`, MANUS_BASLAT, async () => {
       const b = await brainBaslat(env, ad, girdi, `Kontak Network · ${ad} · ${runId}`, ekler);
       if (b.saglayici === 'manus') {
         // Sunumda kanıt: görev linkleri çalıştırmaya yazılır.
@@ -639,20 +690,20 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       });
     } catch (e) {
       console.error(`Manus ${ad} başlatılamadı, Workers AI yedeği:`, hataMetni(e));
-      return yap(step, `${ad}-yedek`, TEKRAR, () => workersAi(env, ad, girdi) as Promise<any>);
+      return yap(step, `${onek}-yedek`, TEKRAR, () => workersAi(env, ad, girdi) as Promise<any>);
     }
     if (bas.saglayici === 'workersai') return bas.sonuc;
 
     const tur = Math.max(1, Math.round((sureDk ?? (sayi(env.MANUS_SURE_DK) || 20)) * 3)); // 20 sn'de bir
     for (let i = 0; i < tur; i++) {
-      await step.sleep(`${ad}-bekle-${i}`, '20 seconds');
-      const y = await yap(step, `${ad}-yokla-${i}`, TEKRAR, () => brainYokla(env, bas.taskId, ad) as Promise<any>);
+      await step.sleep(`${onek}-bekle-${i}`, '20 seconds');
+      const y = await yap(step, `${onek}-yokla-${i}`, TEKRAR, () => brainYokla(env, bas.taskId, ad) as Promise<any>);
       if (!y.bitti) continue;
       if ('sonuc' in y) return y.sonuc;
       console.error(`Manus ${ad}:`, y.hata);
       break;
     }
-    return yap(step, `${ad}-yedek`, TEKRAR, () => workersAi(env, ad, girdi) as Promise<any>);
+    return yap(step, `${onek}-yedek`, TEKRAR, () => workersAi(env, ad, girdi) as Promise<any>);
   }
 }
 
