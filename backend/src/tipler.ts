@@ -6,6 +6,10 @@ export interface Env {
   AI: Ai;
   AGENT_RUN: Workflow<RunParams>;
   KONTAK_API: Fetcher;
+  /** Rota kartı → uygulama (şimdilik kontak-api-dev) */
+  KONTAK_API_ROTA: Fetcher;
+  /** kontak-api AJAN_SERVIS_ANAHTARI ile aynı */
+  KONTAK_AJAN_ANAHTARI?: string;
   VARLIKLAR: Fetcher;
 
   // Gizli anahtarlar (wrangler secret put). Boşsa ilgili adım yedeğe düşer.

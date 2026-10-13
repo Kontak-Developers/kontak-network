@@ -62,6 +62,12 @@ class_name = "AgentRun"
 binding = "KONTAK_API"
 service = "kontak-api"
 
+# Onaylanan rota kartları uygulamanın DEV ortamına gider (Burak: her şey
+# dev'de, prod'a alma kararı sonra). Prod'a geçince service = "kontak-api".
+[[services]]
+binding = "KONTAK_API_ROTA"
+service = "kontak-api-dev"
+
 # Her gün 08:00 İstanbul (05:00 UTC). Pazartesi ayrıca haftalık özet.
 [triggers]
 crons = ["0 5 * * *"]

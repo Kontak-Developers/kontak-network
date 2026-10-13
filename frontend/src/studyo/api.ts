@@ -24,7 +24,8 @@ export const studyoApi = {
     request<{ id: string }>('PATCH', `/api/formats/${e(id)}`, { panel_karari }),
   patlayanlar: () => request<Patlayan[]>('GET', '/api/patlayanlar'),
   rotalar: () => request<RotaKarti[]>('GET', '/api/rota-kartlari'),
-  rotaKarari: (id: string, durum: 'taslak' | 'onaylandi' | 'reddedildi') => request<{ id: string }>('PATCH', `/api/rota-kartlari/${e(id)}`, { durum }),
+  rotaKarari: (id: string, durum: 'taslak' | 'onaylandi' | 'reddedildi') =>
+    request<{ id: string; durum: 'taslak' | 'onaylandi' | 'reddedildi' | 'uygulamaya_gonderildi'; km?: number }>('PATCH', `/api/rota-kartlari/${e(id)}`, { durum }),
   metinKaydet: (id: string, b: { kanca?: string; aciklama_metni?: string; hashtagler?: string[]; ekran_yazilari?: string[] }) =>
     request<{ ok: boolean; yazi_yeniden_gomulmeli: boolean }>('PATCH', `/api/ideas/${e(id)}/metin`, b),
 }

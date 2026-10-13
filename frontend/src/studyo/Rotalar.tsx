@@ -20,13 +20,23 @@ export default function Rotalar() {
     studyoApi.rotalar().then(setListe, (e) => toast(e instanceof Error ? e.message : 'Rotalar yüklenemedi'))
   }, [toast])
 
+  const [gonderilen, setGonderilen] = useState<string | null>(null)
   const karar = async (r: RotaKarti, durum: 'taslak' | 'onaylandi' | 'reddedildi') => {
+    if (durum === 'onaylandi') setGonderilen(r.id)
     try {
-      await studyoApi.rotaKarari(r.id, durum)
-      setListe((l) => l?.map((x) => (x.id === r.id ? { ...x, durum } : x)) ?? l)
-      toast(durum === 'onaylandi' ? `${r.ad} onaylandı` : durum === 'reddedildi' ? `${r.ad} reddedildi` : `${r.ad} onaya geri alındı`)
+      const y = await studyoApi.rotaKarari(r.id, durum)
+      setListe((l) => l?.map((x) => (x.id === r.id ? { ...x, durum: y.durum } : x)) ?? l)
+      toast(
+        y.durum === 'uygulamaya_gonderildi'
+          ? `${r.ad} uygulamaya gönderildi${y.km ? ` (${y.km} km)` : ''}; moderatör onaylayınca görünür`
+          : durum === 'reddedildi'
+            ? `${r.ad} reddedildi`
+            : `${r.ad} onaya geri alındı`
+      )
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Kaydedilemedi')
+    } finally {
+      setGonderilen(null)
     }
   }
 
@@ -35,7 +45,7 @@ export default function Rotalar() {
   return (
     <Bolum
       baslik="Rota kartları"
-      aciklama="Onaylananlar uygulamaya 'Kontak önerisi' olarak girer. Km ve yerleri kaynaktan doğrula."
+      aciklama="Onaylanan rota uygulamanın onay kuyruğuna gider; yönetim panelinde moderatör onaylayınca Rotalar'da görünür."
       sag={
         <div className="st-secenekler" role="tablist" aria-label="Rota durumu">
           {FILTRE.map((f) => (
@@ -97,10 +107,14 @@ export default function Rotalar() {
                     <button className="btn btn-sm" onClick={() => karar(r, 'reddedildi')}>
                       <X size={14} /> Reddet
                     </button>
-                    <button className="btn btn-primary btn-sm" onClick={() => karar(r, 'onaylandi')}>
-                      <Check size={14} /> Onayla
+                    <button className="btn btn-primary btn-sm" onClick={() => karar(r, 'onaylandi')} disabled={gonderilen === r.id}>
+                      <Check size={14} /> {gonderilen === r.id ? 'Gönderiliyor…' : 'Onayla, uygulamaya gönder'}
                     </button>
                   </>
+                ) : r.durum === 'uygulamaya_gonderildi' ? (
+                  <span className="ro-gonderildi">
+                    <Check size={14} /> Uygulamada · moderatör onayı bekliyor
+                  </span>
                 ) : (
                   <button className="btn btn-sm" onClick={() => karar(r, 'taslak')}>
                     <Undo2 size={14} /> Onaya geri al

@@ -185,8 +185,46 @@ export async function studyoApi(
   if (rota && m === 'PATCH') {
     const b = await govde();
     if (!ROTA_DURUM.has(b?.durum)) return hata('gecersiz', 'durum: taslak | onaylandi | reddedildi', 400);
-    const r = await DB.prepare('UPDATE rota_kartlari SET durum = ? WHERE id = ? RETURNING id, durum').bind(b.durum, rota[1]).first();
-    return r ? json(r) : hata('yok', 'Rota kartı bulunamadı.', 404);
+    const kart = await DB.prepare('SELECT * FROM rota_kartlari WHERE id = ?').bind(rota[1]).first<any>();
+    if (!kart) return hata('yok', 'Rota kartı bulunamadı.', 404);
+    if (b.durum !== 'onaylandi') {
+      await DB.prepare('UPDATE rota_kartlari SET durum = ? WHERE id = ?').bind(b.durum, kart.id).run();
+      return json({ id: kart.id, durum: b.durum });
+    }
+    if (kart.kontak_rota_id) return json({ id: kart.id, durum: 'uygulamaya_gonderildi', kontak_rota_id: kart.kontak_rota_id });
+    // Onay = uygulamaya gönder (dev). Kontak tarafı yer adlarını koordinata çevirip çizgiyi çiziyor,
+    // rotayı moderatör onay kuyruğuna koyuyor.
+    if (!env.KONTAK_AJAN_ANAHTARI) return hata('yapilandirma', 'Uygulama bağlantı anahtarı tanımlı değil.', 503);
+    const duraklar = [kart.baslangic, ...jsonAc<string[]>(kart.duraklar, []), kart.bitis].map((x) => metin(x).trim()).filter(Boolean);
+    const y = await env.KONTAK_API_ROTA.fetch(
+      new Request('https://kontak-api-dev/api/ajan/rota-oneri', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-ajan-anahtari': env.KONTAK_AJAN_ANAHTARI },
+        body: JSON.stringify({
+          ad: kart.ad, sehir: kart.il, aciklama: kart.neden_git, enIyiZaman: kart.en_iyi_zaman,
+          zorluk: kart.zorluk, duraklar,
+        }),
+      })
+    );
+    const sonuc: any = await y.json().catch(() => null);
+    if (!y.ok || !sonuc?.id) {
+      return hata('gonderilemedi', sonuc?.hata?.mesaj ?? `Uygulamaya gönderilemedi (${y.status}).`, 502);
+    }
+    // Kapak ayrı istekte ham görsel (Kontak API: JSON 256 KB, görsel 2 MB sınırı).
+    if (kart.gorsel_anahtar) {
+      const o = await env.MEDYA.get(kart.gorsel_anahtar);
+      if (o && o.size < 2 * 1024 * 1024) {
+        await env.KONTAK_API_ROTA.fetch(
+          new Request(`https://kontak-api-dev/api/ajan/rota-oneri/${encodeURIComponent(sonuc.id)}/kapak`, {
+            method: 'PUT',
+            headers: { 'content-type': o.httpMetadata?.contentType ?? 'image/jpeg', 'x-ajan-anahtari': env.KONTAK_AJAN_ANAHTARI },
+            body: await o.arrayBuffer(),
+          })
+        ).catch(() => null); // kapaksız da olur
+      }
+    }
+    await DB.prepare("UPDATE rota_kartlari SET durum = 'uygulamaya_gonderildi', kontak_rota_id = ? WHERE id = ?").bind(sonuc.id, kart.id).run();
+    return json({ id: kart.id, durum: 'uygulamaya_gonderildi', kontak_rota_id: sonuc.id, km: Math.round(sonuc.mesafeM / 1000) });
   }
 
   // ── İçerik metni düzenleme (kanca, açıklama, etiketler, ekran yazıları) ──
