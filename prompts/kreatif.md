@@ -40,14 +40,48 @@ kahve, etkinlik) ve Dating. Hesap: @kontak.social. Hedef: **organik kitle**.
    - **Paylaş/kaydet** — arkadaşını etiketletir mi, "sonra bakarım" dedirtir mi?
    - **Üretilebilirlik** — stüdyomuz bunu yapabilir mi? (aşağıdaki kısıtlar)
    Toplamı 50 üzerinden `puan`. 35 altını seçme.
-3. **En iyi 3'ü seç**, en az 2'si reel (`kisa_video`). Üçü farklı format olsun.
-   `stok_turu.karisim` varsa (ör. "1 reel + 2 carousel") ona uy.
+3. **En iyi 3'ü seç.** Varsayılan karışım 2 reel (`kisa_video`) + 1
+   carousel; `stok_turu.karisim` ya da `ayarlar.karisim` varsa (ör. "1 reel +
+   2 carousel") **ona aynen uy**. Üçü farklı format olsun.
    **Carousel** = 4-6 kartlık kaydırmalı foto dizisi: her kart bir çekim
    (`cekimler`), `ekran_yazisi` kartın üstündeki metin; ilk kart kanca, son
    kart kaydet/etiketle çağrısı. Liste, karşılaştırma, rota, "motor tipine
    göre…" gibi kaydırtan yapılar için ideal.
-4. Her seçilen için **prodüksiyon planı** yaz.
+4. Her seçilen için **kanca atölyesi** (aşağıda) ve **prodüksiyon planı**.
 5. **1 rota kartı** yaz (aşağıda).
+
+## Kanca atölyesi — videonun %80'i burada
+
+İzleyici 1,5 saniyede karar veriyor. Kanca = ilk karenin görüntüsü + ekran
+yazısı (+ varsa ilk ses) **birlikte**. Her seçilen içerik için:
+
+1. **5 kanca varyantı** yaz, her biri farklı tipte:
+   - `itiraf` — "Motorcu olduğumu söyleyince annemin yüzü 😐"
+   - `pov` — "POV: grup sürüşünde tek scooter sensin"
+   - `karsitlik` — "Ehliyet sınavında 90 aldım. İlk kavşakta motoru düşürdüm."
+   - `soru` — "Scooter'la 1000cc aynı kafede: hesabı kim öder?"
+   - `liste` — "Motor tipine göre sürücüler (3 numara tam sen)"
+   - `acik_dongu` — "Bu viraja kadar her şey normaldi."
+   - `sayi_saat` — "Pazar 06:40. Herkes uyuyor. Biz:"
+   - `gizli_bilgi` — "Kimsenin söylemediği ilk uzun yol kuralı"
+2. Her varyantı 0-10 puanla. Ölçüt: (a) 1,5 sn'de okunur mu (**en fazla 9
+   kelime**), (b) somut mu (sayı, saat, yer, nesne), (c) motorcu "bu benim"
+   der mi, (d) merak boşluğu açıyor mu — cevabı videonun sonunda mı, (e)
+   ilk karenin görüntüsüyle çakışıyor mu (yazı "annemin yüzü" diyorsa kare
+   tepkiyi ima etmeli).
+3. En yüksek puanlıyı `kanca` yap; ilk çekimin `ekran_yazisi`'si = kanca.
+   Hepsini `kanca_varyantlari`'na yaz (panelde A/B için).
+
+Kanca **yasakları**: "Biliyor muydunuz", "Merhaba motorcular", "Bugün
+size…", marka adı, nasihat ("…unutmayın"), soru işaretli genel laf
+("Sürüş sizin için ne ifade ediyor?"), 12+ kelime.
+
+**Kapanış** da önemli: son çekim döngüyü kapatsın (cevap, punchline ya da
+geri dönüş) ve izleyiciyi başa sardırsın; `aciklama_metni` bir etiketleme
+ya da kaydetme çağrısıyla bitsin ("Bunu grup sürüşünde hep geç kalana gönder").
+
+**Ekran yazısı:** reelde her sahne en fazla 9 kelime; carousel kartında en
+fazla 22 kelime. Konuşma dili, büyük harf bağırması yok, en fazla 1 emoji.
 
 ## Görsel kimlik — çizgiden çıkma
 
@@ -106,7 +140,9 @@ Görüntüler yapay zekâyla üretiliyor:
 - **Görüntüde yazı yok** — ekran yazıları ayrı katman (`ekran_yazisi`).
 - Güvensiz sürüş yok (kasksız, tek teker, aşırı hız, trafikte makas).
 - Başka marka logosu, okunabilir plaka yok.
-- Çekim: 3-5 çekim, toplam 12-25 sn. **Tam 1 hero çekim** (en çarpıcı kare,
+- Reel: 3-5 çekim, toplam 12-25 sn. Carousel: 5-7 kart (her kart bir
+  çekim, `hero` false, `sure_sn` 5).
+- Reel çekimi: **Tam 1 hero çekim** (en çarpıcı kare,
   6-8 sn, sinematik, sesli olabilir). Diğerleri 5 sn.
 - `kare_prompt`: sahnenin donmuş ilk karesi, İngilizce, somut (ışık, lens,
   açı, ortam, motor tipi, renk). `hareket_prompt`: kamera ve eylem, İngilizce.
@@ -141,7 +177,8 @@ Son mesajın yalnızca bu yapıda bir JSON olsun (Türkçe karakterleri olduğu 
       "platform": "<instagram | tiktok>",
       "format": "<kisa_video | carousel>",
       "baslik": "<kısa iç başlık>",
-      "kanca": "<ilk 1,5 sn ekran yazısı/cümle>",
+      "kanca": "<seçilen kanca, en fazla 9 kelime>",
+      "kanca_varyantlari": [{ "tip": "<itiraf|pov|karsitlik|soru|liste|acik_dongu|sayi_saat|gizli_bilgi>", "metin": "<…>", "puan": 0 }],
       "neden_simdi": "<formatın kanıtı + bu açının neden bugün tutacağı>",
       "puan": 0,
       "puan_gerekce": "durdurma <0-10> · trend <0-10> · kimlik <0-10> · paylaş <0-10> · üretilebilirlik <0-10>",

@@ -84,6 +84,13 @@ const FIYAT = {
   altyazi: 0.05,
 };
 
+/**
+ * ⚠️ 13 Eki stok: defter 31$ derken fal bakiyesi ~45$ düştü (Veo 1080p,
+ *    Kling, compose yeniden denemeleri). Tahmin gerçeğe bu katsayıyla
+ *    yaklaştırılıyor; tavan böylece gerçek harcamayı tutuyor.
+ */
+const GERCEK_KATSAYI = 1.45;
+
 /** Plan için tahmini fal maliyeti (USD). */
 export function maliyetTahmini(plan: CekimPlani, heroVeo = true): number {
   const veoSesli = !plan.seslendirme;
@@ -93,7 +100,7 @@ export function maliyetTahmini(plan: CekimPlani, heroVeo = true): number {
   if (plan.seslendirme) usd += plan.seslendirme.length * FIYAT.ttsKarakter + FIYAT.altyazi;
   if (plan.muzik) usd += FIYAT.muzik;
   usd += toplamSn * FIYAT.composeSn;
-  return Math.round(usd * 100) / 100;
+  return Math.round(usd * GERCEK_KATSAYI * 100) / 100;
 }
 
 async function falSenkron(env: Env, model: string, girdi: unknown): Promise<any> {
@@ -140,6 +147,25 @@ export async function kareUret(env: Env, c: Cekim, stil: string): Promise<string
   });
   const url = metin(v?.images?.[0]?.url);
   if (!url) throw new Error('kare adresi yok');
+  return url;
+}
+
+/**
+ * Carousel kartı / rota görseli: Flux Ultra, 3:4. Instagram 2025'ten beri
+ * ızgarada 3:4 gösteriyor (1080×1440); 4:5 kart kenarlardan kırpılıyordu.
+ * Prompt sahnePromptu ile hazır gelir (stil + kimlik + kurallar).
+ */
+export async function kartUret(env: Env, prompt: string): Promise<string> {
+  const v = await falSenkron(env, 'fal-ai/flux-pro/v1.1-ultra', {
+    prompt,
+    aspect_ratio: '3:4',
+    num_images: 1,
+    output_format: 'jpeg',
+    safety_tolerance: '2',
+    raw: false,
+  });
+  const url = metin(v?.images?.[0]?.url);
+  if (!url) throw new Error('kart adresi yok');
   return url;
 }
 

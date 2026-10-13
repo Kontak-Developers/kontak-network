@@ -20,7 +20,7 @@ import { kreatifNormalize, kreatifYaz, rotaKartiYaz, sonIcerikler, type KreatifI
 import {
   altyaziAdresi, altyaziBaslat, bugunkuFal, kareUret, klipAdresi, klipBaslat, kuyrukYokla, maliyetTahmini,
   montajAdresi, montajBaslat, muzikBaslat, sesAdresi, seslendir, type KuyrukIsi,
-  gorselKimlikEki,
+  gorselKimlikEki, kartUret,
 } from './studyo';
 import { syncSocialPerformance } from './social';
 import {
@@ -550,10 +550,10 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
     if (rota?.prompt) {
       await nefes(step, `${p}rota-gorsel`);
       await yap(step, `${p}rota-gorsel`, TEKRAR, async () => {
-        const g = await gorselUret(env, sahnePromptu(rota.prompt, kimlik), `${runId}/rota-${rota.id}.jpg`, DIKEY_4_5);
-        await env.DB.prepare('UPDATE rota_kartlari SET gorsel_anahtar = ? WHERE id = ?').bind(g.anahtar, rota.id).run();
-        await harcamaYaz(env, runId, 'fal', 'fal-ai/flux-pro (rota)', 0.04);
-        return g.anahtar;
+        const anahtar = await r2yeYaz(env, await kartUret(env, sahnePromptu(rota.prompt, kimlik)), `${runId}/rota-${rota.id}.jpg`);
+        await env.DB.prepare('UPDATE rota_kartlari SET gorsel_anahtar = ? WHERE id = ?').bind(anahtar, rota.id).run();
+        await harcamaYaz(env, runId, 'fal', 'flux-ultra (rota)', 0.06);
+        return anahtar;
       }).catch((e) => console.error('rota görseli', hataMetni(e)));
     }
 
@@ -561,12 +561,14 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       await nefes(step, `carousel-${c.id}`);
       await yap(step, `carousel-${c.id}`, TEKRAR, async () => {
         const sonuc = await Promise.allSettled(
-          c.plan.cekimler.map((ck, i) =>
-            gorselUret(env, sahnePromptu(ck.kare_prompt, stilli(c.plan.stil)), `${runId}/${c.id}-${i + 1}.jpg`, DIKEY_4_5)
+          c.plan.cekimler.map(async (ck, i) =>
+            r2yeYaz(env, await kartUret(env, sahnePromptu(ck.kare_prompt, stilli(c.plan.stil))), `${runId}/${c.id}-${i + 1}.jpg`)
           )
         );
-        await sahneMedyasiYaz(env, c.id, sonuc.map((r) => (r.status === 'fulfilled' ? { gorsel_anahtar: r.value.anahtar } : {})));
-        await harcamaYaz(env, runId, 'fal', 'fal-ai/flux-pro (carousel)', c.plan.cekimler.length * 0.04);
+        sonuc.forEach((r, i) => r.status === 'rejected' && console.error('carousel kartı', c.id, i + 1, hataMetni(r.reason)));
+        if (!sonuc.some((r) => r.status === 'fulfilled')) throw new Error('carousel kartlarının hiçbiri üretilemedi');
+        await sahneMedyasiYaz(env, c.id, sonuc.map((r) => (r.status === 'fulfilled' ? { gorsel_anahtar: r.value } : {})));
+        await harcamaYaz(env, runId, 'fal', 'flux-ultra (carousel)', c.plan.cekimler.length * 0.06);
         return true;
       }).catch((e) => console.error('carousel görselleri', hataMetni(e)));
     }

@@ -56,7 +56,7 @@ export function trendCikti(t: any) {
 
 /** medyaOnek: R2 anahtarını panelin erişebileceği adrese çevirir. */
 export function fikirCikti(i: any, medyaOnek: string) {
-  const { gorsel_anahtar, video_anahtar, olusturma, ...geri } = i;
+  const { gorsel_anahtar, video_anahtar, yazili_anahtar, olusturma, ...geri } = i;
   return {
     ...geri,
     senaryo: jsonAc<string[]>(i.senaryo, []),
@@ -69,6 +69,8 @@ export function fikirCikti(i: any, medyaOnek: string) {
     rota: jsonAc<unknown>(i.rota, null),
     // v2: kreatif direktörün çekim planı (studyo.ts CekimPlani).
     uretim_plani: jsonAc<unknown>(i.uretim_plani, null),
+    kanca_varyantlari: jsonAc<unknown[]>(i.kanca_varyantlari, []),
+    yazili_video_url: yazili_anahtar ? `${medyaOnek}${yazili_anahtar}` : null,
     gorsel_url: gorsel_anahtar ? `${medyaOnek}${gorsel_anahtar}` : null,
     video_url: video_anahtar ? `${medyaOnek}${video_anahtar}` : null,
   };

@@ -20,16 +20,16 @@ export async function sonIcerikler(env: Env) {
   return { icerikler: r.results, rotalar: rotalar.results };
 }
 
-function planCikar(x: any): CekimPlani {
+function planCikar(x: any, carousel = false): CekimPlani {
   const cekimler = dizi<any>(x?.cekimler)
-    .slice(0, 5)
+    .slice(0, carousel ? 7 : 5)
     .map((c, i) => ({
       sira: sayi(c?.sira) || i + 1,
       sure_sn: Math.round(sinirla(sayi(c?.sure_sn) || 5, 4, 8)),
       kare_prompt: metin(c?.kare_prompt).slice(0, 900),
       hareket_prompt: metin(c?.hareket_prompt).slice(0, 600),
       hero: !!c?.hero,
-      ekran_yazisi: metin(c?.ekran_yazisi).slice(0, 120),
+      ekran_yazisi: metin(c?.ekran_yazisi).slice(0, 220),
     }))
     .filter((c) => c.kare_prompt);
   // Tam 1 hero: model hiç seçmediyse en uzun çekim; birden çoksa ilki.
@@ -156,7 +156,11 @@ export async function kreatifYaz(env: Env, runId: string, k: any, gecerliFormatl
     }
     const id = kisaId('i');
     const format: KreatifIcerik['format'] = x?.format === 'carousel' ? 'carousel' : 'kisa_video';
-    const plan = planCikar(x);
+    const plan = planCikar(x, format === 'carousel');
+    const varyantlar = dizi<any>(x?.kanca_varyantlari)
+      .map((v) => ({ tip: metin(v?.tip).slice(0, 20), metin: metin(v?.metin).slice(0, 160), puan: Math.round(sinirla(sayi(v?.puan), 0, 10)) }))
+      .filter((v) => v.metin)
+      .slice(0, 8);
     const formatId = gecerliFormatlar.includes(metin(x?.format_id)) ? metin(x.format_id) : null;
     const puan = Math.round(sinirla(sayi(x?.puan), 0, 50));
     // Panelin sahne kartları: çekimler → sahneler (görsel/klip sonra işlenir).
@@ -168,8 +172,8 @@ export async function kreatifYaz(env: Env, runId: string, k: any, gecerliFormatl
       env.DB.prepare(
         `INSERT INTO ideas (id, run_id, trend_id, platform, format, baslik, kanca, senaryo, aciklama_metni, hashtagler,
            gorsel_prompt, durum, sahneler, onerilen_ses, olusturma, format_id, puan, puan_gerekce, neden_simdi,
-           uretim_plani, reel_durum)
-         VALUES (?,?,NULL,?,?,?,?,?,?,?,?,'yeni',?,?,?,?,?,?,?,?,?)`
+           uretim_plani, reel_durum, kanca_varyantlari)
+         VALUES (?,?,NULL,?,?,?,?,?,?,?,?,'yeni',?,?,?,?,?,?,?,?,?,?)`
       ).bind(
         id, runId, x?.platform === 'instagram' ? 'instagram' : 'tiktok', format, baslik,
         metin(x?.kanca).slice(0, 300),
@@ -180,7 +184,8 @@ export async function kreatifYaz(env: Env, runId: string, k: any, gecerliFormatl
         JSON.stringify(sahneler),
         metin(x?.onerilen_ses).trim() ? metin(x.onerilen_ses).slice(0, 120) : null,
         zaman, formatId, puan, metin(x?.puan_gerekce).slice(0, 600), metin(x?.neden_simdi).slice(0, 600),
-        JSON.stringify(plan), format === 'kisa_video' ? 'bekliyor' : null
+        JSON.stringify(plan), format === 'kisa_video' ? 'bekliyor' : null,
+        varyantlar.length ? JSON.stringify(varyantlar) : null
       )
     );
     if (formatId) stmts.push(env.DB.prepare('UPDATE formatlar SET kullanim = kullanim + 1 WHERE id = ?').bind(formatId));
