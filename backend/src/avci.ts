@@ -32,13 +32,17 @@ import type { AjanAyarlari } from './ayarlar';
 
 type AvAyari = AjanAyarlari['av'];
 
-export type AvKaynak = 'tr_motor' | 'global_motor' | 'tr_trend';
+export type AvKaynak = 'tr_motor' | 'global_motor' | 'tr_trend' | 'ig_kesif' | 'ig_reel';
 export type AvIs = { kaynak: AvKaynak; runId: string; datasetId: string };
 
 export type Aday = {
   link: string;
-  platform: 'tiktok';
-  kaynak: Exclude<AvKaynak, 'tr_trend'>;
+  platform: 'tiktok' | 'instagram';
+  kaynak: 'tr_motor' | 'global_motor' | 'ig_motor';
+  /** Instagram: doğrudan indirilebilir mp4 (TikTok'ta Apify ayrıca indiriyor) */
+  video_url?: string | null;
+  /** Kapak görseli (imzalı, süreli adres; seçilenler R2'ye kopyalanır) */
+  kapak?: string | null;
   hesap: string | null;
   takipci: number;
   izlenme: number;
@@ -87,6 +91,33 @@ export async function avBaslat(env: Env, trEtiketler: string[], av: AvAyari): Pr
       tt({ searchQueries: av.global_aramalar, resultsPerPage: av.arama_basi_video, searchSection: '/video' }, av.global_aramalar.length * av.arama_basi_video)
         .then((r) => is('global_motor', r))
     );
+  // Sahnenin öncüleri: TikTok'ta izlenen hesaplar (panelden; etiket koymayanlar dahil).
+  if (av.tt_hesaplar.length)
+    isler.push(
+      tt({ profiles: av.tt_hesaplar.map((h) => h.replace(/^@/, '')), resultsPerPage: 10, profileSorting: 'latest' }, av.tt_hesaplar.length * 10)
+        .then((r) => is('tr_motor', r))
+    );
+  // Instagram 1. aşama: hesap keşfi (arama) + izlenen hesapların takipçi sayısı.
+  if (av.ig_aktif) {
+    for (const terim of av.ig_aramalar.slice(0, 3))
+      isler.push(
+        apify(env, '/acts/apify~instagram-scraper/runs', {
+          method: 'POST',
+          body: JSON.stringify({ search: terim, searchType: 'user', searchLimit: 15, resultsType: 'details', resultsLimit: 1 }),
+        }).then((r) => is('ig_kesif', r))
+      );
+    if (av.ig_hesaplar.length)
+      isler.push(
+        apify(env, '/acts/apify~instagram-scraper/runs', {
+          method: 'POST',
+          body: JSON.stringify({
+            directUrls: av.ig_hesaplar.map((h) => `https://www.instagram.com/${h.replace(/^@/, '')}/`),
+            resultsType: 'details',
+            resultsLimit: 1,
+          }),
+        }).then((r) => is('ig_kesif', r))
+      );
+  }
   if (av.creative_center)
     isler.push(
       apify(env, '/acts/data_xplorer~tiktok-trends/runs', {
@@ -101,6 +132,94 @@ export async function avBaslat(env: Env, trEtiketler: string[], av: AvAyari): Pr
 export async function avMaliyeti(env: Env, runId: string): Promise<number> {
   const r = await apify(env, `/actor-runs/${runId}`);
   return sayi(r.data?.usageTotalUsd);
+}
+
+/**
+ * INSTAGRAM (13 Eki gece). Eski Instagram taraması etiket akışıydı: 145
+ * gönderinin hiçbirinde izlenme yoktu, çoğu haber/yerel hesap. Instagram'da
+ * etiket akışı rastgele; doğru yer HESAPLAR. 1. aşama keşif + takipçi,
+ * 2. aşama bu hesapların son reelleri → patlama = izlenme ÷ takipçi
+ * (TikTok'la aynı ölçek). Takipçi yoksa hesabın kendi medyanı.
+ */
+export type IgHesap = { kullanici: string; takipci: number };
+
+export async function igHesaplari(env: Env, isler: AvIs[], av: AvAyari): Promise<IgHesap[]> {
+  const gorulen = new Map<string, IgHesap>();
+  for (const is of isler.filter((x) => x.kaynak === 'ig_kesif')) {
+    const ham = dizi<any>(await apify(env, `/datasets/${is.datasetId}/items?clean=true&format=json&limit=200`).catch(() => []));
+    for (const x of ham) {
+      const k = metin(x?.username).toLowerCase();
+      if (!k || x?.private === true || x?.isPrivate === true) continue;
+      gorulen.set(k, { kullanici: k, takipci: sayi(x?.followersCount) });
+    }
+  }
+  const izlenen = new Set(av.ig_hesaplar.map((h) => h.replace(/^@/, '').toLowerCase()));
+  const sabit = [...izlenen].map((k) => gorulen.get(k) ?? { kullanici: k, takipci: 0 });
+  // Keşfedilenler: haber/sayfa değil, gerçek içerik üreticisi aralığı (1,5 bin – 2 milyon).
+  const kesif = [...gorulen.values()]
+    .filter((h) => !izlenen.has(h.kullanici) && h.takipci >= 1500 && h.takipci <= 2_000_000 && !HABER_HESAP.test(h.kullanici))
+    .sort((a, b) => b.takipci - a.takipci);
+  return [...sabit, ...kesif].slice(0, av.ig_hesap_sayisi);
+}
+
+export async function igReelBaslat(env: Env, hesaplar: IgHesap[], av: AvAyari): Promise<AvIs> {
+  const r = await apify(env, '/acts/apify~instagram-reel-scraper/runs', {
+    method: 'POST',
+    body: JSON.stringify({
+      username: hesaplar.map((h) => h.kullanici),
+      resultsLimit: 12,
+      onlyPostsNewerThan: `${av.gun} days`,
+      skipPinnedPosts: true,
+    }),
+  });
+  return { kaynak: 'ig_reel', runId: r.data.id, datasetId: r.data.defaultDatasetId };
+}
+
+export async function igAdaylari(env: Env, is: AvIs, hesaplar: IgHesap[]): Promise<Aday[]> {
+  const ham = dizi<any>(await apify(env, `/datasets/${is.datasetId}/items?clean=true&format=json&limit=1000`));
+  const takipci = new Map(hesaplar.map((h) => [h.kullanici, h.takipci]));
+  const izlenme = (x: any) => sayi(x?.videoPlayCount) || sayi(x?.videoViewCount) || sayi(x?.igPlayCount);
+  // Takipçisi bilinmeyen hesap: kendi reellerinin medyanı.
+  const medyan = new Map<string, number>();
+  const grup = new Map<string, number[]>();
+  for (const x of ham) {
+    const h = metin(x?.ownerUsername).toLowerCase();
+    if (h) grup.set(h, [...(grup.get(h) ?? []), izlenme(x)]);
+  }
+  for (const [h, l] of grup) {
+    const s = [...l].sort((a, b) => a - b);
+    medyan.set(h, s[Math.floor(s.length / 2)] ?? 0);
+  }
+  return ham
+    .map((x): Aday | null => {
+      const link = metin(x?.url);
+      const tarih = metin(x?.timestamp);
+      const hesap = metin(x?.ownerUsername).toLowerCase();
+      const iz = izlenme(x);
+      if (!link.startsWith('https://') || !tarih || !iz) return null;
+      const t = takipci.get(hesap) ?? 0;
+      const taban = t > 0 ? t : medyan.get(hesap) ?? 0;
+      return {
+        link,
+        platform: 'instagram',
+        kaynak: 'ig_motor',
+        hesap: hesap || null,
+        takipci: t,
+        izlenme: iz,
+        begeni: Math.max(0, sayi(x?.likesCount)),
+        yorum: sayi(x?.commentsCount),
+        paylasim: sayi(x?.sharesCount),
+        kaydetme: 0,
+        patlama: Math.round((iz / Math.max(taban, 1000)) * 10) / 10,
+        sure_sn: x?.videoDuration ? Math.round(sayi(x.videoDuration)) : null,
+        aciklama: metin(x?.caption).slice(0, 400),
+        ses: x?.musicInfo?.song_name ? metin(x.musicInfo.song_name).slice(0, 120) : null,
+        tarih,
+        video_url: metin(x?.videoUrl) || null,
+        kapak: metin(x?.displayUrl) || null,
+      };
+    })
+    .filter((a): a is Aday => a !== null);
 }
 
 export async function avAdaylari(env: Env, is: AvIs): Promise<Aday[]> {
@@ -129,6 +248,7 @@ export async function avAdaylari(env: Env, is: AvIs): Promise<Aday[]> {
         aciklama: metin(x?.text).slice(0, 400),
         ses: x?.musicMeta?.musicName ? metin(x.musicMeta.musicName).slice(0, 120) : null,
         tarih,
+        kapak: metin(x?.videoMeta?.coverUrl) || null,
       };
     })
     .filter((a): a is Aday => a !== null);
@@ -173,7 +293,7 @@ export function patlayanlariSec(adaylar: Aday[], av: AvAyari, simdi = Date.now()
       Date.parse(a.tarih) >= sinir &&
       !haberMi(a) &&
       a.patlama >= av.min_patlama &&
-      a.izlenme >= (a.kaynak === 'tr_motor' ? av.min_izlenme_tr : av.min_izlenme_global)
+      a.izlenme >= (a.kaynak === 'tr_motor' ? av.min_izlenme_tr : a.kaynak === 'ig_motor' ? av.min_izlenme_ig : av.min_izlenme_global)
   );
   const sec = (kaynak: Aday['kaynak'], n: number) => {
     const hesapSay = new Map<string, number>();
@@ -188,7 +308,7 @@ export function patlayanlariSec(adaylar: Aday[], av: AvAyari, simdi = Date.now()
       })
       .slice(0, n);
   };
-  return [...sec('tr_motor', av.tr_secim), ...sec('global_motor', av.global_secim)];
+  return [...sec('tr_motor', av.tr_secim), ...sec('ig_motor', av.ig_aktif ? av.ig_secim : 0), ...sec('global_motor', av.global_secim)];
 }
 
 /** Seçilenlerin videosunu indir (ayrı Apify işi; yalnız bunlar için ücret). */
@@ -218,7 +338,9 @@ export async function indirilenler(env: Env, is: AvIs): Promise<Record<string, s
  * uzun vlog'lar zaten format örneği olarak zayıf).
  */
 export async function falaTasi(env: Env, apifyAdres: string, ad: string): Promise<string | null> {
-  const v = await fetch(apifyAdres, { headers: { Authorization: `Bearer ${env.APIFY_TOKEN}` } });
+  // Apify kayıt adresi anahtar ister; Instagram CDN adresine anahtar GİTMEZ.
+  const apifyMi = new URL(apifyAdres).hostname.endsWith('apify.com');
+  const v = await fetch(apifyAdres, apifyMi ? { headers: { Authorization: `Bearer ${env.APIFY_TOKEN}` } } : {});
   if (!v.ok) return null;
   const veri = await v.arrayBuffer();
   if (veri.byteLength > 19 * 1024 * 1024) return null;

@@ -253,9 +253,9 @@ async function api(req: Request, env: Env, url: URL): Promise<Response> {
   }
   if (yol === '/api/patlayanlar' && m === 'GET') {
     const r = run
-      ? await DB.prepare('SELECT * FROM patlayanlar WHERE run_id = ? ORDER BY patlama DESC').bind(run).all()
-      : await DB.prepare('SELECT * FROM patlayanlar ORDER BY bulunma DESC, patlama DESC LIMIT 60').all();
-    return json(r.results);
+      ? await DB.prepare('SELECT * FROM patlayanlar WHERE run_id = ? ORDER BY patlama DESC').bind(run).all<any>()
+      : await DB.prepare('SELECT * FROM patlayanlar ORDER BY bulunma DESC, patlama DESC LIMIT 60').all<any>();
+    return json(r.results.map(({ kapak_anahtar, ...p }: any) => ({ ...p, kapak_url: kapak_anahtar ? `${medyaOnek}${kapak_anahtar}` : null })));
   }
   if (yol === '/api/rota-kartlari' && m === 'GET') {
     const r = await DB.prepare('SELECT * FROM rota_kartlari ORDER BY olusturma DESC LIMIT 30').all<any>();

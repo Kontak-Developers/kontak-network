@@ -19,6 +19,18 @@ export type AjanAyarlari = {
     global_aramalar: string[];
     /** TikTok Creative Center Türkiye trendleri */
     creative_center: boolean;
+    /** TikTok'ta izlenen hesaplar (sahnenin öncüleri) */
+    tt_hesaplar: string[];
+    /** Instagram reel avı (hesap tabanlı) */
+    ig_aktif: boolean;
+    /** Instagram'da izlenen hesaplar */
+    ig_hesaplar: string[];
+    /** Instagram'da hesap keşfi için aramalar */
+    ig_aramalar: string[];
+    /** Reelleri taranan en fazla hesap */
+    ig_hesap_sayisi: number;
+    ig_secim: number;
+    min_izlenme_ig: number;
     etiket_basi_video: number;
     arama_basi_video: number;
     /** Kaç günlük video sayılır */
@@ -64,6 +76,8 @@ export type AjanAyarlari = {
     kalite_denetimi: boolean;
     /** OpenRouter model adı (fal openrouter/router/vision) */
     denetim_modeli: string;
+    /** Videonun köşesinde ve carousel kartlarında marka imzası; boşsa yok */
+    imza: string;
   };
   butce: {
     fal_gunluk_tavan: number;
@@ -78,6 +92,15 @@ export const VARSAYILAN_AYARLAR: AjanAyarlari = {
     tr_aramalar: ['motosiklet', 'motorcu kız', 'motor pov', 'ilk motorum'],
     global_aramalar: ['motorcycle pov', 'biker life', 'motorcycle couple', 'first motorcycle'],
     creative_center: true,
+    // 13 Eki: TR motor TikTok'unda en çok etkileşim alan üreticiler (kendi verimizden).
+    tt_hesaplar: ['bihter.eysan', 'alenayavas', 'cansu.ozturkk34', 'katyaalmaz', 'spvn.x', 'elvan.tt'],
+    ig_aktif: true,
+    // Aynı kişiler çoğunlukla Instagram'da da aynı adla; olmayanlar sessizce atlanır.
+    ig_hesaplar: ['bihter.eysan', 'alenayavas', 'cansu.ozturkk34', 'katyaalmaz', 'ekipmotosikletkulubu', 'motomate.com.tr'],
+    ig_aramalar: ['motosiklet', 'motorcu', 'moto vlog'],
+    ig_hesap_sayisi: 25,
+    ig_secim: 4,
+    min_izlenme_ig: 20_000,
     etiket_basi_video: 30,
     arama_basi_video: 25,
     gun: 14,
@@ -90,7 +113,7 @@ export const VARSAYILAN_AYARLAR: AjanAyarlari = {
   },
   sok: { izlenecek_video: 10, sure_dk: 35, taze_saat: 6 },
   kreatif: { aday: 6, secim: 3, min_puan: 35, karisim: '2 reel + 1 carousel', odaklar: [], ek_talimat: '', sure_dk: 30 },
-  studyo: { ses: 'Brian', muzik: true, altyazi: true, yazi_gom: true, hero_veo: true, kalite_denetimi: true, denetim_modeli: 'google/gemini-2.5-flash' },
+  studyo: { ses: 'Brian', muzik: true, altyazi: true, yazi_gom: true, hero_veo: true, kalite_denetimi: true, denetim_modeli: 'google/gemini-2.5-flash', imza: 'kontak.social' },
   butce: { fal_gunluk_tavan: 3, maliyet_katsayi: 1.45 },
 };
 
@@ -119,6 +142,11 @@ function sinirla(a: AjanAyarlari): AjanAyarlari {
   a.av.tr_etiketler = a.av.tr_etiketler.map((e) => e.replace(/^#/, '')).slice(0, 15);
   a.av.tr_aramalar = a.av.tr_aramalar.slice(0, 10);
   a.av.global_aramalar = a.av.global_aramalar.slice(0, 10);
+  a.av.tt_hesaplar = a.av.tt_hesaplar.map((h) => h.replace(/^@/, '')).slice(0, 20);
+  a.av.ig_hesaplar = a.av.ig_hesaplar.map((h) => h.replace(/^@/, '')).slice(0, 25);
+  a.av.ig_aramalar = a.av.ig_aramalar.slice(0, 3);
+  a.av.ig_hesap_sayisi = s(a.av.ig_hesap_sayisi, 5, 40);
+  a.av.ig_secim = s(a.av.ig_secim, 0, 8);
   a.av.gun = s(a.av.gun, 2, 60);
   a.av.min_patlama = s(a.av.min_patlama, 1, 1000);
   a.av.tr_secim = s(a.av.tr_secim, 0, 15);

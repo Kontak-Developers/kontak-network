@@ -61,8 +61,19 @@ async function ciz(svg: string, genislik: number): Promise<Uint8Array> {
  */
 export const NOTR_GRI = '#808080';
 
-export async function reelLevhasi(metin: string | null, w: number, h: number): Promise<Uint8Array> {
-  if (!metin) return ciz(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${NOTR_GRI}"/></svg>`, w);
+/**
+ * Marka imzası: sol üstte küçük "kontak.social". Hardlight'ta açık gri hafif
+ * aydınlatır → videonun üstünde ince, filigran gibi bir iz (bağırmıyor).
+ */
+function imzaSvg(imza: string, w: number) {
+  if (!imza) return '';
+  const p = Math.round(w * 0.03);
+  return `<text x="${Math.round(w * 0.06)}" y="${Math.round(w * 0.12)}" font-family="Sora" font-weight="800" font-size="${p}" fill="#D2D2D2">${kacis(temizle(imza))}</text>`;
+}
+
+export async function reelLevhasi(metin: string | null, w: number, h: number, imza = ''): Promise<Uint8Array> {
+  if (!metin)
+    return ciz(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${NOTR_GRI}"/>${imzaSvg(imza, w)}</svg>`, w);
   const punto = Math.round(w * 0.056);
   const satirlar = satirla(metin, punto, w * 0.78);
   const aralik = Math.round(punto * 1.3);
@@ -79,6 +90,7 @@ export async function reelLevhasi(metin: string | null, w: number, h: number): P
 <rect width="${w}" height="${h}" fill="${NOTR_GRI}"/>
 <rect x="${x0}" y="${y0}" width="${kutuW}" height="${kutuH}" rx="${Math.round(punto * 0.45)}" fill="#262626"/>
 <g font-family="Sora" font-weight="800" font-size="${punto}" fill="#FFFFFF">${metinler}</g>
+${imzaSvg(imza, w)}
 </svg>`;
   return ciz(svg, w);
 }
@@ -94,7 +106,8 @@ export async function carouselKarti(
   sira: number,
   toplam: number,
   w = 1080,
-  h = 1440
+  h = 1440,
+  imza = ''
 ): Promise<Uint8Array> {
   const kapak = sira === 1;
   const punto = Math.round(w * (kapak ? 0.074 : 0.056));
@@ -116,6 +129,7 @@ ${satirlar.length ? `<rect x="0" y="${karartmaY}" width="${w}" height="${h - kar
 <g font-family="Sora" font-weight="800" font-size="${punto}" fill="#FFFFFF">${metinler}</g>
 ${toplam > 1 ? `<rect x="${w - Math.round(w * 0.155)}" y="${Math.round(w * 0.05)}" width="${Math.round(w * 0.105)}" height="${Math.round(w * 0.05)}" rx="${Math.round(w * 0.025)}" fill="#080A28" fill-opacity="0.6"/>
 <text x="${w - Math.round(w * 0.1025)}" y="${Math.round(w * 0.0835)}" text-anchor="middle" font-family="Sora" font-weight="800" font-size="${Math.round(w * 0.028)}" fill="#FFFFFF">${sira}/${toplam}</text>` : ''}
+${imza ? `<text x="${Math.round(w * 0.06)}" y="${Math.round(w * 0.0835)}" font-family="Sora" font-weight="800" font-size="${Math.round(w * 0.028)}" fill="#FFFFFF" fill-opacity="0.85">${kacis(temizle(imza))}</text>` : ''}
 </svg>`;
   return ciz(svg, w);
 }

@@ -12,7 +12,7 @@ import type { Brand, Env, Etiket, Gonderi, Platform, RunParams } from './tipler'
 import { taramaBaslat, taramaDurumu, taramaSonuclari, sahteTarama, type ApifyIs } from './apify';
 import { ivmeHesapla, ornekGonderiler } from './ivme';
 import { brainBaslat, brainYokla, workersAi, type BrainEki, type PromptAdi } from './brain';
-import { avAdaylari, avBaslat, avMaliyeti, dokum, falaTasi, indirilenler, indirmeBaslat, patlayanlariSec, trTrendleri, type Aday, type AvIs, type TrTrend } from './avci';
+import { avAdaylari, avBaslat, avMaliyeti, dokum, falaTasi, igAdaylari, igHesaplari, igReelBaslat, indirilenler, indirmeBaslat, patlayanlariSec, trTrendleri, type Aday, type AvIs, type IgHesap, type TrTrend } from './avci';
 import { formatlariYaz, harcamaYaz, kazananFormatlar, mevcutFormatlar, patlayanlariYaz, trTrendleriniYaz, uygunTrTrendleri } from './formatlar';
 import { DIKEY_4_5, DIKEY_9_16, gorselUret, r2yeYaz, sahnePromptu, videoBaslat, videoYokla, type Uretilen } from './fal';
 import { gonderileriYaz, markaOku, gonderileriOku } from './db';
@@ -207,6 +207,29 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
           });
           if (bitti) break;
         }
+        // Instagram 2. aşama: keşfedilen + izlenen hesapların son reelleri.
+        let igIs: AvIs | null = null;
+        let igHesap: IgHesap[] = [];
+        if (avIsler.some((x) => x.kaynak === 'ig_kesif')) {
+          const ig = await yap(step, 'ig-hesap', TEKRAR, async () => {
+            const h = await igHesaplari(env, avIsler, ayar.av);
+            for (const is of avIsler.filter((x) => x.kaynak === 'ig_kesif'))
+              await harcamaYaz(env, runId, 'apify', 'av:ig_kesif', await avMaliyeti(env, is.runId).catch(() => 0), false);
+            return { hesaplar: h, is: h.length ? await igReelBaslat(env, h, ayar.av) : null };
+          }).catch((e) => {
+            console.error('Instagram hesap keşfi düştü:', hataMetni(e));
+            return { hesaplar: [] as IgHesap[], is: null };
+          });
+          igHesap = ig.hesaplar;
+          igIs = ig.is;
+          if (igIs) {
+            for (let i = 0; i < 24; i++) {
+              await step.sleep(`ig-bekle-${i}`, '20 seconds');
+              const bitti = await yap(step, `ig-durum-${i}`, TEKRAR, async () => BITMIS_APIFY.has(await taramaDurumu(env, igIs!.runId)));
+              if (bitti) break;
+            }
+          }
+        }
         // Yarım kalan run'ın dataset'i de o ana kadarkini verir.
         for (const is of isler) {
           taranan += await yap(step, `apify-kaydet-${is.platform}`, TEKRAR, async () => {
@@ -219,9 +242,14 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
           let adaylar: Aday[] = [];
           let tr: TrTrend[] = [];
           for (const is of avIsler) {
+            if (is.kaynak === 'ig_kesif') continue; // ig-hesap adımında
             if (is.kaynak === 'tr_trend') tr = await trTrendleri(env, is).catch(() => []);
             else adaylar = adaylar.concat(await avAdaylari(env, is).catch(() => []));
             await harcamaYaz(env, runId, 'apify', `av:${is.kaynak}`, await avMaliyeti(env, is.runId).catch(() => 0), false);
+          }
+          if (igIs) {
+            adaylar = adaylar.concat(await igAdaylari(env, igIs, igHesap).catch(() => []));
+            await harcamaYaz(env, runId, 'apify', 'av:ig_reel', await avMaliyeti(env, igIs.runId).catch(() => 0), false);
           }
           // TR motor videoları eski ivme hesabını da beslesin (panel gündemi).
           await gonderileriYaz(
@@ -275,7 +303,8 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       if (avSonucu && avSonucu.secilen.length && env.FAL_KEY && !tazeSok) {
         try {
           const secilen = avSonucu.secilen;
-          const indirIs = await yap(step, 'sok-indir', TEKRAR, () => indirmeBaslat(env, secilen.map((a) => a.link)));
+          const ttLinkler = secilen.filter((a) => a.platform === 'tiktok').map((a) => a.link);
+          const indirIs = await yap(step, 'sok-indir', TEKRAR, () => indirmeBaslat(env, ttLinkler.length ? ttLinkler : secilen.slice(0, 1).map((a) => a.link)));
           for (let i = 0; i < 20; i++) {
             await step.sleep(`sok-indir-bekle-${i}`, '15 seconds');
             const bitti = await yap(step, `sok-indir-durum-${i}`, TEKRAR, async () =>
@@ -286,6 +315,8 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
           await nefes(step, 'sok-kaynak');
           const kaynak = await yap(step, 'sok-kaynak', TEKRAR, async () => {
             const k = await indirilenler(env, indirIs);
+            // Instagram reel'i: Apify zaten doğrudan mp4 adresi verdi.
+            for (const a of secilen) if (a.platform === 'instagram' && a.video_url) k[a.link] = a.video_url;
             await harcamaYaz(env, runId, 'apify', 'indir:tiktok-video', await avMaliyeti(env, indirIs.runId).catch(() => 0), false);
             return k;
           });
@@ -593,6 +624,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       aktif_seriler: uretimGirdi.aktif_seriler,
       marka: uretimGirdi.marka,
       son_icerikler: await sonIcerikler(env),
+      patlayanlar_platform: await platformOzeti(env),
       ...(uretimGirdi.stok_turu ? { stok_turu: uretimGirdi.stok_turu } : {}),
       ayarlar: {
         aday: o.ayar.kreatif.aday, secim: o.ayar.kreatif.secim, min_puan: o.ayar.kreatif.min_puan,
@@ -635,7 +667,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
         return true;
       }).catch((e) => console.error('carousel görselleri', hataMetni(e)));
       if (o.ayar.studyo.yazi_gom) {
-        await yap(step, `carousel-yazi-${c.id}`, TEKRAR, () => carouselYazilari(env, c.id)).catch((e) => console.error('carousel yazıları', hataMetni(e)));
+        await yap(step, `carousel-yazi-${c.id}`, TEKRAR, () => carouselYazilari(env, c.id, o.ayar.studyo.imza)).catch((e) => console.error('carousel yazıları', hataMetni(e)));
       }
     }
 
@@ -728,24 +760,24 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
     // 5) Ekran yazısı gömülü kopya (temiz sürüm de kalıyor: uygulamada yazı eklemek isteyen için).
     if (ayar.studyo.yazi_gom) {
       const sureler = plan.cekimler.map((c) => klipSuresiMs(c, karar.heroVeo));
-      await this.yaziliReel(step, r.id, video, plan, sureler).catch((e) => console.error('yazılı reel', r.id, hataMetni(e)));
+      await this.yaziliReel(step, r.id, video, plan, sureler, ayar.studyo.imza).catch((e) => console.error('yazılı reel', r.id, hataMetni(e)));
     }
   }
 
   /** Reel'e ekran yazısı göm → R2 `-reel-yazili.mp4` → ideas.yazili_anahtar. Temiz sürüm kalır. */
-  private async yaziliReel(step: WorkflowStep, fikirId: string, videoUrl: string, plan: CekimPlani, sureler: number[]) {
+  private async yaziliReel(step: WorkflowStep, fikirId: string, videoUrl: string, plan: CekimPlani, sureler: number[], imza = '') {
     const env = this.env;
     const araliklar = yaziAraliklari(plan, sureler);
-    if (!araliklar.length) return;
+    if (!araliklar.length && !imza) return;
     const toplamMs = sureler.reduce((a, b) => a + b, 0);
     const cizelgeIs = await yap(step, `yazi-cizelge-${fikirId}`, TEKRAR, async () => {
       const kare = (ms: number) => Math.max(1, Math.round((ms / 1000) * YAZI_FPS));
-      const gri = await falaYukle(env, await reelLevhasi(null, 1080, 1920), 'image/png', `${fikirId}-gri.png`);
+      const gri = await falaYukle(env, await reelLevhasi(null, 1080, 1920, imza), 'image/png', `${fikirId}-gri.png`);
       const parcalar: { url: string; frames: number }[] = [];
       let t = 0;
       for (const [i, a] of araliklar.entries()) {
         if (a.basMs > t) parcalar.push({ url: gri, frames: kare(a.basMs - t) });
-        parcalar.push({ url: await falaYukle(env, await reelLevhasi(a.metin, 1080, 1920), 'image/png', `${fikirId}-yazi-${i}.png`), frames: kare(a.bitMs - a.basMs) });
+        parcalar.push({ url: await falaYukle(env, await reelLevhasi(a.metin, 1080, 1920, imza), 'image/png', `${fikirId}-yazi-${i}.png`), frames: kare(a.bitMs - a.basMs) });
         t = a.bitMs;
       }
       if (toplamMs > t) parcalar.push({ url: gri, frames: kare(toplamMs - t) });
@@ -773,6 +805,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
    */
   private async yaziGom(step: WorkflowStep, runId: string, ids?: string[]) {
     const env = this.env;
+    const imza = await yap(step, 'yazi-imza', async () => (await ayarlariOku(env)).studyo.imza);
     await yap(step, 'yazi-adim', () => env.DB.prepare("UPDATE runs SET adim = 'uret' WHERE id = ?").bind(runId).run().then(() => true));
     const liste = await yap(step, 'yazi-liste', async () => {
       const r = await env.DB.prepare(
@@ -789,7 +822,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
     for (const x of liste) {
       try {
         if (x.format === 'carousel') {
-          await yap(step, `carousel-yazi-${x.id}`, TEKRAR, () => carouselYazilari(env, x.id));
+          await yap(step, `carousel-yazi-${x.id}`, TEKRAR, () => carouselYazilari(env, x.id, imza));
           continue;
         }
         if (!x.plan || !x.video) continue;
@@ -799,7 +832,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
           if (!o) throw new Error('reel R2’de yok');
           return falaYukle(env, await o.arrayBuffer(), 'video/mp4', `${x.id}.mp4`);
         });
-        await this.yaziliReel(step, x.id, url, plan, plan.cekimler.map((c) => klipSuresiMs(c, true)));
+        await this.yaziliReel(step, x.id, url, plan, plan.cekimler.map((c) => klipSuresiMs(c, true)), imza);
       } catch (e) {
         console.error('yazı gömülemedi', x.id, hataMetni(e));
       }
@@ -956,8 +989,18 @@ function kareListesi(f: FikirOzet): (string | null)[] {
 }
 
 /** Sahnelerin R2 anahtarlarını sahneler JSON'una işler; kapak = ilk görsel. */
+/** Son 10 günde platform başına en çok patlayan 5 video (kreatif direktör platforma göre yazsın). */
+async function platformOzeti(env: Env) {
+  const sor = (p: string) =>
+    env.DB.prepare(
+      "SELECT hesap, izlenme, patlama, substr(aciklama, 1, 160) AS aciklama, ses FROM patlayanlar WHERE platform = ? AND bulunma > ? ORDER BY patlama DESC LIMIT 5"
+    ).bind(p, simdiIst(new Date(Date.now() - 10 * 86400_000))).all();
+  const [tiktok, instagram] = await Promise.all([sor('tiktok'), sor('instagram')]);
+  return { tiktok: tiktok.results, instagram: instagram.results };
+}
+
 /** Carousel kartlarına yazı: R2'deki görsel → yazılı PNG → sahneler[i].yazili_anahtar. */
-async function carouselYazilari(env: Env, fikirId: string): Promise<number> {
+async function carouselYazilari(env: Env, fikirId: string, imza = ''): Promise<number> {
   const r = await env.DB.prepare('SELECT sahneler FROM ideas WHERE id = ?').bind(fikirId).first<{ sahneler: string }>();
   const sahneler = jsonAc<any[]>(r?.sahneler, []);
   const toplam = sahneler.length;
@@ -967,7 +1010,7 @@ async function carouselYazilari(env: Env, fikirId: string): Promise<number> {
     if (!s.gorsel_anahtar || s.yazili_anahtar) continue;
     const o = await env.MEDYA.get(s.gorsel_anahtar);
     if (!o) continue;
-    const png = await carouselKarti(await o.arrayBuffer(), o.httpMetadata?.contentType ?? 'image/jpeg', metin(s.ekran_yazisi), i + 1, toplam);
+    const png = await carouselKarti(await o.arrayBuffer(), o.httpMetadata?.contentType ?? 'image/jpeg', metin(s.ekran_yazisi), i + 1, toplam, 1080, 1440, imza);
     const anahtar = String(s.gorsel_anahtar).replace(/\.(jpe?g|png)$/i, '') + '-yazili.png';
     await env.MEDYA.put(anahtar, png, { httpMetadata: { contentType: 'image/png' } });
     s.yazili_anahtar = anahtar;

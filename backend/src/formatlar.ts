@@ -39,18 +39,33 @@ function durumHesapla(gorulme: number, ilk: string, son: string, simdi = Date.no
 export async function patlayanlariYaz(env: Env, runId: string, secilen: Aday[]) {
   const zaman = simdiIst();
   if (!secilen.length) return;
+  // Kapaklar R2'ye: platform adresleri imzalı ve birkaç günde ölüyor (panel görsel kartları).
+  const kapaklar = await Promise.all(
+    secilen.map(async (a) => {
+      if (!a.kapak) return null;
+      try {
+        const y = await fetch(a.kapak);
+        if (!y.ok) return null;
+        const anahtar = `kapak/${a.platform}-${(a.link.match(/(\d{8,}|[A-Za-z0-9_-]{8,})\/?$/)?.[1] ?? Date.now().toString(36))}.jpg`;
+        await env.MEDYA.put(anahtar, await y.arrayBuffer(), { httpMetadata: { contentType: y.headers.get('content-type') ?? 'image/jpeg' } });
+        return anahtar;
+      } catch {
+        return null;
+      }
+    })
+  );
   await env.DB.batch(
     secilen.map((a) =>
       env.DB.prepare(
         `INSERT INTO patlayanlar (link, platform, kaynak, hesap, takipci, izlenme, begeni, yorum, paylasim, kaydetme,
-           patlama, sure_sn, aciklama, ses, tarih, run_id, bulunma)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+           patlama, sure_sn, aciklama, ses, tarih, run_id, bulunma, kapak_anahtar)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
          ON CONFLICT(link) DO UPDATE SET izlenme = excluded.izlenme, begeni = excluded.begeni,
            yorum = excluded.yorum, paylasim = excluded.paylasim, kaydetme = excluded.kaydetme,
-           patlama = excluded.patlama, run_id = excluded.run_id`
+           patlama = excluded.patlama, run_id = excluded.run_id, kapak_anahtar = COALESCE(excluded.kapak_anahtar, kapak_anahtar)`
       ).bind(
         a.link, a.platform, a.kaynak, a.hesap, a.takipci, a.izlenme, a.begeni, a.yorum, a.paylasim, a.kaydetme,
-        a.patlama, a.sure_sn, a.aciklama, a.ses, a.tarih, runId, zaman
+        a.patlama, a.sure_sn, a.aciklama, a.ses, a.tarih, runId, zaman, kapaklar[secilen.indexOf(a)]
       )
     )
   );

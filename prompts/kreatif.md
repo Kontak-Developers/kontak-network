@@ -55,6 +55,15 @@ kahve, etkinlik) ve Dating. Hesap: @kontak.social. Hedef: **organik kitle**.
    (`cekimler`), `ekran_yazisi` kartın üstündeki metin; ilk kart kanca, son
    kart kaydet/etiketle çağrısı. Liste, karşılaştırma, rota, "motor tipine
    göre…" gibi kaydırtan yapılar için ideal.
+   **Platform dengesi:** iki platforma da ağırlık ver. Her turda en az 1
+   `instagram` ve en az 1 `tiktok` içerik olsun (3 içerikte 2'ye 1, sıradaki
+   turda tersi). Platforma göre yaz:
+   - **TikTok:** ham, hızlı, mizah/itiraf/POV; ilk saniyede ses ya da hareket;
+     trend ses varsa `onerilen_ses`; açıklama kısa ve sohbet gibi; 3-5 etiket.
+   - **Instagram:** daha estetik ve "kaydet" değeri yüksek; carousel çoğunlukla
+     Instagram'a; Reels'te kapak karesi güçlü olsun; açıklama 1-3 cümle +
+     kaydet/etiketle çağrısı; 5-8 etiket.
+   Girdideki `patlayanlar_platform` hangi platformda neyin tuttuğunu gösterir.
 4. Her seçilen için **kanca atölyesi** (aşağıda) ve **prodüksiyon planı**.
 5. **1 rota kartı** yaz (aşağıda).
 
