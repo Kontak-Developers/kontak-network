@@ -73,6 +73,10 @@ FAL_GORSEL_MODEL = "fal-ai/flux-pro/v1.1"
 FAL_VIDEO_MODEL = "fal-ai/kling-video/v2.5-turbo/pro/image-to-video"
 # "1" ise video üretilir (çalıştırma başına butce.video_per_run kadar)
 VIDEO_AKTIF = "1"
+# Stüdyo (v2 Faz 3): ElevenLabs v3 ses adı ve günlük fal harcama tavanı.
+# fal kredisi 50$ (hackathon) — 3$/gün ≈ 16 gün tam üretim.
+FAL_SES = "Brian"
+FAL_GUNLUK_TAVAN = "3"
 # Jeton doğrulaması için moderatör korumalı bir uç. /sos diye bir uç YOK (404 → her istek 502
 # "Yetki kontrol edilemedi"). /ozet: panelin kendisi de oturumu bununla doğruluyor, tek sorgu.
 YETKI_KONTROL_YOLU = "/api/yonetim/ozet"

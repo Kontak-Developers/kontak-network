@@ -27,6 +27,9 @@ export interface Env {
   FAL_VIDEO_MODEL: string;
   VIDEO_AKTIF: string;
   YETKI_KONTROL_YOLU: string;
+  /** Stüdyo: ElevenLabs ses adı ve günlük fal tavanı (USD). */
+  FAL_SES?: string;
+  FAL_GUNLUK_TAVAN?: string;
 }
 
 export type RunParams = { runId: string; tetik: 'cron' | 'manuel' };
