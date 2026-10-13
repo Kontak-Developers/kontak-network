@@ -2108,3 +2108,63 @@
   font-weight: 600;
   font-size: 13px;
 }
+
+/* Uygulama ekranları kütüphanesi */
+.ki-ekranlar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.ki-ekran {
+  position: relative;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ki-ekran img {
+  width: 100%;
+  aspect-ratio: 9 / 19.5;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 18px;
+  border: 4px solid #0b0b12;
+  background: var(--zemin-2);
+}
+.ki-ekran figcaption {
+  display: flex;
+  flex-direction: column;
+  font-size: 12.5px;
+}
+.ki-ekran figcaption small {
+  color: var(--metin-soluk);
+}
+.ki-ekran .icon-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+}
+.ki-ekran-ekle {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px dashed var(--cizgi-koyu);
+  border-radius: 16px;
+  aspect-ratio: 9 / 19.5;
+  justify-content: center;
+}
+.ki-ekran-ekle input:not([type='file']) {
+  padding: 7px 9px;
+  font-size: 12.5px;
+}
+.ki-ekran-ekle .btn {
+  cursor: pointer;
+}
+.ki-ekran-ekle .btn.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}

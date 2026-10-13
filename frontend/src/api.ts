@@ -86,6 +86,13 @@ function agToken() {
   }
 }
 
+/** Ham gövdeli istekler (görsel yükleme) için yetki başlığı ve taban adres. */
+export function yetkiBasligi(): Record<string, string> {
+  const t = token()
+  return t ? { Authorization: `Bearer ${t}` } : {}
+}
+export const API_TABAN = BASE
+
 /** Kontak moderatör jetonu önce; yoksa ajan hesabı oturumu. */
 function token() {
   try {

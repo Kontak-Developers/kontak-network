@@ -1,9 +1,24 @@
-import { request } from '../api'
-import type { AjanAyarlari, Format, GorselKimlik, Patlayan, RotaKarti, StudyoOzet } from './tipler'
+import { API_TABAN, ApiError, request, yetkiBasligi } from '../api'
+import type { AjanAyarlari, Format, GorselKimlik, Patlayan, RotaKarti, StudyoOzet, UygulamaEkrani } from './tipler'
 
 const e = encodeURIComponent
 
+/** Uygulama ekranı yükle: ham görsel gövdesi, ad/açıklama sorguda. */
+async function ekranYukle(dosya: File, ad: string, aciklama: string): Promise<UygulamaEkrani> {
+  const q = new URLSearchParams({ ad, aciklama })
+  const y = await fetch(`${API_TABAN}/api/studyo/ekran?${q}`, {
+    method: 'POST',
+    headers: { ...yetkiBasligi(), 'Content-Type': dosya.type || 'image/png' },
+    body: dosya,
+  })
+  const d = await y.json().catch(() => null)
+  if (!y.ok) throw new ApiError(y.status, d?.hata?.kod ?? 'hata', d?.hata?.mesaj ?? 'Yüklenemedi.')
+  return d
+}
+
 export const studyoApi = {
+  ekranYukle,
+  ekranSil: (id: string) => request<{ ok: true }>('DELETE', `/api/studyo/ekran/${e(id)}`),
   ozet: () => request<StudyoOzet>('GET', '/api/studyo'),
   ayarlariKaydet: (a: AjanAyarlari) => request<AjanAyarlari>('PUT', '/api/studyo/ayarlar', a),
   kimlikKaydet: (k: GorselKimlik) => request<GorselKimlik>('PUT', '/api/studyo/kimlik', k),

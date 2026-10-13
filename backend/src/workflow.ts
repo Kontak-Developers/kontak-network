@@ -20,10 +20,10 @@ import { kreatifNormalize, kreatifYaz, rotaKartiYaz, sonIcerikler, type KreatifI
 import {
   altyaziAdresi, altyaziBaslat, bugunkuFal, kareUret, klipAdresi, klipBaslat, kuyrukYokla, maliyetTahmini,
   montajAdresi, montajBaslat, muzikBaslat, sesAdresi, seslendir, type KuyrukIsi, type CekimPlani,
-  gorselKimlikEki, kartUret, denetliUret, falaYukle, yaziAraliklari, yaziCizelgesiBaslat, yaziKaristirBaslat, sesGeriBaslat, videoAdresi, YAZI_FPS,
+  gorselKimlikEki, kartUret, denetliUret, klipDenetle, hamFotoAyarla, falaYukle, yaziAraliklari, yaziCizelgesiBaslat, yaziKaristirBaslat, sesGeriBaslat, videoAdresi, YAZI_FPS,
 } from './studyo';
 import { ayarlariOku, type AjanAyarlari } from './ayarlar';
-import { carouselKarti, reelLevhasi } from './yazi';
+import { carouselKarti, memeKarti, reelLevhasi, urunKarti } from './yazi';
 import { syncSocialPerformance } from './social';
 import {
   dizi, hataMetni, isoHafta, jsonAc, kisaId, metin, pazartesiMi, sayi, simdiIst, sinirla,
@@ -43,9 +43,15 @@ const TEKRAR = {
  *    adımların önüne konur; bedeli ~1 sn.
  */
 /** Üretilen klibin gerçek süresi: Veo 4/6/8 sn, Kling 5 sn. */
+/**
+ * Üretilen klibin montajdaki süresi. Veo 4/6/8 sn üretir, Kling 5 sn; montaj
+ * klibi planlanan süreye KIRPAR (13 Eki gece, Şevval: "reeller çok uzun").
+ * Reel 2-3 çekim, toplam 7-12 sn.
+ */
 function klipSuresiMs(c: { sure_sn: number; hero: boolean }, heroVeo: boolean): number {
-  if (c.hero && heroVeo) return (c.sure_sn >= 8 ? 8 : c.sure_sn >= 6 ? 6 : 4) * 1000;
-  return 5000;
+  const plan = Math.round(Math.min(8, Math.max(2, c.sure_sn)) * 1000);
+  if (c.hero && heroVeo) return Math.min(plan, (c.sure_sn >= 8 ? 8 : c.sure_sn >= 6 ? 6 : 4) * 1000);
+  return Math.min(plan, 5000);
 }
 
 function nefes(step: WorkflowStep, ad: string): Promise<void> {
@@ -80,6 +86,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
      */
     // Panelden yazılan ayarlar (Stüdyo sekmesi); her çalıştırmanın başında bir kez.
     const ayar = await yap(step, 'ayarlar', () => ayarlariOku(env));
+    hamFotoAyarla(ayar.studyo.ham_foto);
 
     if (reel) {
       try {
@@ -628,7 +635,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       ...(uretimGirdi.stok_turu ? { stok_turu: uretimGirdi.stok_turu } : {}),
       ayarlar: {
         aday: o.ayar.kreatif.aday, secim: o.ayar.kreatif.secim, min_puan: o.ayar.kreatif.min_puan,
-        karisim: o.ayar.kreatif.karisim, ek_talimat: o.ayar.kreatif.ek_talimat, platform: o.ayar.kreatif.platform,
+        karisim: o.ayar.kreatif.karisim, ek_talimat: o.ayar.kreatif.ek_talimat,
       },
     }));
     const k = (await this.beyin(step, runId, 'kreatif', girdi, [], o.ayar.kreatif.sure_dk, `${p}kreatif`)) as any;
@@ -654,6 +661,8 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       await yap(step, `carousel-${c.id}`, TEKRAR, async () => {
         const sonuc = await Promise.allSettled(
           c.plan.cekimler.map(async (ck, i) => {
+            // Ürün kartı: yapay zekâ görseli yok, yazı adımında gerçek ekranla çiziliyor.
+            if (ck.uygulama_ekrani) return '';
             const den = { acik: o.ayar.studyo.kalite_denetimi, model: o.ayar.studyo.denetim_modeli };
             const x = await denetliUret(env, (ek) => kartUret(env, sahnePromptu(ek ? `${ck.kare_prompt}. ${ek}` : ck.kare_prompt, stilli(c.plan.stil))), den);
             if (x.denetim && !x.denetim.temiz) console.warn('kart kusurlu kaldı', c.id, i + 1, x.denetim.sorunlar.join('; '));
@@ -662,8 +671,8 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
         );
         sonuc.forEach((r, i) => r.status === 'rejected' && console.error('carousel kartı', c.id, i + 1, hataMetni(r.reason)));
         if (!sonuc.some((r) => r.status === 'fulfilled')) throw new Error('carousel kartlarının hiçbiri üretilemedi');
-        await sahneMedyasiYaz(env, c.id, sonuc.map((r) => (r.status === 'fulfilled' ? { gorsel_anahtar: r.value } : {})));
-        await harcamaYaz(env, runId, 'fal', 'flux-ultra (carousel)', c.plan.cekimler.length * 0.06);
+        await sahneMedyasiYaz(env, c.id, sonuc.map((r) => (r.status === 'fulfilled' && r.value ? { gorsel_anahtar: r.value } : {})));
+        await harcamaYaz(env, runId, 'fal', 'flux-ultra (carousel)', c.plan.cekimler.filter((x) => !x.uygulama_ekrani).length * 0.06);
         return true;
       }).catch((e) => console.error('carousel görselleri', hataMetni(e)));
       if (o.ayar.studyo.yazi_gom) {
@@ -737,7 +746,27 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
 
     const hepsi = muzikIs ? [...isler, muzikIs] : isler;
     const bitti = await this.kuyrukBekle(step, `reel-${r.id}`, hepsi, 30);
-    const klipler = plan.cekimler.map((c, i) => ({ url: klipAdresi(bitti[i]), sureMs: klipSuresiMs(c, karar.heroVeo) }));
+    let klipUrller = plan.cekimler.map((_, i) => klipAdresi(bitti[i]));
+
+    // 2b) Video denetimi: kusurlu klip (uydurma tabela/arayüz, yüz, bozuk motor) bir kez yeniden üretilir.
+    if (ayar.studyo.video_denetimi) {
+      const kusurlu = await yap(step, `reel-video-denetim-${r.id}`, { ...TEKRAR, timeout: '10 minutes' as const }, async () => {
+        const d = await Promise.all(klipUrller.map((u) => klipDenetle(env, u, ayar.studyo.denetim_modeli)));
+        d.forEach((x, i) => !x.temiz && console.warn('klip kusurlu', r.id, i + 1, x.sorunlar.join('; ')));
+        return d.map((x, i) => (x.temiz ? -1 : i)).filter((i) => i >= 0);
+      });
+      if (kusurlu.length) {
+        const yeniIsler = await yap(step, `reel-klip-tekrar-${r.id}`, TEKRAR, () =>
+          Promise.all(kusurlu.map((i) => klipBaslat(env, plan.cekimler[i], kareler[i], karar.heroVeo, !!plan.seslendirme)))
+        );
+        const yeni = await this.kuyrukBekle(step, `reel-tekrar-${r.id}`, yeniIsler, 30);
+        klipUrller = klipUrller.map((u, i) => (kusurlu.includes(i) ? klipAdresi(yeni[kusurlu.indexOf(i)]) : u));
+        await yap(step, `reel-klip-tekrar-harcama-${r.id}`, () =>
+          harcamaYaz(env, runId, 'fal', 'klip yeniden üretim (video denetimi)', kusurlu.length * 0.5).then(() => true)
+        );
+      }
+    }
+    const klipler = plan.cekimler.map((c, i) => ({ url: klipUrller[i], sureMs: klipSuresiMs(c, karar.heroVeo) }));
     const muzik = muzikIs ? sesAdresi(bitti[isler.length]) : null;
 
     // 3) Montaj (+ altyazı).
@@ -1001,19 +1030,38 @@ async function platformOzeti(env: Env) {
 
 /** Carousel kartlarına yazı: R2'deki görsel → yazılı PNG → sahneler[i].yazili_anahtar. */
 async function carouselYazilari(env: Env, fikirId: string, imza = ''): Promise<number> {
-  const r = await env.DB.prepare('SELECT sahneler FROM ideas WHERE id = ?').bind(fikirId).first<{ sahneler: string }>();
+  const r = await env.DB.prepare('SELECT sahneler, uretim_plani FROM ideas WHERE id = ?').bind(fikirId).first<{ sahneler: string; uretim_plani: string }>();
   const sahneler = jsonAc<any[]>(r?.sahneler, []);
+  const plan = jsonAc<CekimPlani | null>(r?.uretim_plani, null);
+  // Eski içeriklerde stil yok: klasik (alt karartma). Yeni varsayılan meme.
+  const stil = plan?.carousel_stil ?? 'klasik';
   const toplam = sahneler.length;
+  let ekranlar: { id: string; anahtar: string }[] | null = null;
   let yazilan = 0;
   for (let i = 0; i < sahneler.length; i++) {
     const s = sahneler[i];
-    if (!s.gorsel_anahtar || s.yazili_anahtar) continue;
-    const o = await env.MEDYA.get(s.gorsel_anahtar);
-    if (!o) continue;
-    const png = await carouselKarti(await o.arrayBuffer(), o.httpMetadata?.contentType ?? 'image/jpeg', metin(s.ekran_yazisi), i + 1, toplam, 1080, 1440, imza);
-    const anahtar = String(s.gorsel_anahtar).replace(/\.(jpe?g|png)$/i, '') + '-yazili.png';
+    if (s.yazili_anahtar) continue;
+    const yazi = metin(s.ekran_yazisi);
+    const urun = metin(plan?.cekimler?.[i]?.uygulama_ekrani);
+    let png: Uint8Array;
+    if (urun) {
+      // Gerçek uygulama ekranı (kütüphane) ya da marka kartı.
+      ekranlar ??= dizi<any>(((await markaOku(env)) as any).gorsel_kimlik?.uygulama_ekranlari).map((e) => ({ id: metin(e?.id), anahtar: metin(e?.anahtar) }));
+      const secili = ekranlar.find((e) => e.id === urun);
+      const o = secili ? await env.MEDYA.get(secili.anahtar) : null;
+      png = await urunKarti(o ? { veri: await o.arrayBuffer(), mime: o.httpMetadata?.contentType ?? 'image/png' } : null, yazi, 1080, 1440, imza);
+    } else {
+      if (!s.gorsel_anahtar) continue;
+      const o = await env.MEDYA.get(s.gorsel_anahtar);
+      if (!o) continue;
+      const veri = await o.arrayBuffer();
+      const mime = o.httpMetadata?.contentType ?? 'image/jpeg';
+      png = stil === 'meme' ? await memeKarti(veri, mime, yazi, i + 1, toplam, 1080, 1440, imza) : await carouselKarti(veri, mime, yazi, i + 1, toplam, 1080, 1440, imza);
+    }
+    const anahtar = s.gorsel_anahtar ? String(s.gorsel_anahtar).replace(/\.(jpe?g|png)$/i, '') + '-yazili.png' : `${fikirId}/urun-${i + 1}-yazili.png`;
     await env.MEDYA.put(anahtar, png, { httpMetadata: { contentType: 'image/png' } });
     s.yazili_anahtar = anahtar;
+    if (!s.gorsel_anahtar) s.gorsel_anahtar = anahtar; // kapak/önizleme boş kalmasın
     yazilan++;
   }
   if (yazilan) await env.DB.prepare('UPDATE ideas SET sahneler = ? WHERE id = ?').bind(JSON.stringify(sahneler), fikirId).run();

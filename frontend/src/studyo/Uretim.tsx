@@ -8,7 +8,7 @@ import { studyoApi } from './api'
 import type { StudyoOzet } from './tipler'
 import { Bolum, ListeAlani, usd } from './parcalar'
 
-export const KARISIMLAR = ['2 reel + 1 carousel', '1 reel + 2 carousel', '3 reel', '3 carousel']
+export const KARISIMLAR = ['1 reel + 2 meme carousel', '2 reel + 1 meme carousel', '3 meme carousel', '2 reel + 1 carousel']
 
 export const ODAK_ONERILERI = [
   'Dating tarafı: motorcu flört, ilk buluşmaya motorla gitmek',
@@ -22,14 +22,14 @@ export const ODAK_ONERILERI = [
   'Pazar sabahı / gece sürüşü: sessizlik, boş yol',
 ]
 
-/** 13 Ekim ölçümü (katsayı dahil): reel ~3$, carousel ~0,55$, rota görseli 0,06$. */
-const REEL_USD = 3
-const CAROUSEL_USD = 0.55
+/** Katsayı dahil tahmin (13 Eki gece: reel 7-12 sn, meme carousel 2-3 kart): reel ~2,2$, carousel ~0,3$. */
+const REEL_USD = 2.2
+const CAROUSEL_USD = 0.3
 const ROTA_USD = 0.06
 
 export function karisimSay(k: string) {
   const reel = Number(k.match(/(\d+)\s*reel/i)?.[1] ?? 0)
-  const carousel = Number(k.match(/(\d+)\s*carousel/i)?.[1] ?? 0)
+  const carousel = Number(k.match(/(\d+)\s*(?:meme\s*)?carousel/i)?.[1] ?? 0)
   return { reel, carousel }
 }
 

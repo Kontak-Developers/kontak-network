@@ -18,7 +18,7 @@ compatibility_flags = ["nodejs_compat"]
 # Ekran yazısı katmanı (src/yazi.ts): Sora yazı tipi ham bayt olarak gömülür.
 [[rules]]
 type = "Data"
-globs = ["**/*.ttf"]
+globs = ["**/*.ttf", "**/*.png"]
 fallthrough = true
 workers_dev = false
 preview_urls = false

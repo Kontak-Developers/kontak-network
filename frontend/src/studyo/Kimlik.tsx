@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown, Pencil, Plus, Trash2, WandSparkles } from 'lucide-react'
+import { ChevronDown, ImagePlus, Pencil, Plus, Trash2, WandSparkles } from 'lucide-react'
 import { useStore } from '../store'
 import { assetUrl } from '../api'
 import { studyoApi } from './api'
-import type { AltinPrompt, GorselKimlik, Karakter, PaletRengi } from './tipler'
+import type { AltinPrompt, GorselKimlik, Karakter, PaletRengi, UygulamaEkrani } from './tipler'
 import { Bolum, KaydetCubugu, ListeAlani, MetinAlani } from './parcalar'
 
 const BOS: GorselKimlik = {
@@ -169,6 +169,15 @@ export default function Kimlik({ kimlik, kaydedildi }: { kimlik: GorselKimlik | 
         </div>
       </Bolum>
 
+      <UygulamaEkranlari
+        liste={k.uygulama_ekranlari ?? []}
+        degisti={(liste) => {
+          // Yükleme/silme sunucuda hemen kalıcı; taslak ve kaynak birlikte güncellenir (kirli sayılmasın).
+          setK((x) => ({ ...x, uygulama_ekranlari: liste }))
+          kaydedildi({ ...kaynak, uygulama_ekranlari: liste })
+        }}
+      />
+
       <div className="st-izgara st-izgara-2">
         <Bolum baslik="Mekânlar">
           <ListeAlani etiket="Mekân" degerler={k.mekanlar} degistir={(v) => d('mekanlar', v)} yerTutucu="ör. Şile sahil yolu, sisli sabah" />
@@ -270,5 +279,66 @@ function GorselKart({
       </div>
       {duzenle && <div className="ki-duzenle">{children}</div>}
     </article>
+  )
+}
+
+/** Ürün yerleştirme kütüphanesi: gerçek uygulama ekranları (yapay zekâ arayüz uydurmasın). */
+function UygulamaEkranlari({ liste, degisti }: { liste: UygulamaEkrani[]; degisti: (l: UygulamaEkrani[]) => void }) {
+  const { toast } = useStore()
+  const [ad, setAd] = useState('')
+  const [aciklama, setAciklama] = useState('')
+  const [yukleniyor, setYukleniyor] = useState(false)
+  const yukle = async (dosya: File | undefined) => {
+    if (!dosya) return
+    setYukleniyor(true)
+    try {
+      const e = await studyoApi.ekranYukle(dosya, ad.trim() || dosya.name.replace(/\.[a-z]+$/i, ''), aciklama.trim())
+      degisti([...liste, e])
+      setAd('')
+      setAciklama('')
+      toast('Ekran eklendi; ajan ürün yerleştirmede bunu kullanacak')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Yüklenemedi')
+    } finally {
+      setYukleniyor(false)
+    }
+  }
+  const sil = async (e: UygulamaEkrani) => {
+    try {
+      await studyoApi.ekranSil(e.id)
+      degisti(liste.filter((x) => x.id !== e.id))
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Silinemedi')
+    }
+  }
+  return (
+    <Bolum
+      baslik="Uygulama ekranları"
+      aciklama="Ürün yerleştirme için gerçek ekran görüntüleri. Ajan carousel'in son kartında bunları markalı çerçevede gösterir; yapay zekâ arayüz uydurmaz. Gerçek ve güzel verili ekranlar yükle."
+    >
+      <div className="ki-ekranlar">
+        {liste.map((e) => (
+          <figure key={e.id} className="ki-ekran">
+            <img src={assetUrl(`api/medya/${e.anahtar}`) ?? undefined} alt={e.ad} loading="lazy" />
+            <figcaption>
+              <b>{e.ad}</b>
+              {e.aciklama && <small>{e.aciklama}</small>}
+            </figcaption>
+            <button className="icon-btn" aria-label={`${e.ad} sil`} onClick={() => sil(e)}>
+              <Trash2 size={14} />
+            </button>
+          </figure>
+        ))}
+        <div className="ki-ekran-ekle">
+          <input value={ad} onChange={(e) => setAd(e.target.value)} placeholder="Ad (ör. Konvoy ekranı)" aria-label="Ekran adı" />
+          <input value={aciklama} onChange={(e) => setAciklama(e.target.value)} placeholder="Ne gösteriyor (ör. hafta sonu grup sürüşü bulma)" aria-label="Açıklama" />
+          <label className={`btn btn-primary btn-sm ${yukleniyor ? 'disabled' : ''}`}>
+            <ImagePlus size={14} /> {yukleniyor ? 'Yükleniyor…' : 'Ekran görüntüsü yükle'}
+            <input type="file" accept="image/png,image/jpeg,image/webp" hidden disabled={yukleniyor} onChange={(e) => yukle(e.target.files?.[0])} />
+          </label>
+        </div>
+      </div>
+      {liste.length === 0 && <p className="st-sessiz">Henüz ekran yok; ürün kartında lacivert Kontak logolu kart kullanılır.</p>}
+    </Bolum>
   )
 }

@@ -48,13 +48,22 @@ kahve, etkinlik) ve Dating. Hesap: @kontak.social. Hedef: **organik kitle**.
    - **Paylaş/kaydet** — arkadaşını etiketletir mi, "sonra bakarım" dedirtir mi?
    - **Üretilebilirlik** — stüdyomuz bunu yapabilir mi? (aşağıdaki kısıtlar)
    Toplamı 50 üzerinden `puan`. 35 altını seçme.
-3. **En iyi 3'ü seç.** Varsayılan karışım 2 reel (`kisa_video`) + 1
-   carousel; `stok_turu.karisim` ya da `ayarlar.karisim` varsa (ör. "1 reel +
-   2 carousel") **ona aynen uy**. Üçü farklı format olsun.
-   **Carousel** = 4-6 kartlık kaydırmalı foto dizisi: her kart bir çekim
-   (`cekimler`), `ekran_yazisi` kartın üstündeki metin; ilk kart kanca, son
-   kart kaydet/etiketle çağrısı. Liste, karşılaştırma, rota, "motor tipine
-   göre…" gibi kaydırtan yapılar için ideal.
+3. **En iyi 3'ü seç.** Varsayılan karışım 1 reel (`kisa_video`) + 2 meme
+   carousel; `stok_turu.karisim` ya da `ayarlar.karisim` varsa **ona aynen
+   uy**. Üçü farklı format olsun.
+
+   **Meme carousel** (`carousel_stil: "meme"`) — Halk Ekmek / meme sayfası
+   tarzı, keşfetin en çok paylaşılan biçimi. **2-3 kart**:
+   - Kart 1: herkesin yaşadığı küçük, gündelik bir an. Büyük ve okunur yazı
+     (kartın üstündeki beyaz bantta), en fazla 14 kelime.
+   - Kart 2: punchline / tepki. Kısa.
+   - Kart 3 (isteğe bağlı): doğal ürün yerleştirme — `uygulama_ekrani` ile
+     gerçek uygulama ekranı (aşağıda) ve tek cümle ("Hafta sonu konvoyunu
+     Kontak'ta bulunca:"). Reklam gibi değil, şakanın devamı gibi.
+   Fotoğraf sahneyi destekler, şakayı yazı taşır.
+
+   **Klasik carousel** (`carousel_stil: "klasik"`) — liste, rota, "motor
+   tipine göre…" gibi gerçekten kaydırtan yapılar için; en fazla 5 kart.
    **Platform dengesi:** iki platforma da ağırlık ver. Her turda en az 1
    `instagram` ve en az 1 `tiktok` içerik olsun (3 içerikte 2'ye 1, sıradaki
    turda tersi). Platforma göre yaz:
@@ -97,8 +106,10 @@ size…", marka adı, nasihat ("…unutmayın"), soru işaretli genel laf
 geri dönüş) ve izleyiciyi başa sardırsın; `aciklama_metni` bir etiketleme
 ya da kaydetme çağrısıyla bitsin ("Bunu grup sürüşünde hep geç kalana gönder").
 
-**Ekran yazısı:** reelde her sahne en fazla 9 kelime; carousel kartında en
-fazla 22 kelime. Konuşma dili, büyük harf bağırması yok, en fazla 1 emoji.
+**Ekran yazısı:** reelde **yalnız ilk çekim (kanca) ve son çekim
+(punchline)** yazılı, aradakiler BOŞ — görüntü ve ses anlatsın; her biri en
+fazla 7 kelime. Meme kartında en fazla 14 kelime. Konuşma dili, büyük harf
+bağırması yok, en fazla 1 emoji.
 
 ## Görsel kimlik — çizgiden çıkma
 
@@ -112,12 +123,16 @@ carousel'ler tek bir hesabın işi gibi görünmeli.
   aynı somutluk, aynı ışık/lens dili. Her çekim için en yakın altın prompt
   türünü (`hero_sinematik`, `kask_pov`, `detay_asmr`, `kafe_sosyal`,
   `grup_surus`, `rota_manzara`) temel al, sahneye göre uyarla.
-- **Çekim çeşitliliği:** bir reelde en az 3 farklı çekim türü (ör. detay →
-  kask POV → yan takip → geniş/grup). Aynı kadrajı ("motor önden geliyor")
-  arka arkaya tekrar etme; izleyici 2. saniyede sıkılır.
+- **Çekim çeşitliliği:** reelde her çekim farklı türde (ör. detay → kask
+  POV → geniş). Aynı kadrajı arka arkaya tekrar etme.
 - **Mekân** `mekanlar`'dan ya da aynı ruhta gerçek bir Türkiye yeri.
-- **Palet:** lacivert yalnız vurgu; kehribar ışık + lacivert gölge. Neon,
-  doygun renk, öğlen güneşi yok.
+- **Işık ve renk:** gündüz, bulutlu ya da açık hava ağırlıklı; doğal, nötr
+  renkler; lacivert ve beyaz markanın rengi. Gece/akşam yalnız gerçekten
+  gerekiyorsa. Sarı/turuncu ton, film filtresi, "sinematik" yok — bir
+  arkadaşın telefonla çektiği story gibi.
+- **Asla sahneye koyma:** telefon/tablet ekranı, uygulama arayüzü, tabela,
+  vitrin ya da cephe yazısı yakın planı (model yazı ve arayüz uyduruyor).
+  Ürünü göstermek istiyorsan `uygulama_ekrani` kullan (aşağıda).
 - **`asla` listesindeki hiçbir şey** kare ya da hareket promptunda geçmesin —
   "olmasın" diye bile yazma (model kelimeyi görünce çizebiliyor); onun
   yerine olumlu tarif et ("visor closed", "plate out of frame").
@@ -157,10 +172,17 @@ Görüntüler yapay zekâyla üretiliyor:
 - **Görüntüde yazı yok** — ekran yazıları ayrı katman (`ekran_yazisi`).
 - Güvensiz sürüş yok (kasksız, tek teker, aşırı hız, trafikte makas).
 - Başka marka logosu, okunabilir plaka yok.
-- Reel: 3-5 çekim, toplam 12-25 sn. Carousel: 5-7 kart (her kart bir
-  çekim, `hero` false, `sure_sn` 5).
-- Reel çekimi: **Tam 1 hero çekim** (en çarpıcı kare,
-  6-8 sn, sinematik, sesli olabilir). Diğerleri 5 sn.
+- **Reel: 2-3 çekim, toplam 7-12 sn.** Trend reeller kısa; uzayınca yazı da
+  anlam da sulanıyor. **Tam 1 hero çekim** (en çarpıcı kare, `sure_sn` 4-6,
+  sesli olabilir); diğerleri `sure_sn` 2-4.
+- Carousel: meme 2-3 kart, klasik en fazla 5 kart (`hero` false, `sure_sn` 4).
+
+**Ürün yerleştirme (`uygulama_ekrani`):** `marka.gorsel_kimlik.uygulama_ekranlari`
+gerçek uygulama ekran görüntülerinin listesi (`id`, `ad`, `aciklama`). Bir
+carousel kartında ürünü göstermek için o çekime `"uygulama_ekrani": "<id>"`
+yaz; kartta yapay zekâ görseli yerine o gerçek ekran markalı bir çerçevede
+gösterilir (`kare_prompt` gerekmez). Liste boşsa `"uygulama_ekrani": "marka"`
+yaz: lacivert Kontak kartı + yazı. Turda en fazla 1 kart; her içerikte değil.
 - `kare_prompt`: sahnenin donmuş ilk karesi, İngilizce, somut (ışık, lens,
   açı, ortam, motor tipi, renk). `hareket_prompt`: kamera ve eylem, İngilizce.
 - Karakter tutarlılığı: `stil` = seçtiğin `gorsel_kimlik` karakterinin
@@ -207,8 +229,9 @@ Son mesajın yalnızca bu yapıda bir JSON olsun (Türkçe karakterleri olduğu 
       "muzik": "<İngilizce müzik tarifi ya da boş>",
       "stil": "<gorsel_kimlik karakterinin tarif_en'i + saat/hava>",
       "seri_adi": "",
+      "carousel_stil": "<meme | klasik; reelde boş>",
       "cekimler": [
-        { "sira": 1, "sure_sn": 5, "kare_prompt": "<İngilizce, somut, 40+ kelime>", "hareket_prompt": "<İngilizce>", "hero": false, "ekran_yazisi": "<Türkçe>" }
+        { "sira": 1, "sure_sn": 3, "kare_prompt": "<İngilizce, somut, 40+ kelime>", "hareket_prompt": "<İngilizce>", "hero": false, "ekran_yazisi": "<Türkçe ya da boş>", "uygulama_ekrani": "<id | marka | boş>" }
       ]
     }
   ],
@@ -226,6 +249,7 @@ Son mesajın yalnızca bu yapıda bir JSON olsun (Türkçe karakterleri olduğu 
   aynen döndürürsen içerik elenir.
 
 - `km` ve `sure_dk` **sayı** ve rotanın tamamı (gidiş-dönüşse toplam).
-- `hero` yalnız bir çekimde `true`; hero 6 ya da 8 sn, diğerleri 5 sn.
+- Reelde `hero` yalnız bir çekimde `true`; hero 4-6 sn, diğerleri 2-4 sn,
+  toplam 7-12 sn.
 
 Yalnızca bu yapıda JSON döndür.

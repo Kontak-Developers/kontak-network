@@ -105,6 +105,41 @@ export async function studyoApi(
     return json(await kareDenetle(env, u, ayar.studyo.denetim_modeli));
   }
 
+  // ── Uygulama ekranları (ürün yerleştirme): gerçek ekran görüntüleri ──
+  // Gövde ham görsel; ad ve açıklama sorgu dizgesinde. Liste markanın görsel
+  // kimliğinde (kreatif direktör okuyup carousel'de "uygulama_ekrani" seçiyor).
+  if (yol === '/api/studyo/ekran' && m === 'POST') {
+    const tur = (req.headers.get('content-type') ?? '').split(';')[0].trim().toLowerCase();
+    if (!/^image\/(png|jpeg|webp)$/.test(tur)) return hata('gecersiz', 'PNG, JPG ya da WEBP yükle.', 400);
+    const veri = await req.arrayBuffer();
+    if (!veri.byteLength || veri.byteLength > 8 * 1024 * 1024) return hata('buyuk', 'Görsel en fazla 8 MB.', 413);
+    const ad = (url.searchParams.get('ad') ?? '').trim().slice(0, 60) || 'Ekran';
+    const aciklama = (url.searchParams.get('aciklama') ?? '').trim().slice(0, 200);
+    const id = kisaId('e');
+    const anahtar = `uygulama/${id}.${tur === 'image/png' ? 'png' : tur === 'image/webp' ? 'webp' : 'jpg'}`;
+    await env.MEDYA.put(anahtar, veri, { httpMetadata: { contentType: tur } });
+    const r = await DB.prepare("SELECT veri FROM brands WHERE id = 'kontak'").first<{ veri: string }>();
+    const marka = jsonAc<any>(r?.veri, { id: 'kontak', ad: 'Kontak' });
+    marka.gorsel_kimlik ??= {};
+    const liste = dizi<any>(marka.gorsel_kimlik.uygulama_ekranlari);
+    liste.push({ id, ad, aciklama, anahtar });
+    marka.gorsel_kimlik.uygulama_ekranlari = liste.slice(-20);
+    await DB.prepare("UPDATE brands SET veri = ?, guncelleme = ? WHERE id = 'kontak'").bind(JSON.stringify(marka), simdiIst()).run();
+    return json({ id, ad, aciklama, anahtar, url: `${medyaOnek}${anahtar}` }, 201);
+  }
+  const ekranSil = yol.match(/^\/api\/studyo\/ekran\/([A-Za-z0-9_-]{1,40})$/);
+  if (ekranSil && m === 'DELETE') {
+    const r = await DB.prepare("SELECT veri FROM brands WHERE id = 'kontak'").first<{ veri: string }>();
+    const marka = jsonAc<any>(r?.veri, {});
+    const liste = dizi<any>(marka.gorsel_kimlik?.uygulama_ekranlari);
+    const silinen = liste.find((e) => e?.id === ekranSil[1]);
+    if (!silinen) return hata('yok', 'Ekran bulunamadı.', 404);
+    marka.gorsel_kimlik.uygulama_ekranlari = liste.filter((e) => e?.id !== ekranSil[1]);
+    await DB.prepare("UPDATE brands SET veri = ?, guncelleme = ? WHERE id = 'kontak'").bind(JSON.stringify(marka), simdiIst()).run();
+    await env.MEDYA.delete(metin(silinen.anahtar)).catch(() => undefined);
+    return json({ ok: true });
+  }
+
   // ── Promptlar ──
   const prompt = yol.match(/^\/api\/studyo\/promptlar\/([a-z]{3,12})$/);
   if (prompt) {

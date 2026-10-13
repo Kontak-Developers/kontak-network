@@ -36,6 +36,8 @@ export type Cekim = {
   hero: boolean;
   /** Türkçe ekran yazısı (görüntüye gömülmez; panelde ve paylaşırken) */
   ekran_yazisi?: string;
+  /** Carousel kartında yapay zekâ görseli yerine gerçek uygulama ekranı (kütüphane id'si) ya da "marka" */
+  uygulama_ekrani?: string;
 };
 
 export type CekimPlani = {
@@ -46,6 +48,8 @@ export type CekimPlani = {
   seslendirme: string | null;
   /** İngilizce müzik tarifi; yoksa null (Veo sesi yeter / trend ses paylaşırken) */
   muzik: string | null;
+  /** Carousel kart stili: meme (üst beyaz bant) | klasik (alt karartma) */
+  carousel_stil?: 'meme' | 'klasik';
 };
 
 // ⚠️ PLAKA / TABELA (13 Ekim ilk reel): "no readable license plates" yetmedi,
@@ -54,9 +58,10 @@ export type CekimPlani = {
 // ⚠️ 13 Eki kimlik testi: "no readable plates/text" yazmak plakayı ve
 //    tabelayı kareye SOKUYOR (MILKVERKÉU CAFÉ, "10778"). Olumlu tarif:
 //    motor önden/yandan (Türkiye'de ön plaka yok), düz tenteli cephe.
+// 13 Eki gece (Şevval): "her şey sarı filtreli, yapay zekâ hissi". Sinematik → gündelik telefon çekimi.
 const KURALLAR =
-  'photorealistic, cinematic, natural motion, clean frame free of typography and watermarks, ' +
-  'motorcycles seen from the front or the side, plain unbranded bikes, plain unsigned storefronts with blank awnings, ' +
+  'photorealistic candid smartphone photo, natural colors, neutral white balance, clean frame free of typography and watermarks, ' +
+  'motorcycles seen from the front or the side, plain unbranded bikes, plain building walls, hands holding helmets or handlebars rather than phones, ' +
   'riders wearing closed full-face helmets with visors down, calm safe riding';
 
 /**
@@ -136,6 +141,15 @@ export async function kuyrukYokla(env: Env, is: KuyrukIsi): Promise<any | null> 
 }
 
 /** 1) Anahtar kare (9:16). Senkron, saniyeler. */
+/**
+ * Flux Ultra "raw": parlatılmamış, gerçek fotoğraf dokusu (13 Eki gece: yapay zekâ
+ * hissini en çok azaltan ayar). Ayardan kapatılabilir (studyo.ham_foto).
+ */
+let ham = true;
+export const hamFotoAyarla = (v: boolean) => {
+  ham = v;
+};
+
 export async function kareUret(env: Env, c: Cekim, stil: string, ek = ''): Promise<string> {
   const v = await falSenkron(env, 'fal-ai/flux-pro/v1.1-ultra', {
     prompt: `${c.kare_prompt}. ${stil}. ${ek ? `${ek}. ` : ''}${KURALLAR}`,
@@ -143,7 +157,7 @@ export async function kareUret(env: Env, c: Cekim, stil: string, ek = ''): Promi
     num_images: 1,
     output_format: 'jpeg',
     safety_tolerance: '2',
-    raw: false,
+    raw: ham,
   });
   const url = metin(v?.images?.[0]?.url);
   if (!url) throw new Error('kare adresi yok');
@@ -162,7 +176,7 @@ export async function kartUret(env: Env, prompt: string): Promise<string> {
     num_images: 1,
     output_format: 'jpeg',
     safety_tolerance: '2',
-    raw: false,
+    raw: ham,
   });
   const url = metin(v?.images?.[0]?.url);
   if (!url) throw new Error('kart adresi yok');
@@ -208,6 +222,25 @@ export async function kareDenetle(env: Env, url: string, model: string): Promise
   }
 }
 
+/**
+ * Video klibi denetimi (13 Eki gece, Şevval: "videoda hatalar var"). Kare
+ * denetimi yalnız ilk kareye bakıyordu; kamera hareket edince Kling/Veo yeni
+ * tabela ve arayüz uyduruyordu. Klibin ortasından ve sonundan kare alınıp
+ * aynı denetimden geçiyor.
+ */
+export async function klipDenetle(env: Env, videoUrl: string, model: string): Promise<Denetim> {
+  const kareler = await Promise.all(
+    (['middle', 'last'] as const).map((frame_type) =>
+      falSenkron(env, 'fal-ai/ffmpeg-api/extract-frame', { video_url: videoUrl, frame_type })
+        .then((v) => metin(v?.images?.[0]?.url))
+        .catch(() => '')
+    )
+  );
+  const sonuc = await Promise.all(kareler.filter(Boolean).map((u) => kareDenetle(env, u, model)));
+  const sorunlar = sonuc.flatMap((d) => d.sorunlar);
+  return { temiz: sonuc.every((d) => d.temiz), sorunlar };
+}
+
 /** Üret → denetle → kusurluysa bir kez daha üret. */
 export async function denetliUret(
   env: Env,
@@ -228,7 +261,7 @@ export async function denetliUret(
 
 /** 2) Klip kuyruğa. Hero → Veo 3.1 Fast (seslendirme yoksa sesli); diğer → Kling. */
 export async function klipBaslat(env: Env, c: Cekim, kare: string, heroVeo: boolean, seslendirmeVar: boolean): Promise<KuyrukIsi> {
-  const prompt = `${c.hareket_prompt}. Smooth cinematic camera motion, realistic physics, stable motorcycle geometry. ${KURALLAR}`;
+  const prompt = `${c.hareket_prompt}. Natural handheld phone camera motion, realistic physics, stable motorcycle geometry, background stays simple and plain. ${KURALLAR}`;
   if (c.hero && heroVeo) {
     const sure = c.sure_sn >= 8 ? '8s' : c.sure_sn >= 6 ? '6s' : '4s';
     return falKuyruk(env, 'fal-ai/veo3.1/fast/image-to-video', {
@@ -238,7 +271,7 @@ export async function klipBaslat(env: Env, c: Cekim, kare: string, heroVeo: bool
       duration: sure,
       resolution: '1080p',
       generate_audio: !seslendirmeVar,
-      negative_prompt: 'text, letters, license plate characters, readable signage, watermark, logo, face, crash, wheelie, distorted motorcycle, extra wheels',
+      negative_prompt: 'text, letters, words, signage, shop signs, phone screen, app interface, license plate characters, watermark, logo, face, crash, wheelie, distorted motorcycle, extra wheels, orange color cast, yellow filter',
       safety_tolerance: '2',
     });
   }
@@ -246,7 +279,7 @@ export async function klipBaslat(env: Env, c: Cekim, kare: string, heroVeo: bool
     prompt,
     image_url: kare,
     duration: '5',
-    negative_prompt: 'text, letters, license plate characters, readable signage, watermark, logo, face, crash, wheelie, distorted motorcycle, extra wheels, blur, low quality',
+    negative_prompt: 'text, letters, words, signage, shop signs, phone screen, app interface, license plate characters, watermark, logo, face, crash, wheelie, distorted motorcycle, extra wheels, blur, low quality, orange color cast, yellow filter',
     cfg_scale: 0.5,
   });
 }
@@ -329,11 +362,13 @@ export type YaziAraligi = { basMs: number; bitMs: number; metin: string };
 export function yaziAraliklari(plan: CekimPlani, sureler: number[]): YaziAraligi[] {
   const out: YaziAraligi[] = [];
   let t = 0;
+  const sonCekim = plan.cekimler.length - 1;
   plan.cekimler.forEach((c, i) => {
     const bas = t;
     t += sureler[i];
     const yazi = (c.ekran_yazisi ?? '').trim();
-    if (!yazi || (plan.seslendirme && i > 0)) return;
+    // 13 Eki gece (Şevval): her sahneye yazı reeli anlamsızlaştırıyordu → yalnız kanca (ilk) + punchline (son).
+    if (!yazi || (i > 0 && i < sonCekim) || (plan.seslendirme && i > 0)) return;
     const son = out[out.length - 1];
     if (son && son.metin === yazi && son.bitMs === bas) son.bitMs = t;
     else out.push({ basMs: bas, bitMs: t, metin: yazi });

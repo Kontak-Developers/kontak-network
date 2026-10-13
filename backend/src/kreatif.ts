@@ -30,16 +30,17 @@ export async function sonIcerikler(env: Env) {
 
 function planCikar(x: any, carousel = false): CekimPlani {
   const cekimler = dizi<any>(x?.cekimler)
-    .slice(0, carousel ? 7 : 5)
+    .slice(0, carousel ? 6 : 3)
     .map((c, i) => ({
       sira: sayi(c?.sira) || i + 1,
-      sure_sn: Math.round(sinirla(sayi(c?.sure_sn) || 5, 4, 8)),
+      sure_sn: Math.round(sinirla(sayi(c?.sure_sn) || 4, 2, 8)),
       kare_prompt: metin(c?.kare_prompt).slice(0, 900),
       hareket_prompt: metin(c?.hareket_prompt).slice(0, 600),
       hero: !!c?.hero,
       ekran_yazisi: metin(c?.ekran_yazisi).slice(0, 220),
+      uygulama_ekrani: carousel ? metin(c?.uygulama_ekrani).trim().slice(0, 40) : '',
     }))
-    .filter((c) => c.kare_prompt);
+    .filter((c) => c.kare_prompt || c.uygulama_ekrani);
   // Tam 1 hero: model hiç seçmediyse en uzun çekim; birden çoksa ilki.
   let heroVar = false;
   for (const c of cekimler) {
@@ -50,9 +51,12 @@ function planCikar(x: any, carousel = false): CekimPlani {
     const enUzun = cekimler.reduce((a, b) => (b.sure_sn > a.sure_sn ? b : a));
     enUzun.hero = true;
   }
+  // Carousel'de hero yok (yukarıdaki tek-hero kuralı reel için).
+  if (carousel) cekimler.forEach((c) => (c.hero = false));
   return {
     cekimler,
     stil: metin(x?.stil).slice(0, 600),
+    carousel_stil: carousel ? (metin(x?.carousel_stil) === 'klasik' ? 'klasik' : 'meme') : undefined,
     seslendirme: metin(x?.seslendirme).trim() ? metin(x.seslendirme).trim().slice(0, 600) : null,
     muzik: metin(x?.muzik).trim() ? metin(x.muzik).trim().slice(0, 300) : null,
   };
@@ -139,7 +143,7 @@ export function kreatifNormalize(k: any): any {
 function sablonKopyasi(x: any): boolean {
   const aciklama = metin(x?.aciklama_metni).trim();
   if (!aciklama || aciklama === 'Paylaşım açıklaması' || aciklama.startsWith('<')) return true;
-  const kareler = dizi<any>(x?.cekimler).map((c) => metin(c?.kare_prompt).trim());
+  const kareler = dizi<any>(x?.cekimler).filter((c) => !metin(c?.uygulama_ekrani).trim()).map((c) => metin(c?.kare_prompt).trim());
   // "…" tek başına ya da kısa yer tutucuysa şablon; uzun gerçek promptta üç nokta olabilir.
   return !kareler.length || kareler.some((k) => k.length < 40 || k.startsWith('<') || k.startsWith('…'));
 }

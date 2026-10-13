@@ -44,20 +44,6 @@ export default function Kreatif({ ayar, degistir }: { ayar: AjanAyarlari; varsay
             ))}
           </div>
         </div>
-        <div className="st-alan">
-          <span className="st-etiket">Platform ağırlığı</span>
-          <div className="st-segment" role="radiogroup" aria-label="Platform ağırlığı">
-            {[
-              ['dengeli', 'Dengeli'],
-              ['tiktok', 'TikTok ağırlıklı'],
-              ['instagram', 'Instagram ağırlıklı'],
-            ].map(([d, ad]) => (
-              <button key={d} role="radio" aria-checked={k.platform === d} className={k.platform === d ? 'on' : ''} onClick={() => kr('platform', d)}>
-                {ad}
-              </button>
-            ))}
-          </div>
-        </div>
         <ListeAlani
           etiket="Günlük odak döngüsü"
           aciklama="Her taramada sıradaki odak (gün gün döner). Boşsa ajan seçer."
@@ -98,6 +84,18 @@ export default function Kreatif({ ayar, degistir }: { ayar: AjanAyarlari; varsay
           />
           <Anahtar etiket="Müzik üret" aciklama="Telifsiz enstrümantal." acik={ayar.studyo.muzik} degistir={(v) => st('muzik', v)} />
           <Anahtar etiket="Seslendirmeye altyazı"  acik={ayar.studyo.altyazi} degistir={(v) => st('altyazi', v)} />
+          <Anahtar
+            etiket="Ham fotoğraf (raw)"
+            aciklama="Parlatılmamış, telefonla çekilmiş gibi gerçek doku. Yapay zekâ hissini en çok azaltan ayar."
+            acik={ayar.studyo.ham_foto}
+            degistir={(v) => st('ham_foto', v)}
+          />
+          <Anahtar
+            etiket="Video denetimi"
+            aciklama="Her klibin ortasından ve sonundan kare alınıp denetlenir; uydurma tabela/arayüz varsa klip yeniden üretilir."
+            acik={ayar.studyo.video_denetimi}
+            degistir={(v) => st('video_denetimi', v)}
+          />
           <Anahtar
             etiket="Görsel kalite denetimi"
             aciklama="Yazı/plaka, yüz, logo, bozuk motor varsa kare yeniden üretilir."

@@ -10,6 +10,7 @@
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
 import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm';
 import sora from '../yazitipi/Sora-ExtraBold.ttf';
+import logo from '../yazitipi/kontak-logo.png';
 
 let hazir: Promise<void> | null = null;
 const baslat = () => (hazir ??= initWasm(resvgWasm));
@@ -74,22 +75,27 @@ function imzaSvg(imza: string, w: number) {
 export async function reelLevhasi(metin: string | null, w: number, h: number, imza = ''): Promise<Uint8Array> {
   if (!metin)
     return ciz(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${NOTR_GRI}"/>${imzaSvg(imza, w)}</svg>`, w);
-  const punto = Math.round(w * 0.056);
-  const satirlar = satirla(metin, punto, w * 0.78);
-  const aralik = Math.round(punto * 1.3);
-  const pad = Math.round(punto * 0.6);
-  const enUzun = Math.max(...satirlar.map((s) => s.length));
-  const kutuW = Math.min(w * 0.9, enUzun * punto * 0.62 + pad * 2);
-  const kutuH = aralik * satirlar.length + pad * 1.2;
-  const x0 = (w - kutuW) / 2;
-  const y0 = Math.round(h * 0.22);
-  const metinler = satirlar
-    .map((s, i) => `<text x="${w / 2}" y="${y0 + pad * 0.6 + punto + i * aralik - punto * 0.12}" text-anchor="middle">${kacis(s)}</text>`)
+  // 13 Eki gece (Şevval: "font ve arkasındaki siyah doldurma orantısız"): TikTok'un kendi
+  // yazı stili — her satır ayrı beyaz etiket, siyah yazı, sıkı kenar. Hardlight'ta
+  // beyaz → beyaz, siyah → siyah: keskin ve okunur.
+  const punto = Math.round(w * 0.06);
+  const satirlar = satirla(metin, punto, w * 0.8);
+  const aralik = Math.round(punto * 1.42);
+  const padX = Math.round(punto * 0.42);
+  const padY = Math.round(punto * 0.2);
+  const y0 = Math.round(h * 0.2);
+  const etiketler = satirlar
+    .map((s, i) => {
+      const gen = Math.min(w * 0.9, s.length * punto * 0.6 + padX * 2);
+      const x = (w - gen) / 2;
+      const y = y0 + i * aralik;
+      return `<rect x="${x}" y="${y}" width="${gen}" height="${punto + padY * 2}" rx="${Math.round(punto * 0.28)}" fill="#FFFFFF"/>
+<text x="${w / 2}" y="${y + padY + punto * 0.84}" text-anchor="middle">${kacis(s)}</text>`
+    })
     .join('');
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
 <rect width="${w}" height="${h}" fill="${NOTR_GRI}"/>
-<rect x="${x0}" y="${y0}" width="${kutuW}" height="${kutuH}" rx="${Math.round(punto * 0.45)}" fill="#262626"/>
-<g font-family="Sora" font-weight="800" font-size="${punto}" fill="#FFFFFF">${metinler}</g>
+<g font-family="Sora" font-weight="800" font-size="${punto}" fill="#000000">${etiketler}</g>
 ${imzaSvg(imza, w)}
 </svg>`;
   return ciz(svg, w);
@@ -139,4 +145,88 @@ function base64(buf: ArrayBuffer): string {
   let s = '';
   for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode(...b.subarray(i, i + 0x8000));
   return btoa(s);
+}
+
+// ─────────────────────────────────────────────
+// Meme ve ürün kartları (13 Ekim gece, Şevval: "Halk Ekmek gibi kısa, günlük
+// hayattan; araya doğal ürün yerleştirme").
+// ─────────────────────────────────────────────
+
+const LACIVERT = '#0000A8';
+
+/**
+ * Meme kartı: üstte beyaz bant + siyah büyük yazı (meme sayfası dili), altında
+ * fotoğraf. Şakayı yazı taşır; fotoğraf sahneyi destekler.
+ */
+export async function memeKarti(
+  gorsel: ArrayBuffer,
+  mime: string,
+  metin: string,
+  sira: number,
+  toplam: number,
+  w = 1080,
+  h = 1440,
+  imza = ''
+): Promise<Uint8Array> {
+  const punto = Math.round(w * 0.058);
+  const satirlar = metin ? satirla(metin, punto, w * 0.86) : [];
+  const aralik = Math.round(punto * 1.25);
+  const pad = Math.round(w * 0.05);
+  const bant = satirlar.length ? pad * 2 + aralik * satirlar.length - (aralik - punto) : 0;
+  const metinler = satirlar
+    .map((s, i) => `<text x="${w / 2}" y="${pad + punto * 0.86 + i * aralik}" text-anchor="middle">${kacis(s)}</text>`)
+    .join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+<rect width="${w}" height="${h}" fill="#FFFFFF"/>
+<image x="0" y="${bant}" width="${w}" height="${h - bant}" preserveAspectRatio="xMidYMid slice" xlink:href="data:${mime};base64,${base64(gorsel)}"/>
+<g font-family="Sora" font-weight="800" font-size="${punto}" fill="#111111">${metinler}</g>
+${toplam > 1 ? `<text x="${w - pad}" y="${h - pad * 0.7}" text-anchor="end" font-family="Sora" font-weight="800" font-size="${Math.round(w * 0.026)}" fill="#FFFFFF" fill-opacity="0.9">${sira}/${toplam}</text>` : ''}
+${imza ? `<text x="${pad}" y="${h - pad * 0.7}" font-family="Sora" font-weight="800" font-size="${Math.round(w * 0.026)}" fill="#FFFFFF" fill-opacity="0.9">${kacis(temizle(imza))}</text>` : ''}
+</svg>`;
+  return ciz(svg, w);
+}
+
+/**
+ * Ürün kartı: lacivert zemin, üstte yazı, ortada telefon çerçevesinde GERÇEK
+ * uygulama ekranı (kütüphaneden). Ekran yoksa yalnız logo + yazı ("marka").
+ */
+export async function urunKarti(
+  ekran: { veri: ArrayBuffer; mime: string } | null,
+  metin: string,
+  w = 1080,
+  h = 1440,
+  imza = ''
+): Promise<Uint8Array> {
+  const punto = Math.round(w * (ekran ? 0.052 : 0.07));
+  const satirlar = metin ? satirla(metin, punto, w * 0.84) : [];
+  const aralik = Math.round(punto * 1.25);
+  const ust = Math.round(h * 0.09);
+  const metinler = satirlar
+    .map((s, i) => `<text x="${w / 2}" y="${ust + punto + i * aralik}" text-anchor="middle">${kacis(s)}</text>`)
+    .join('');
+  let govde = '';
+  if (ekran) {
+    // Telefon: ekran görüntüsü 9:19.5 kabul; kartın kalan yüksekliğine sığdır.
+    const tepe = ust + aralik * satirlar.length + Math.round(h * 0.04);
+    const ph = h - tepe + Math.round(h * 0.12); // alttan taşsın: kart dışına kayan telefon
+    const pw = Math.round(ph / 2.05);
+    const px = (w - pw) / 2;
+    const r = Math.round(pw * 0.12);
+    govde = `<defs><clipPath id="ekran"><rect x="${px + 14}" y="${tepe + 14}" width="${pw - 28}" height="${ph - 28}" rx="${r - 10}"/></clipPath></defs>
+<rect x="${px}" y="${tepe}" width="${pw}" height="${ph}" rx="${r}" fill="#0B0B12"/>
+<image x="${px + 14}" y="${tepe + 14}" width="${pw - 28}" height="${ph - 28}" preserveAspectRatio="xMidYMin slice" clip-path="url(#ekran)" xlink:href="data:${ekran.mime};base64,${base64(ekran.veri)}"/>`;
+  } else {
+    // Marka kartı: ortada beyaz logo.
+    const lw = Math.round(w * 0.42);
+    const lh = Math.round(lw * 0.67);
+    govde = `<defs><filter id="beyaz"><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0"/></filter></defs>
+<image x="${(w - lw) / 2}" y="${Math.round(h * 0.52)}" width="${lw}" height="${lh}" filter="url(#beyaz)" xlink:href="data:image/png;base64,${base64(logo)}"/>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+<rect width="${w}" height="${h}" fill="${LACIVERT}"/>
+<g font-family="Sora" font-weight="800" font-size="${punto}" fill="#FFFFFF">${metinler}</g>
+${govde}
+${imza ? `<text x="${w / 2}" y="${h - Math.round(h * 0.035)}" text-anchor="middle" font-family="Sora" font-weight="800" font-size="${Math.round(w * 0.028)}" fill="#FFFFFF" fill-opacity="${ekran ? 0 : 0.85}">${kacis(temizle(imza))}</text>` : ''}
+</svg>`;
+  return ciz(svg, w);
 }
