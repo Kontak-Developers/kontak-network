@@ -146,7 +146,10 @@ export async function avMaliyeti(env: Env, runId: string): Promise<number> {
  * 2. aşama bu hesapların son reelleri → patlama = izlenme ÷ takipçi
  * (TikTok'la aynı ölçek). Takipçi yoksa hesabın kendi medyanı.
  */
-export type IgHesap = { kullanici: string; takipci: number };
+export type IgHesap = { kullanici: string; takipci: number; tr?: boolean };
+
+/** 13 Eki el testi: "motovlog" araması Endonezya, Tanzanya, Avustralya hesapları getirdi. Keşifte Türkiye işareti şart. */
+const TURK = /[çşğıöüÇŞĞİÖÜ]|🇹🇷|türk|turk|istanbul|ankara|izmir|bursa|antalya|motorcu|kocaeli|adana|konya/i;
 
 const ISLETME =
   /(bayi|servis|satış|satis|yetkili|resmi|official|aksesuar|yedek parça|tamir|kiralama|galeri|ekspertiz|\+90|0\d{3} ?\d{3}|dealer|shop|store|vehicle|tente|kask satış|motor ?market)/i;
@@ -161,14 +164,14 @@ export async function igHesaplari(env: Env, isler: AvIs[], av: AvAyari): Promise
       // 13 Eki: "motosiklet" araması çoğunlukla bayi, servis, resmi marka döndürdü; içerik üreticisi değil.
       const bio = `${metin(x?.biography)} ${metin(x?.businessCategoryName)} ${metin(x?.fullName)}`.toLocaleLowerCase('tr');
       if (ISLETME.test(bio) || ISLETME.test(k)) continue;
-      gorulen.set(k, { kullanici: k, takipci: sayi(x?.followersCount) });
+      gorulen.set(k, { kullanici: k, takipci: sayi(x?.followersCount), tr: TURK.test(bio) || TURK.test(k) });
     }
   }
   const izlenen = new Set(av.ig_hesaplar.map((h) => h.replace(/^@/, '').toLowerCase()));
   const sabit = [...izlenen].map((k) => gorulen.get(k) ?? { kullanici: k, takipci: 0 });
   // Keşfedilenler: haber/sayfa değil, gerçek içerik üreticisi aralığı (1,5 bin – 2 milyon).
   const kesif = [...gorulen.values()]
-    .filter((h) => !izlenen.has(h.kullanici) && h.takipci >= 1500 && h.takipci <= 2_000_000 && !HABER_HESAP.test(h.kullanici))
+    .filter((h) => !izlenen.has(h.kullanici) && h.tr && h.takipci >= 1500 && h.takipci <= 2_000_000 && !HABER_HESAP.test(h.kullanici))
     .sort((a, b) => b.takipci - a.takipci);
   return [...sabit, ...kesif].slice(0, av.ig_hesap_sayisi);
 }
@@ -208,6 +211,8 @@ export async function igAdaylari(env: Env, is: AvIs, hesaplar: IgHesap[]): Promi
       const hesap = metin(x?.ownerUsername).toLowerCase();
       const iz = izlenme(x);
       if (!link.startsWith('https://') || !tarih || !iz) return null;
+      // Ortak (collab) gönderide sahip listede olmayabiliyor; yalnız taradığımız hesaplar.
+      if (!takipci.has(hesap)) return null;
       const t = takipci.get(hesap) ?? 0;
       const taban = t > 0 ? t : medyan.get(hesap) ?? 0;
       return {
