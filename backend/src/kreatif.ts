@@ -13,7 +13,8 @@ export type KreatifIcerik = { id: string; format: 'kisa_video' | 'carousel'; pua
 /** Tekrar etmesin diye son içeriklerin başlık ve kancaları. */
 export async function sonIcerikler(env: Env) {
   const r = await env.DB.prepare(
-    'SELECT baslik, kanca, format_id, olusturma FROM ideas ORDER BY olusturma DESC LIMIT 15'
+    // Stok turlarında 15 yetmedi: önceki günün "Vizör indi" kancası tekrar geldi.
+    "SELECT baslik, kanca, format_id, olusturma FROM ideas WHERE durum != 'reddedildi' ORDER BY olusturma DESC LIMIT 45"
   ).all();
   const rotalar = await env.DB.prepare('SELECT ad, il FROM rota_kartlari ORDER BY olusturma DESC LIMIT 10').all();
   return { icerikler: r.results, rotalar: rotalar.results };

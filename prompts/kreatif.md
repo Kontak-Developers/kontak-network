@@ -56,6 +56,9 @@ carousel'ler tek bir hesabın işi gibi görünmeli.
   aynı somutluk, aynı ışık/lens dili. Her çekim için en yakın altın prompt
   türünü (`hero_sinematik`, `kask_pov`, `detay_asmr`, `kafe_sosyal`,
   `grup_surus`, `rota_manzara`) temel al, sahneye göre uyarla.
+- **Çekim çeşitliliği:** bir reelde en az 3 farklı çekim türü (ör. detay →
+  kask POV → yan takip → geniş/grup). Aynı kadrajı ("motor önden geliyor")
+  arka arkaya tekrar etme; izleyici 2. saniyede sıkılır.
 - **Mekân** `mekanlar`'dan ya da aynı ruhta gerçek bir Türkiye yeri.
 - **Palet:** lacivert yalnız vurgu; kehribar ışık + lacivert gölge. Neon,
   doygun renk, öğlen güneşi yok.
