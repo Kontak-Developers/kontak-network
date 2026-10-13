@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../store'
-import { STATUS_LABEL } from '../lib'
+import { STATUS_LABEL, isTuru, zamanEtiketi } from '../lib'
 import type { IdeaStatus } from '../types'
 import { MediaGrid } from '../components/MediaCard'
 import { InstagramGlyph, TikTokGlyph } from '../components/bits'
@@ -23,10 +23,18 @@ export default function Content() {
   const durumda = ideas.filter((i) => filter === 'hepsi' || i.durum === filter)
   const pSay = { hepsi: durumda.length, instagram: durumda.filter((i) => i.platform === 'instagram').length, tiktok: durumda.filter((i) => i.platform === 'tiktok').length }
   const shown = durumda.filter((i) => pf === 'hepsi' || i.platform === pf)
-  const gruplar: { p: 'instagram' | 'tiktok'; ad: string; liste: typeof shown }[] = [
-    { p: 'instagram', ad: 'Instagram', liste: shown.filter((i) => i.platform === 'instagram') },
-    { p: 'tiktok', ad: 'TikTok', liste: shown.filter((i) => i.platform === 'tiktok') },
-  ]
+  // Üretim zamanına göre gruplar (13 Eki, Burak: "hangi içerik ne zaman üretildi anlamıyorum").
+  // Her grup bir çalıştırma: tarama ya da stok üretimi; en yeni üstte.
+  const gruplar = useMemo(() => {
+    const m = new Map<string, typeof shown>()
+    for (const i of shown) m.set(i.run_id, [...(m.get(i.run_id) ?? []), i])
+    return [...m.entries()]
+      .map(([runId, liste]) => {
+        const zamanlar = liste.map((i) => i.olusturma ?? '').filter(Boolean).sort()
+        return { runId, liste, bas: zamanlar[0] ?? '' }
+      })
+      .sort((a, b) => (a.bas < b.bas ? 1 : -1))
+  }, [shown])
 
   return (
     <div className="page">
@@ -54,21 +62,35 @@ export default function Content() {
       </div>
       {!shown.length ? (
         <p className="empty">Bu filtrede içerik yok.</p>
-      ) : pf !== 'hepsi' ? (
-        <MediaGrid ideas={shown} />
       ) : (
-        gruplar
-          .filter((g) => g.liste.length)
-          .map((g) => (
-            <section key={g.p} className="plat-grup">
-              <h2 className={`plat-baslik plat-baslik-${g.p}`}>
-                {g.p === 'instagram' ? <InstagramGlyph size={18} /> : <TikTokGlyph size={18} />}
-                {g.ad}
-                <span>{g.liste.length}</span>
+        gruplar.map((g) => {
+          const ig = g.liste.filter((i) => i.platform === 'instagram').length
+          const tt = g.liste.length - ig
+          return (
+            <section key={g.runId} className="plat-grup">
+              <h2 className="uretim-baslik">
+                <span className="uretim-zaman">{g.bas ? zamanEtiketi(g.bas) : 'Tarihsiz'}</span>
+                <span className="uretim-tur">{isTuru(g.runId)}</span>
+                <span className="uretim-sayi">
+                  {g.liste.length} içerik
+                  {ig > 0 && (
+                    <>
+                      {' · '}
+                      <InstagramGlyph size={12} /> {ig}
+                    </>
+                  )}
+                  {tt > 0 && (
+                    <>
+                      {' · '}
+                      <TikTokGlyph size={12} /> {tt}
+                    </>
+                  )}
+                </span>
               </h2>
               <MediaGrid ideas={g.liste} />
             </section>
-          ))
+          )
+        })
       )}
     </div>
   )

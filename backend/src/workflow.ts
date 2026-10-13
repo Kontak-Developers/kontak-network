@@ -628,7 +628,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       ...(uretimGirdi.stok_turu ? { stok_turu: uretimGirdi.stok_turu } : {}),
       ayarlar: {
         aday: o.ayar.kreatif.aday, secim: o.ayar.kreatif.secim, min_puan: o.ayar.kreatif.min_puan,
-        karisim: o.ayar.kreatif.karisim, ek_talimat: o.ayar.kreatif.ek_talimat,
+        karisim: o.ayar.kreatif.karisim, ek_talimat: o.ayar.kreatif.ek_talimat, platform: o.ayar.kreatif.platform,
       },
     }));
     const k = (await this.beyin(step, runId, 'kreatif', girdi, [], o.ayar.kreatif.sure_dk, `${p}kreatif`)) as any;

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Download, Pencil, RefreshCw, Sparkles, Type } from 'lucide-react'
 import { assetUrl } from '../api'
-import { scenesOf } from '../lib'
+import { isTuru, scenesOf, zamanEtiketi } from '../lib'
 import { useStore } from '../store'
 import type { Idea } from '../types'
 import { studyoApi } from './api'
@@ -91,6 +91,11 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
 
   return (
     <div className="st-icerik">
+      {idea.olusturma && (
+        <p className="st-uretildi">
+          Üretildi: <b>{zamanEtiketi(idea.olusturma)}</b> · {isTuru(idea.run_id)}
+        </p>
+      )}
       {idea.format === 'kisa_video' && idea.reel_durum && idea.reel_durum !== 'hazir' && (
         <div className="st-icerik-not">
           <span>{REEL_DURUM[idea.reel_durum]}</span>

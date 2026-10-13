@@ -60,6 +60,8 @@ export type AjanAyarlari = {
     odaklar: string[];
     /** Kreatif direktöre her turda eklenen serbest talimat */
     ek_talimat: string;
+    /** Platform ağırlığı: dengeli | tiktok | instagram (13 Eki: stok 35 IG / 4 TT) */
+    platform: string;
     sure_dk: number;
   };
   studyo: {
@@ -112,7 +114,7 @@ export const VARSAYILAN_AYARLAR: AjanAyarlari = {
     hesap_basi: 2,
   },
   sok: { izlenecek_video: 10, sure_dk: 35, taze_saat: 6 },
-  kreatif: { aday: 6, secim: 3, min_puan: 35, karisim: '2 reel + 1 carousel', odaklar: [], ek_talimat: '', sure_dk: 30 },
+  kreatif: { aday: 6, secim: 3, min_puan: 35, karisim: '2 reel + 1 carousel', odaklar: [], ek_talimat: '', platform: 'dengeli', sure_dk: 30 },
   studyo: { ses: 'Brian', muzik: true, altyazi: true, yazi_gom: true, hero_veo: true, kalite_denetimi: true, denetim_modeli: 'google/gemini-2.5-flash', imza: 'kontak.social' },
   butce: { fal_gunluk_tavan: 3, maliyet_katsayi: 1.45 },
 };
@@ -160,6 +162,7 @@ function sinirla(a: AjanAyarlari): AjanAyarlari {
   a.kreatif.min_puan = s(a.kreatif.min_puan, 0, 50);
   a.kreatif.sure_dk = s(a.kreatif.sure_dk, 10, 60);
   a.kreatif.odaklar = a.kreatif.odaklar.slice(0, 12);
+  if (!['dengeli', 'tiktok', 'instagram'].includes(a.kreatif.platform)) a.kreatif.platform = 'dengeli';
   a.butce.fal_gunluk_tavan = s(a.butce.fal_gunluk_tavan, 0, 200);
   a.butce.maliyet_katsayi = s(a.butce.maliyet_katsayi, 1, 3);
   return a;

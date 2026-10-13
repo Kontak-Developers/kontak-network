@@ -116,6 +116,8 @@ export type Idea = {
   kanca_varyantlari?: { tip: string; metin: string; puan: number }[]
   /** Ekran yazısı gömülü reel */
   yazili_video_url?: string | null
+  /** Üretim zamanı (ISO, İstanbul) */
+  olusturma?: string
 }
 
 export type SocialAccountStatus = {

@@ -44,6 +44,20 @@ export default function Kreatif({ ayar, degistir }: { ayar: AjanAyarlari; varsay
             ))}
           </div>
         </div>
+        <div className="st-alan">
+          <span className="st-etiket">Platform ağırlığı</span>
+          <div className="st-segment" role="radiogroup" aria-label="Platform ağırlığı">
+            {[
+              ['dengeli', 'Dengeli'],
+              ['tiktok', 'TikTok ağırlıklı'],
+              ['instagram', 'Instagram ağırlıklı'],
+            ].map(([d, ad]) => (
+              <button key={d} role="radio" aria-checked={k.platform === d} className={k.platform === d ? 'on' : ''} onClick={() => kr('platform', d)}>
+                {ad}
+              </button>
+            ))}
+          </div>
+        </div>
         <ListeAlani
           etiket="Günlük odak döngüsü"
           aciklama="Her taramada sıradaki odak (gün gün döner). Boşsa ajan seçer."

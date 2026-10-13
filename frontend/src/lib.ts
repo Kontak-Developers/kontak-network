@@ -41,6 +41,17 @@ export function relDay(iso: string) {
   return fmtDay(iso)
 }
 
+/** Çalışma kimliğinden tür adı: run_ tarama, stok_ stok üretimi, reel_ yeniden üretim. */
+export function isTuru(runId: string) {
+  if (runId.startsWith('stok_')) return 'Stok üretimi'
+  if (runId.startsWith('reel_')) return 'Reel yeniden üretimi'
+  if (runId.startsWith('yazi_')) return 'Yazı gömme'
+  return 'Tarama ve üretim'
+}
+
+/** "Bugün 18:54" / "Dün 09:12" / "11 Eki 14:03" */
+export const zamanEtiketi = (iso: string) => `${relDay(iso)} ${fmtTime(iso)}`
+
 export function runDuration(run: Run) {
   if (!run.bitis) return null
   const sec = Math.round((new Date(run.bitis).getTime() - new Date(run.baslangic).getTime()) / 1000)

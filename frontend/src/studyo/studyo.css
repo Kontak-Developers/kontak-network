@@ -2038,3 +2038,42 @@
   font-weight: 700;
   color: var(--yesil);
 }
+
+/* İçerikler: üretim zamanına göre grup başlıkları */
+.uretim-baslik {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--cizgi);
+}
+.uretim-zaman {
+  font-size: 18px;
+  font-weight: 800;
+}
+.uretim-tur {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: var(--marka-soft);
+  color: var(--marka);
+}
+.uretim-sayi {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--metin-soluk);
+  font-variant-numeric: tabular-nums;
+}
+.st-uretildi {
+  font-size: 12.5px;
+  color: var(--metin-soluk);
+}
+.st-uretildi b {
+  color: var(--metin);
+}

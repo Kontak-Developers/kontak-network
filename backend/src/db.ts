@@ -56,7 +56,7 @@ export function trendCikti(t: any) {
 
 /** medyaOnek: R2 anahtarını panelin erişebileceği adrese çevirir. */
 export function fikirCikti(i: any, medyaOnek: string) {
-  const { gorsel_anahtar, video_anahtar, yazili_anahtar, olusturma, ...geri } = i;
+  const { gorsel_anahtar, video_anahtar, yazili_anahtar, ...geri } = i;
   return {
     ...geri,
     senaryo: jsonAc<string[]>(i.senaryo, []),
