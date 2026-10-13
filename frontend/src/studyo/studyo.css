@@ -478,7 +478,7 @@
 /* ── Kimlik ── */
 .st-palet {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 12px;
 }
 .st-renk {
@@ -526,6 +526,7 @@
 .st-renk-metin textarea {
   padding: 6px 8px;
   font-size: 12.5px;
+  min-height: 64px;
 }
 .st-kartlar {
   display: grid;

@@ -76,7 +76,11 @@ export default function Sidebar({ tab, go }: { tab: Tab; go: (t: Tab) => void })
           <b>{running ? 'Ajan çalışıyor' : 'Ajan aktif'}</b>
           <small>
             {running
-              ? 'Gündem taranıyor…'
+              ? latest?.id.startsWith('stok_')
+                ? 'Stok üretiliyor…'
+                : latest?.id.startsWith('yazi_')
+                  ? 'Ekran yazıları gömülüyor…'
+                  : 'Gündem taranıyor…'
               : latest?.durum === 'hata'
                 ? 'Son tarama hata verdi'
                 : `Sonraki: yarın 08:00${latest?.bitis ? ` · son ${fmtTime(latest.bitis)}` : ''}`}

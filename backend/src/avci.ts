@@ -152,6 +152,18 @@ export async function trTrendleri(env: Env, is: AvIs): Promise<TrTrend[]> {
  * bin izlenme; patlama en az 5×; aynı hesaptan en fazla 2 video — tek
  * hesabın tarzı kütüphaneyi domine etmesin; 9 TR + 4 dünya). Hepsi panelden.
  */
+/**
+ * ⚠️ 13 Eki Stüdyo ekranı: patlayanlar arasında haber/trajedi videoları
+ *    vardı (cenaze, polis kovalamacası, "@gundem.muhabiri"). Bunlar
+ *    "şans eseri patlayan" ve marka için riskli; sökümden önce eleniyor.
+ */
+const HABER_HESAP = /(haber|gundem|gündem|news|medya|tv$|ajans|sondakika)/i;
+const HABER_METIN =
+  /(cenaze|vefat|hayatını kaybet|hayatini kaybet|öldü|oldu\s+mu|ölüm|şehit|kaza(da|sı|yı)?\b|yaralı|polis|polizei|jandarma|kovalamaca|son dakika|gözaltı|tutukla|cumhurbaşkan|seçim|deprem|funeral|died|death|crash|police|chase|rip\b)/i;
+// toLocaleLowerCase('tr'): "POLİS" /i ile eşleşmiyor (İ büyük noktalı).
+export const haberMi = (a: Pick<Aday, 'hesap' | 'aciklama'>) =>
+  HABER_HESAP.test((a.hesap ?? '').toLocaleLowerCase('tr')) || HABER_METIN.test(a.aciklama.toLocaleLowerCase('tr'));
+
 export function patlayanlariSec(adaylar: Aday[], av: AvAyari, simdi = Date.now()): Aday[] {
   const sinir = simdi - av.gun * 86400_000;
   const tekil = new Map<string, Aday>();
@@ -159,6 +171,7 @@ export function patlayanlariSec(adaylar: Aday[], av: AvAyari, simdi = Date.now()
   const uygun = [...tekil.values()].filter(
     (a) =>
       Date.parse(a.tarih) >= sinir &&
+      !haberMi(a) &&
       a.patlama >= av.min_patlama &&
       a.izlenme >= (a.kaynak === 'tr_motor' ? av.min_izlenme_tr : av.min_izlenme_global)
   );
