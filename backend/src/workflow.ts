@@ -20,7 +20,7 @@ import { kreatifNormalize, kreatifYaz, rotaKartiYaz, sonIcerikler, type KreatifI
 import {
   altyaziAdresi, altyaziBaslat, bugunkuFal, kareUret, klipAdresi, klipBaslat, kuyrukYokla, maliyetTahmini,
   montajAdresi, montajBaslat, muzikBaslat, sesAdresi, seslendir, type KuyrukIsi, type CekimPlani,
-  gorselKimlikEki, kartUret, falaYukle, yaziAraliklari, yaziCizelgesiBaslat, yaziKaristirBaslat, sesGeriBaslat, videoAdresi, YAZI_FPS,
+  gorselKimlikEki, kartUret, denetliUret, falaYukle, yaziAraliklari, yaziCizelgesiBaslat, yaziKaristirBaslat, sesGeriBaslat, videoAdresi, YAZI_FPS,
 } from './studyo';
 import { ayarlariOku, type AjanAyarlari } from './ayarlar';
 import { carouselKarti, reelLevhasi } from './yazi';
@@ -67,7 +67,7 @@ const BITMIS_APIFY = new Set(['SUCCEEDED', 'FAILED', 'TIMED-OUT', 'ABORTED']);
 
 export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
   async run(event: WorkflowEvent<RunParams>, step: WorkflowStep) {
-    const { runId, tetik, stok, yazi } = event.payload;
+    const { runId, tetik, stok, yazi, reel } = event.payload;
     const env = this.env;
     const adim = (ad: string) =>
       yap(step, `adim-${ad}`, () => env.DB.prepare('UPDATE runs SET adim = ? WHERE id = ?').bind(ad, runId).run().then(() => ad));
@@ -80,6 +80,41 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
      */
     // Panelden yazılan ayarlar (Stüdyo sekmesi); her çalıştırmanın başında bir kez.
     const ayar = await yap(step, 'ayarlar', () => ayarlariOku(env));
+
+    if (reel) {
+      try {
+        const liste = await yap(step, 'reel-liste', async () => {
+          const marka = await markaOku(env);
+          const kimlik = gorselKimlikEki(marka);
+          const r = await env.DB.prepare(
+            `SELECT id, puan, uretim_plani FROM ideas WHERE format = 'kisa_video' AND uretim_plani IS NOT NULL
+               AND COALESCE(reel_durum, '') != 'hazir' AND id IN (${reel.ids.map(() => '?').join(',') || "''"})`
+          ).bind(...reel.ids).all<any>();
+          return r.results.map((x) => {
+            const plan = jsonAc<CekimPlani>(x.uretim_plani, { cekimler: [], stil: '', seslendirme: null, muzik: null });
+            return { id: x.id as string, format: 'kisa_video' as const, puan: Number(x.puan) || 0, plan: { ...plan, stil: [plan.stil, kimlik].filter(Boolean).join('. ') } };
+          });
+        });
+        for (const r of liste) {
+          try {
+            await this.reelUret(step, runId, r, reel.tavan, ayar);
+          } catch (e) {
+            console.error('reel yeniden üretilemedi', r.id, hataMetni(e));
+            await yap(step, `reel-hata-${r.id}`, () =>
+              env.DB.prepare("UPDATE ideas SET reel_durum = 'hata' WHERE id = ?").bind(r.id).run().then(() => true)
+            );
+          }
+        }
+        await yap(step, 'bitir', () =>
+          env.DB.prepare("UPDATE runs SET durum = 'tamamlandi', adim = 'kaydet', bitis = ? WHERE id = ?").bind(simdiIst(), runId).run().then(() => true)
+        );
+      } catch (e) {
+        await yap(step, 'hata-kaydet', () =>
+          env.DB.prepare("UPDATE runs SET durum = 'hata', hata = ?, bitis = ? WHERE id = ?").bind(hataMetni(e).slice(0, 500), simdiIst(), runId).run().then(() => true)
+        );
+      }
+      return;
+    }
 
     if (yazi) {
       try {
@@ -586,9 +621,12 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       await nefes(step, `carousel-${c.id}`);
       await yap(step, `carousel-${c.id}`, TEKRAR, async () => {
         const sonuc = await Promise.allSettled(
-          c.plan.cekimler.map(async (ck, i) =>
-            r2yeYaz(env, await kartUret(env, sahnePromptu(ck.kare_prompt, stilli(c.plan.stil))), `${runId}/${c.id}-${i + 1}.jpg`)
-          )
+          c.plan.cekimler.map(async (ck, i) => {
+            const den = { acik: o.ayar.studyo.kalite_denetimi, model: o.ayar.studyo.denetim_modeli };
+            const x = await denetliUret(env, (ek) => kartUret(env, sahnePromptu(ek ? `${ck.kare_prompt}. ${ek}` : ck.kare_prompt, stilli(c.plan.stil))), den);
+            if (x.denetim && !x.denetim.temiz) console.warn('kart kusurlu kaldı', c.id, i + 1, x.denetim.sorunlar.join('; '));
+            return r2yeYaz(env, x.url, `${runId}/${c.id}-${i + 1}.jpg`);
+          })
         );
         sonuc.forEach((r, i) => r.status === 'rejected' && console.error('carousel kartı', c.id, i + 1, hataMetni(r.reason)));
         if (!sonuc.some((r) => r.status === 'fulfilled')) throw new Error('carousel kartlarının hiçbiri üretilemedi');
@@ -642,7 +680,12 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
 
     // 1) Kareler (senkron, paralel) — R2'ye de yazılıyor (panelde sahne önizlemesi).
     const kareler = await yap(step, `reel-kare-${r.id}`, { ...TEKRAR, timeout: '10 minutes' as const }, async () => {
-      const urller = await Promise.all(plan.cekimler.map((c) => kareUret(env, c, plan.stil)));
+      const den = { acik: ayar.studyo.kalite_denetimi, model: ayar.studyo.denetim_modeli };
+      const sonuc = await Promise.all(plan.cekimler.map((c) => denetliUret(env, (ek) => kareUret(env, c, plan.stil, ek), den)));
+      sonuc.forEach((x, i) => x.denetim && !x.denetim.temiz && console.warn('kare kusurlu kaldı', r.id, i + 1, x.denetim.sorunlar.join('; ')));
+      const yeniden = sonuc.filter((x) => x.deneme > 1).length;
+      if (yeniden) await harcamaYaz(env, runId, 'fal', 'kare yeniden üretim (denetim)', yeniden * 0.06);
+      const urller = sonuc.map((x) => x.url);
       const anahtarlar = await Promise.all(urller.map((u, i) => r2yeYaz(env, u, `${runId}/${r.id}-k${i + 1}.jpg`)));
       await sahneMedyasiYaz(env, r.id, anahtarlar.map((a) => ({ gorsel_anahtar: a })));
       return urller;

@@ -60,6 +60,10 @@ export type AjanAyarlari = {
     yazi_gom: boolean;
     /** Hero çekim Veo 3.1 Fast (sesli, pahalı) mı, Kling mi */
     hero_veo: boolean;
+    /** Her kareye görü modeliyle kusur denetimi (yazı, yüz, logo, bozuk motor) */
+    kalite_denetimi: boolean;
+    /** OpenRouter model adı (fal openrouter/router/vision) */
+    denetim_modeli: string;
   };
   butce: {
     fal_gunluk_tavan: number;
@@ -86,7 +90,7 @@ export const VARSAYILAN_AYARLAR: AjanAyarlari = {
   },
   sok: { izlenecek_video: 10, sure_dk: 35, taze_saat: 6 },
   kreatif: { aday: 6, secim: 3, min_puan: 35, karisim: '2 reel + 1 carousel', odaklar: [], ek_talimat: '', sure_dk: 30 },
-  studyo: { ses: 'Brian', muzik: true, altyazi: true, yazi_gom: true, hero_veo: true },
+  studyo: { ses: 'Brian', muzik: true, altyazi: true, yazi_gom: true, hero_veo: true, kalite_denetimi: true, denetim_modeli: 'google/gemini-2.5-flash' },
   butce: { fal_gunluk_tavan: 3, maliyet_katsayi: 1.45 },
 };
 

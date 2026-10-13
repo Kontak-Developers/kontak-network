@@ -17,6 +17,7 @@ export const studyoApi = {
   promptKaydet: (ad: string, metin: string) => request<{ ok: true }>('PUT', `/api/studyo/promptlar/${e(ad)}`, { metin }),
   promptSifirla: (ad: string) => request<{ ok: true }>('DELETE', `/api/studyo/promptlar/${e(ad)}`),
   stok: (b: { tur: number; karisim: string; odaklar: string[]; tavan: number }) => request<{ id: string }>('POST', '/api/studyo/stok', b),
+  reelUret: (ids: string[]) => request<{ id: string }>('POST', '/api/studyo/reel', { ids }),
   yaziGom: (ids?: string[]) => request<{ id: string }>('POST', '/api/studyo/yazi', { ids: ids ?? [] }),
   formatlar: () => request<Format[]>('GET', '/api/formats'),
   formatKarari: (id: string, panel_karari: Format['panel_karari']) =>

@@ -136,9 +136,9 @@ export async function kuyrukYokla(env: Env, is: KuyrukIsi): Promise<any | null> 
 }
 
 /** 1) Anahtar kare (9:16). Senkron, saniyeler. */
-export async function kareUret(env: Env, c: Cekim, stil: string): Promise<string> {
+export async function kareUret(env: Env, c: Cekim, stil: string, ek = ''): Promise<string> {
   const v = await falSenkron(env, 'fal-ai/flux-pro/v1.1-ultra', {
-    prompt: `${c.kare_prompt}. ${stil}. ${KURALLAR}`,
+    prompt: `${c.kare_prompt}. ${stil}. ${ek ? `${ek}. ` : ''}${KURALLAR}`,
     aspect_ratio: '9:16',
     num_images: 1,
     output_format: 'jpeg',
@@ -167,6 +167,63 @@ export async function kartUret(env: Env, prompt: string): Promise<string> {
   const url = metin(v?.images?.[0]?.url);
   if (!url) throw new Error('kart adresi yok');
   return url;
+}
+
+/**
+ * GÖRSEL DENETİM (13 Eki akşam). Kural promptu flux'u tam durduramıyor:
+ * carousel'de "CHERE STOTE" tabelası, arka planda kasksız yüz çıktı. Her
+ * kareye bir görü modeli bakıyor (fal → OpenRouter, ~0,0005$); kusurluysa
+ * kare bir kez yeniden üretiliyor. İkincisi de kusurluysa daha az kusurlu
+ * olan kalıyor (üretim durmasın), sorun günlüğe yazılıyor.
+ */
+export type Denetim = { temiz: boolean; sorunlar: string[] };
+
+const DENETIM_PROMPTU = `You inspect AI-generated images for a motorcycle brand's TikTok/Instagram, viewed full-screen on a phone.
+Flag ONLY defects a normal viewer would clearly notice at phone size. Ignore tiny, blurry, partial or ambiguous marks.
+Defects:
+1. A legible word or number a viewer can actually read: shop sign, street sign, license plate characters, screen text, big printed text. Gibberish that is clearly readable as letters ALSO counts.
+2. A clearly visible human face (eyes/nose/mouth recognizable). Closed-visor helmets, backs of heads, tiny distant people are fine.
+3. Someone riding or sitting on a motorcycle without a helmet.
+4. A clearly readable brand name or famous logo (e.g. Honda wordmark). Small emblems or abstract shapes are fine.
+5. Obviously deformed motorcycles (wrong number of wheels, melted parts) or people (extra limbs).
+6. Children, alcohol, cigarettes, weapons, flags.
+Reply with ONLY this JSON, no markdown: {"temiz": true|false, "sorunlar": ["short English description"]}`;
+
+export async function kareDenetle(env: Env, url: string, model: string): Promise<Denetim> {
+  try {
+    const v = await falSenkron(env, 'openrouter/router/vision', {
+      model,
+      prompt: 'Inspect this image.',
+      system_prompt: DENETIM_PROMPTU,
+      image_urls: [url],
+      temperature: 0,
+      max_tokens: 200,
+    });
+    const m = metin(v?.output).match(/\{[\s\S]*\}/);
+    const j = m ? JSON.parse(m[0]) : null;
+    if (!j || typeof j.temiz !== 'boolean') return { temiz: true, sorunlar: [] }; // denetçi bozuksa üretimi durdurma
+    return { temiz: j.temiz, sorunlar: Array.isArray(j.sorunlar) ? j.sorunlar.map(String).slice(0, 6) : [] };
+  } catch {
+    return { temiz: true, sorunlar: [] };
+  }
+}
+
+/** Üret → denetle → kusurluysa bir kez daha üret. */
+export async function denetliUret(
+  env: Env,
+  uret: (ek: string) => Promise<string>,
+  denetim: { acik: boolean; model: string }
+): Promise<{ url: string; denetim: Denetim | null; deneme: number }> {
+  const ilk = await uret('');
+  if (!denetim.acik) return { url: ilk, denetim: null, deneme: 1 };
+  const d1 = await kareDenetle(env, ilk, denetim.model);
+  if (d1.temiz) return { url: ilk, denetim: d1, deneme: 1 };
+  // Sorunu olumlu tarifle düzelt (olumsuz kelime yazmadan).
+  const ek = 'Every surface plain and blank, storefront awnings plain fabric, all riders in closed full-face helmets with dark visors down, background people far and out of focus';
+  const ikinci = await uret(ek);
+  const d2 = await kareDenetle(env, ikinci, denetim.model);
+  if (d2.temiz || d2.sorunlar.length <= d1.sorunlar.length) return { url: ikinci, denetim: d2, deneme: 2 };
+  return { url: ilk, denetim: d1, deneme: 2 };
 }
 
 /** 2) Klip kuyruğa. Hero → Veo 3.1 Fast (seslendirme yoksa sesli); diğer → Kling. */

@@ -322,10 +322,11 @@ async function runBaslat(env: Env, tetik: RunParams['tetik'], ek: Partial<RunPar
   let id = runIdUret();
   if (ek.stok) id = id.replace(/^run_/, 'stok_');
   if (ek.yazi) id = id.replace(/^run_/, 'yazi_');
+  if (ek.reel) id = id.replace(/^run_/, 'reel_');
   if (await env.DB.prepare('SELECT 1 FROM runs WHERE id = ?').bind(id).first()) id += `_${Date.now() % 100000}`;
   await env.DB.prepare(
     "INSERT INTO runs (id, tetik, durum, adim, baslangic, taranan_gonderi, ozet) VALUES (?, ?, 'calisiyor', ?, ?, 0, ?)"
-  ).bind(id, tetik, ek.stok || ek.yazi ? 'uret' : 'tara', simdiIst(), ozet).run();
+  ).bind(id, tetik, ek.stok || ek.yazi || ek.reel ? 'uret' : 'tara', simdiIst(), ozet).run();
   try {
     const w = await env.AGENT_RUN.create({ id, params: { ...ek, runId: id, tetik } });
     await env.DB.prepare('UPDATE runs SET workflow_id = ? WHERE id = ?').bind(w.id, id).run();

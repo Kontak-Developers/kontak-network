@@ -8,7 +8,7 @@ import type { Env, RunParams } from './tipler';
 import { ayarlariOku, ayarlariYaz, VARSAYILAN_AYARLAR } from './ayarlar';
 import { promptAl, promptMetni, type PromptAdi } from './brain';
 import { markaOku } from './db';
-import { gorselKimlikEki, kartUret } from './studyo';
+import { gorselKimlikEki, kareDenetle, kartUret } from './studyo';
 import { sahnePromptu, r2yeYaz } from './fal';
 import { harcamaYaz } from './formatlar';
 import { dizi, hata, json, jsonAc, kisaId, metin, sayi, simdiIst } from './yardimci';
@@ -96,6 +96,15 @@ export async function studyoApi(
     return json({ url: `${medyaOnek}${anahtar}` });
   }
 
+  // Tek görsel denetimi (panel ve hata ayıklama): yazı, yüz, logo, bozuk motor.
+  if (yol === '/api/studyo/denetle' && m === 'POST') {
+    const b = await govde();
+    const u = metin(b?.url);
+    if (!/^https:\/\//.test(u)) return hata('gecersiz', 'url https olmalı.', 400);
+    const ayar = await ayarlariOku(env);
+    return json(await kareDenetle(env, u, ayar.studyo.denetim_modeli));
+  }
+
   // ── Promptlar ──
   const prompt = yol.match(/^\/api\/studyo\/promptlar\/([a-z]{3,12})$/);
   if (prompt) {
@@ -146,6 +155,18 @@ export async function studyoApi(
     const b = await govde();
     const ids = dizi<string>(b?.ids).map((x) => metin(x)).filter((x) => /^[A-Za-z0-9_-]{1,40}$/.test(x)).slice(0, 60);
     const id = await runBaslat({ yazi: { ids } }, ids.length ? `Yazı gömme: ${ids.length} içerik` : 'Yazı gömme: eksik olanların hepsi');
+    return json({ id }, 202);
+  }
+
+  // Bütçeden atlanan / hata veren reelleri mevcut planla yeniden üret.
+  if (yol === '/api/studyo/reel' && m === 'POST') {
+    const b = await govde();
+    const ids = dizi<string>(b?.ids).map((x) => metin(x)).filter((x) => /^[A-Za-z0-9_-]{1,40}$/.test(x)).slice(0, 12);
+    if (!ids.length) return hata('gecersiz', 'En az bir reel seç.', 400);
+    const ayar = await ayarlariOku(env);
+    const tavan = Math.min(200, sayi(b?.tavan) || Math.max(ayar.butce.fal_gunluk_tavan, 60));
+    await DB.prepare(`UPDATE ideas SET reel_durum = 'bekliyor' WHERE id IN (${ids.map(() => '?').join(',')}) AND COALESCE(reel_durum, '') != 'hazir'`).bind(...ids).run();
+    const id = await runBaslat({ reel: { ids, tavan } }, `Reel yeniden üretim: ${ids.length} reel`);
     return json({ id }, 202);
   }
 

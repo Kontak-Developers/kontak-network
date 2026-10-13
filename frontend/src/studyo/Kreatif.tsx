@@ -84,6 +84,19 @@ export default function Kreatif({ ayar, varsayilan, degistir }: { ayar: AjanAyar
           />
           <Anahtar etiket="Müzik üret" aciklama="Formatın tarifine göre telifsiz enstrümantal (ElevenLabs)." acik={ayar.studyo.muzik} degistir={(v) => st('muzik', v)} />
           <Anahtar etiket="Seslendirmeye altyazı" aciklama="Anlatımlı reellerde konuşma alttan yazılır." acik={ayar.studyo.altyazi} degistir={(v) => st('altyazi', v)} />
+          <Anahtar
+            etiket="Görsel kalite denetimi"
+            aciklama="Her kareye bir görü modeli bakar: okunur yazı/plaka, görünen yüz, kasksız sürücü, logo, bozuk motor. Kusurluysa kare bir kez yeniden üretilir (~0,0005$ + gerekirse 0,06$)."
+            acik={ayar.studyo.kalite_denetimi}
+            degistir={(v) => st('kalite_denetimi', v)}
+          />
+          <MetinAlani
+            etiket="Denetim modeli"
+            aciklama="OpenRouter model adı. Hızlı ve ucuz bir görü modeli yeter."
+            deger={ayar.studyo.denetim_modeli}
+            degistir={(v) => st('denetim_modeli', v)}
+            satir={1}
+          />
         </div>
         <div className="st-alan">
           <span className="st-etiket">Seslendirme sesi</span>

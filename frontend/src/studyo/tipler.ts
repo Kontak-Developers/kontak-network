@@ -18,7 +18,7 @@ export type AjanAyarlari = {
   }
   sok: { izlenecek_video: number; sure_dk: number; taze_saat: number }
   kreatif: { aday: number; secim: number; min_puan: number; karisim: string; odaklar: string[]; ek_talimat: string; sure_dk: number }
-  studyo: { ses: string; muzik: boolean; altyazi: boolean; yazi_gom: boolean; hero_veo: boolean }
+  studyo: { ses: string; muzik: boolean; altyazi: boolean; yazi_gom: boolean; hero_veo: boolean; kalite_denetimi: boolean; denetim_modeli: string }
   butce: { fal_gunluk_tavan: number; maliyet_katsayi: number }
 }
 

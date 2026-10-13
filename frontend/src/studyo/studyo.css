@@ -978,6 +978,11 @@
   border-top: 1px solid var(--cizgi);
 }
 .st-icerik-not {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
   font-size: 12.5px;
   color: #8a5a00;
   background: #fff4d6;

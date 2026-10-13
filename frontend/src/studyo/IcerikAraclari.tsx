@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Download, Pencil, Sparkles, Type } from 'lucide-react'
+import { Download, Pencil, RefreshCw, Sparkles, Type } from 'lucide-react'
 import { assetUrl } from '../api'
 import { scenesOf } from '../lib'
 import { useStore } from '../store'
@@ -10,7 +10,7 @@ import './studyo.css'
 const REEL_DURUM: Record<string, string> = {
   bekliyor: 'Reel sırada bekliyor',
   uretiliyor: 'Reel şu an üretiliyor (~4 dk)',
-  atlandi: 'Reel bütçe tavanı yüzünden üretilmedi; Stüdyo’dan tavanı artırıp yeniden üretebilirsin',
+  atlandi: 'Reel bütçe tavanı yüzünden üretilmedi',
   hata: 'Reel üretiminde hata oldu (çoğu zaman fal bakiyesi)',
 }
 
@@ -70,6 +70,19 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
     }
   }
 
+  const yenidenUret = async () => {
+    setKaydediliyor(true)
+    try {
+      await studyoApi.reelUret([idea.id])
+      toast('Reel yeniden üretiliyor (~5 dk)')
+      await refreshIdeas()
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Başlatılamadı')
+    } finally {
+      setKaydediliyor(false)
+    }
+  }
+
   const varyantKullan = (metin: string) => {
     const yeni = [...yazilar]
     if (yeni.length) yeni[0] = metin
@@ -78,7 +91,16 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
 
   return (
     <div className="st-icerik">
-      {idea.format === 'kisa_video' && idea.reel_durum && idea.reel_durum !== 'hazir' && <p className="st-icerik-not">{REEL_DURUM[idea.reel_durum]}</p>}
+      {idea.format === 'kisa_video' && idea.reel_durum && idea.reel_durum !== 'hazir' && (
+        <div className="st-icerik-not">
+          <span>{REEL_DURUM[idea.reel_durum]}</span>
+          {(idea.reel_durum === 'atlandi' || idea.reel_durum === 'hata') && (
+            <button className="btn btn-sm" onClick={yenidenUret} disabled={kaydediliyor}>
+              <RefreshCw size={14} /> Yeniden üret (~3$)
+            </button>
+          )}
+        </div>
+      )}
 
       {(idea.video_url || temizSlaytlar.length > 0) && (
         <div className="st-icerik-blok">

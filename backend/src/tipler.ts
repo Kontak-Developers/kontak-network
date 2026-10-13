@@ -39,6 +39,8 @@ export type RunParams = {
   stok?: { tur: number; tavan: number; odaklar?: string[]; karisim?: string };
   /** Yazı gömme modu: hazır reel/carousel'lere ekran yazısını göm (ids yoksa eksik olanların hepsi). */
   yazi?: { ids?: string[] };
+  /** Yeniden üretim: bütçeden atlanan / hata veren reelleri mevcut planla üret. */
+  reel?: { ids: string[]; tavan: number };
 };
 
 export type Platform = 'tiktok' | 'instagram';
