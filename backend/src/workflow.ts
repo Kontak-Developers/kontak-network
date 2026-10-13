@@ -14,8 +14,13 @@ import { ivmeHesapla, ornekGonderiler } from './ivme';
 import { brainBaslat, brainYokla, workersAi, type BrainEki, type PromptAdi } from './brain';
 import { avAdaylari, avBaslat, avMaliyeti, dokum, falaTasi, indirilenler, indirmeBaslat, patlayanlariSec, trTrendleri, type Aday, type AvIs, type TrTrend } from './avci';
 import { formatlariYaz, harcamaYaz, kazananFormatlar, mevcutFormatlar, patlayanlariYaz, trTrendleriniYaz, uygunTrTrendleri } from './formatlar';
-import { DIKEY_4_5, DIKEY_9_16, gorselUret, sahnePromptu, videoBaslat, videoYokla, type Uretilen } from './fal';
+import { DIKEY_4_5, DIKEY_9_16, gorselUret, r2yeYaz, sahnePromptu, videoBaslat, videoYokla, type Uretilen } from './fal';
 import { gonderileriYaz, markaOku, gonderileriOku } from './db';
+import { kreatifYaz, rotaKartiYaz, sonIcerikler, type KreatifIcerik } from './kreatif';
+import {
+  altyaziAdresi, altyaziBaslat, bugunkuFal, kareUret, klipAdresi, klipBaslat, kuyrukYokla, maliyetTahmini,
+  montajAdresi, montajBaslat, muzikBaslat, sesAdresi, seslendir, type KuyrukIsi,
+} from './studyo';
 import { syncSocialPerformance } from './social';
 import {
   dizi, hataMetni, isoHafta, jsonAc, kisaId, metin, pazartesiMi, sayi, simdiIst, sinirla,
@@ -34,6 +39,12 @@ const TEKRAR = {
  *    Uyku çağrıyı bitiriyor, sonraki adım taze kotayla başlıyor. Ağır
  *    adımların önüne konur; bedeli ~1 sn.
  */
+/** Üretilen klibin gerçek süresi: Veo 4/6/8 sn, Kling 5 sn. */
+function klipSuresiMs(c: { sure_sn: number; hero: boolean }, heroVeo: boolean): number {
+  if (c.hero && heroVeo) return (c.sure_sn >= 8 ? 8 : c.sure_sn >= 6 ? 6 : 4) * 1000;
+  return 5000;
+}
+
 function nefes(step: WorkflowStep, ad: string): Promise<void> {
   return step.sleep(`nefes-${ad}`, '1 second');
 }
@@ -150,7 +161,18 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
        * düşerse analiz/üretim eski yoldan sürüyor (format yoksa da içerik
        * çıkıyor, yalnız daha zayıf).
        */
-      if (avSonucu && avSonucu.secilen.length && env.FAL_KEY) {
+      /**
+       * ⚠️ MANUS KREDİSİ: sök en pahalı adım (Manus her videoyu izliyor).
+       *    Son 6 saatte söküm yapıldıysa kütüphane güncel sayılıyor; elle
+       *    üst üste "Şimdi tara" kredi yakmasın. Sabah cron'u her zaman söker.
+       */
+      const tazeSok = tetik === 'cron'
+        ? false
+        : await yap(step, 'sok-taze-mi', async () => {
+            const r = await env.DB.prepare('SELECT MAX(son_gorulme) AS son FROM formatlar').first<{ son: string | null }>();
+            return !!r?.son && Date.parse(r.son) > Date.now() - 6 * 3600_000;
+          });
+      if (avSonucu && avSonucu.secilen.length && env.FAL_KEY && !tazeSok) {
         try {
           const secilen = avSonucu.secilen;
           const indirIs = await yap(step, 'sok-indir', TEKRAR, () => indirmeBaslat(env, secilen.map((a) => a.link)));
@@ -205,7 +227,8 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
             await harcamaYaz(env, runId, 'fal', 'fal-ai/wizper', Object.keys(dosyalar).length * 0.01);
             return out;
           });
-          const linkSirasi = Object.keys(dosyalar);
+          // Manus en fazla 10 ek görüyor (13 Ekim: 11 ekten 10'u). En çok patlayan 10.
+          const linkSirasi = secilen.filter((a) => dosyalar[a.link]).sort((x, y) => y.patlama - x.patlama).slice(0, 10).map((a) => a.link);
           const ekler: BrainEki[] = linkSirasi.map((l, i) => ({ url: dosyalar[l], ad: `video-${i + 1}.mp4`, mime: 'video/mp4' }));
           await nefes(step, 'sok-girdi');
           const sokGirdi = await yap(step, 'sok-girdi', async () => ({
@@ -308,86 +331,95 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
           tr_trend_uygun: await uygunTrTrendleri(env, runId),
         };
       });
-      const uretimHam = (await this.beyin(step, runId, 'uretim', uretimGirdi)) as any;
-      // uretim.md kökte 3 elemanlı dizi istiyor; şema {seriler, fikirler}. İkisi de olur.
-      const uretim = Array.isArray(uretimHam) ? { fikirler: uretimHam, seriler: [] } : uretimHam;
+      /**
+       * v2 (13 Ekim): kütüphanede kazanan format varsa KREATİF DİREKTÖR +
+       * STÜDYO; yoksa (ilk gün, sök düştüyse) eski üretim yolu yedek.
+       */
+      const v2 = dizi((uretimGirdi as any).kazanan_formatlar).length > 0;
+      if (v2) {
+        await this.kreatifUret(step, runId, uretimGirdi);
+      } else {
+        const uretimHam = (await this.beyin(step, runId, 'uretim', uretimGirdi)) as any;
+        // uretim.md kökte 3 elemanlı dizi istiyor; şema {seriler, fikirler}. İkisi de olur.
+        const uretim = Array.isArray(uretimHam) ? { fikirler: uretimHam, seriler: [] } : uretimHam;
 
-      const fikirler = await yap(step, 'uretim-kaydet', () => fikirleriYaz(env, runId, uretim, trendler.map((t) => t.id)));
+        const fikirler = await yap(step, 'uretim-kaydet', () => fikirleriYaz(env, runId, uretim, trendler.map((t) => t.id)));
 
-      if (env.FAL_KEY) {
-        // Her sahneye ayrı görsel: carousel'de her kart, videoda her sahne farklı kare.
-        // Bir fikrin sahneleri tek adımda paralel üretilir; biri düşerse diğerleri kalır.
-        const uretilen: Record<string, (Uretilen | null)[]> = {};
-        for (const f of fikirler) {
-          try {
-            await nefes(step, `gorsel-${f.id}`);
-            uretilen[f.id] = await yap(step, `gorsel-${f.id}`, { ...TEKRAR, retries: { ...TEKRAR.retries, limit: 2 } }, async () => {
-              const kareler = kareListesi(f);
-              const boyut = f.format === 'kisa_video' ? DIKEY_9_16 : DIKEY_4_5;
-              if (!kareler.some(Boolean)) return kareler.map(() => null); // hepsi tasarım kartı
-              const sonuc = await Promise.allSettled(
-                kareler.map((k, i) =>
-                  k ? gorselUret(env, sahnePromptu(k, f.gorsel_prompt), `${runId}/${f.id}-${i + 1}.jpg`, boyut) : Promise.resolve(null)
-                )
-              );
-              const out = sonuc.map((r) => (r.status === 'fulfilled' ? r.value : null));
-              sonuc.forEach((r, i) => r.status === 'rejected' && console.error('görsel üretilemedi', f.id, i + 1, hataMetni(r.reason)));
-              if (!out.some(Boolean)) throw new Error('hiçbir sahne görseli üretilemedi');
-              await sahneMedyasiYaz(env, f.id, out.map((o) => (o ? { gorsel_anahtar: o.anahtar } : {})));
-              return out;
-            });
-          } catch (e) {
-            console.error('görsel üretilemedi', f.id, hataMetni(e)); // fikir görselsiz de işe yarar
-          }
-        }
-
-        // Video: bütçe kadar kısa video fikri; her sahne görselinden 5 sn'lik gerçek klip.
-        const butce = sayi((await markaOku(env)).sinirlar?.butce?.video_per_run ?? 1);
-        // Ajan hangi sahnenin video olacağına kendisi karar verir (tur: video); bütçe yalnız üst sınır.
-        const videoFikirleri = fikirler.filter((f) => f.sahneler.some((s) => s.tur === 'video')).slice(0, Math.max(0, butce));
-        if (env.VIDEO_AKTIF === '1') {
-          for (const vf of videoFikirleri) {
+        if (env.FAL_KEY) {
+          // Her sahneye ayrı görsel: carousel'de her kart, videoda her sahne farklı kare.
+          // Bir fikrin sahneleri tek adımda paralel üretilir; biri düşerse diğerleri kalır.
+          const uretilen: Record<string, (Uretilen | null)[]> = {};
+          for (const f of fikirler) {
             try {
-              const gorseller = uretilen[vf.id] ?? [];
-              // Yalnız tur=video sahneler, görseli olanlar; en fazla VIDEO_SAHNE_SINIRI klip
-              let kalan = VIDEO_SAHNE_SINIRI;
-              const kareler = vf.sahneler.map((s, i) =>
-                s.tur === 'video' && gorseller[i] && kalan-- > 0 ? s.prompt || vf.gorsel_prompt : null
-              );
-              const isler = await yap(step, `video-baslat-${vf.id}`, TEKRAR, async () => {
-                const r = await Promise.allSettled(
-                  kareler.map((k, i) => (k ? videoBaslat(env, k, gorseller[i]?.falUrl) : Promise.resolve(null)))
-                );
-                r.forEach((x, i) => x.status === 'rejected' && console.error('video başlatılamadı', vf.id, i + 1, hataMetni(x.reason)));
-                return r.map((x) => (x.status === 'fulfilled' ? x.value : null));
-              });
-              // null: sürüyor · '': başarısız (bir daha yoklanmaz) · anahtar: hazır
-              const bitti: (string | null)[] = isler.map((is) => (is ? null : ''));
-              for (let tur = 0; tur < 24 && bitti.some((b) => b === null); tur++) {
-                await step.sleep(`video-bekle-${vf.id}-${tur}`, '30 seconds');
-                const durum = await yap(step, `video-durum-${vf.id}-${tur}`, TEKRAR, async () =>
-                  Promise.all(
-                    isler.map(async (is, i) => {
-                      if (!is || bitti[i] !== null) return bitti[i];
-                      try {
-                        return await videoYokla(env, is, `${runId}/${vf.id}-${i + 1}.mp4`);
-                      } catch (e) {
-                        console.error('video klibi başarısız', vf.id, i + 1, hataMetni(e));
-                        return '';
-                      }
-                    })
+              await nefes(step, `gorsel-${f.id}`);
+              uretilen[f.id] = await yap(step, `gorsel-${f.id}`, { ...TEKRAR, retries: { ...TEKRAR.retries, limit: 2 } }, async () => {
+                const kareler = kareListesi(f);
+                const boyut = f.format === 'kisa_video' ? DIKEY_9_16 : DIKEY_4_5;
+                if (!kareler.some(Boolean)) return kareler.map(() => null); // hepsi tasarım kartı
+                const sonuc = await Promise.allSettled(
+                  kareler.map((k, i) =>
+                    k ? gorselUret(env, sahnePromptu(k, f.gorsel_prompt), `${runId}/${f.id}-${i + 1}.jpg`, boyut) : Promise.resolve(null)
                   )
                 );
-                durum.forEach((d, i) => d !== null && (bitti[i] = d));
-              }
-              await yap(step, `video-kaydet-${vf.id}`, async () => {
-                await sahneMedyasiYaz(env, vf.id, bitti.map((b) => (b ? { video_anahtar: b } : {})));
-                const ilk = bitti.find(Boolean);
-                if (ilk) await env.DB.prepare('UPDATE ideas SET video_anahtar = ? WHERE id = ?').bind(ilk, vf.id).run();
-                return bitti.filter(Boolean).length;
+                const out = sonuc.map((r) => (r.status === 'fulfilled' ? r.value : null));
+                sonuc.forEach((r, i) => r.status === 'rejected' && console.error('görsel üretilemedi', f.id, i + 1, hataMetni(r.reason)));
+                if (!out.some(Boolean)) throw new Error('hiçbir sahne görseli üretilemedi');
+                await sahneMedyasiYaz(env, f.id, out.map((o) => (o ? { gorsel_anahtar: o.anahtar } : {})));
+                return out;
               });
             } catch (e) {
-              console.error('video üretilemedi', vf.id, hataMetni(e));
+              console.error('görsel üretilemedi', f.id, hataMetni(e)); // fikir görselsiz de işe yarar
+            }
+          }
+
+          // Video: bütçe kadar kısa video fikri; her sahne görselinden 5 sn'lik gerçek klip.
+          const butce = sayi((await markaOku(env)).sinirlar?.butce?.video_per_run ?? 1);
+          // Ajan hangi sahnenin video olacağına kendisi karar verir (tur: video); bütçe yalnız üst sınır.
+          const videoFikirleri = fikirler.filter((f) => f.sahneler.some((s) => s.tur === 'video')).slice(0, Math.max(0, butce));
+          if (env.VIDEO_AKTIF === '1') {
+            for (const vf of videoFikirleri) {
+              try {
+                const gorseller = uretilen[vf.id] ?? [];
+                // Yalnız tur=video sahneler, görseli olanlar; en fazla VIDEO_SAHNE_SINIRI klip
+                let kalan = VIDEO_SAHNE_SINIRI;
+                const kareler = vf.sahneler.map((s, i) =>
+                  s.tur === 'video' && gorseller[i] && kalan-- > 0 ? s.prompt || vf.gorsel_prompt : null
+                );
+                const isler = await yap(step, `video-baslat-${vf.id}`, TEKRAR, async () => {
+                  const r = await Promise.allSettled(
+                    kareler.map((k, i) => (k ? videoBaslat(env, k, gorseller[i]?.falUrl) : Promise.resolve(null)))
+                  );
+                  r.forEach((x, i) => x.status === 'rejected' && console.error('video başlatılamadı', vf.id, i + 1, hataMetni(x.reason)));
+                  return r.map((x) => (x.status === 'fulfilled' ? x.value : null));
+                });
+                // null: sürüyor · '': başarısız (bir daha yoklanmaz) · anahtar: hazır
+                const bitti: (string | null)[] = isler.map((is) => (is ? null : ''));
+                for (let tur = 0; tur < 24 && bitti.some((b) => b === null); tur++) {
+                  await step.sleep(`video-bekle-${vf.id}-${tur}`, '30 seconds');
+                  const durum = await yap(step, `video-durum-${vf.id}-${tur}`, TEKRAR, async () =>
+                    Promise.all(
+                      isler.map(async (is, i) => {
+                        if (!is || bitti[i] !== null) return bitti[i];
+                        try {
+                          return await videoYokla(env, is, `${runId}/${vf.id}-${i + 1}.mp4`);
+                        } catch (e) {
+                          console.error('video klibi başarısız', vf.id, i + 1, hataMetni(e));
+                          return '';
+                        }
+                      })
+                    )
+                  );
+                  durum.forEach((d, i) => d !== null && (bitti[i] = d));
+                }
+                await yap(step, `video-kaydet-${vf.id}`, async () => {
+                  await sahneMedyasiYaz(env, vf.id, bitti.map((b) => (b ? { video_anahtar: b } : {})));
+                  const ilk = bitti.find(Boolean);
+                  if (ilk) await env.DB.prepare('UPDATE ideas SET video_anahtar = ? WHERE id = ?').bind(ilk, vf.id).run();
+                  return bitti.filter(Boolean).length;
+                });
+              } catch (e) {
+                console.error('video üretilemedi', vf.id, hataMetni(e));
+              }
             }
           }
         }
@@ -440,6 +472,148 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
     }
   }
 
+  /**
+   * KREATİF DİREKTÖR + STÜDYO (v2 Faz 2-3). Manus 3 içerik + rota kartı
+   * yazıyor; reel'ler puan sırasıyla ve bütçe bekçisinden geçerek
+   * stüdyoda üretiliyor, carousel'lerin her kartına görsel, rota kartına
+   * görsel.
+   */
+  private async kreatifUret(step: WorkflowStep, runId: string, uretimGirdi: any) {
+    const env = this.env;
+    await nefes(step, 'kreatif');
+    const girdi = await yap(step, 'kreatif-girdi', async () => ({
+      kazanan_formatlar: uretimGirdi.kazanan_formatlar,
+      tr_trend_uygun: uretimGirdi.tr_trend_uygun,
+      hesap_performansi: uretimGirdi.hesap_performansi,
+      aktif_seriler: uretimGirdi.aktif_seriler,
+      marka: uretimGirdi.marka,
+      son_icerikler: await sonIcerikler(env),
+    }));
+    const k = (await this.beyin(step, runId, 'kreatif', girdi, [], 30)) as any;
+    await nefes(step, 'kreatif-kaydet');
+    const icerikler = await yap(step, 'kreatif-kaydet', () =>
+      kreatifYaz(env, runId, k, dizi<any>(uretimGirdi.kazanan_formatlar).map((f) => f.id))
+    );
+    const rota = await yap(step, 'rota-kaydet', () => rotaKartiYaz(env, runId, k?.rota_karti));
+    if (!env.FAL_KEY) return;
+
+    if (rota?.prompt) {
+      await nefes(step, 'rota-gorsel');
+      await yap(step, 'rota-gorsel', TEKRAR, async () => {
+        const g = await gorselUret(env, sahnePromptu(rota.prompt, ''), `${runId}/rota-${rota.id}.jpg`, DIKEY_4_5);
+        await env.DB.prepare('UPDATE rota_kartlari SET gorsel_anahtar = ? WHERE id = ?').bind(g.anahtar, rota.id).run();
+        await harcamaYaz(env, runId, 'fal', 'fal-ai/flux-pro (rota)', 0.04);
+        return g.anahtar;
+      }).catch((e) => console.error('rota görseli', hataMetni(e)));
+    }
+
+    for (const c of icerikler.filter((x) => x.format === 'carousel')) {
+      await nefes(step, `carousel-${c.id}`);
+      await yap(step, `carousel-${c.id}`, TEKRAR, async () => {
+        const sonuc = await Promise.allSettled(
+          c.plan.cekimler.map((ck, i) =>
+            gorselUret(env, sahnePromptu(ck.kare_prompt, c.plan.stil), `${runId}/${c.id}-${i + 1}.jpg`, DIKEY_4_5)
+          )
+        );
+        await sahneMedyasiYaz(env, c.id, sonuc.map((r) => (r.status === 'fulfilled' ? { gorsel_anahtar: r.value.anahtar } : {})));
+        await harcamaYaz(env, runId, 'fal', 'fal-ai/flux-pro (carousel)', c.plan.cekimler.length * 0.04);
+        return true;
+      }).catch((e) => console.error('carousel görselleri', hataMetni(e)));
+    }
+
+    const reeller = icerikler.filter((x) => x.format === 'kisa_video').sort((a, b) => b.puan - a.puan);
+    for (const r of reeller) {
+      try {
+        await this.reelUret(step, runId, r);
+      } catch (e) {
+        console.error('reel üretilemedi', r.id, hataMetni(e));
+        await yap(step, `reel-hata-${r.id}`, () =>
+          env.DB.prepare("UPDATE ideas SET reel_durum = 'hata' WHERE id = ?").bind(r.id).run().then(() => true)
+        );
+      }
+    }
+  }
+
+  /** Bir reel: bütçe → kareler → klipler (+ses, müzik) → montaj → altyazı → R2. */
+  private async reelUret(step: WorkflowStep, runId: string, r: KreatifIcerik) {
+    const env = this.env;
+    const plan = r.plan;
+    if (!plan.cekimler.length) return;
+    await nefes(step, `reel-butce-${r.id}`);
+    const karar = await yap(step, `reel-butce-${r.id}`, async () => {
+      const tavan = sayi(env.FAL_GUNLUK_TAVAN) || 3;
+      const harcanan = await bugunkuFal(env, simdiIst().slice(0, 10));
+      let heroVeo = true;
+      let tahmin = maliyetTahmini(plan, true);
+      if (harcanan + tahmin > tavan) {
+        heroVeo = false;
+        tahmin = maliyetTahmini(plan, false);
+      }
+      const uret = harcanan + tahmin <= tavan;
+      await env.DB.prepare('UPDATE ideas SET reel_durum = ?, reel_maliyet = ? WHERE id = ?')
+        .bind(uret ? 'uretiliyor' : 'atlandi', tahmin, r.id).run();
+      return { uret, heroVeo, tahmin, harcanan, tavan };
+    });
+    if (!karar.uret) {
+      console.log(`reel atlandı (bütçe): ${r.id} bugün ${karar.harcanan}$ + ${karar.tahmin}$ > ${karar.tavan}$`);
+      return;
+    }
+
+    // 1) Kareler (senkron, paralel) — R2'ye de yazılıyor (panelde sahne önizlemesi).
+    const kareler = await yap(step, `reel-kare-${r.id}`, { ...TEKRAR, timeout: '10 minutes' as const }, async () => {
+      const urller = await Promise.all(plan.cekimler.map((c) => kareUret(env, c, plan.stil)));
+      const anahtarlar = await Promise.all(urller.map((u, i) => r2yeYaz(env, u, `${runId}/${r.id}-k${i + 1}.jpg`)));
+      await sahneMedyasiYaz(env, r.id, anahtarlar.map((a) => ({ gorsel_anahtar: a })));
+      return urller;
+    });
+
+    // 2) Klipler + müzik kuyruğa; seslendirme senkron.
+    const isler = await yap(step, `reel-klip-${r.id}`, TEKRAR, () =>
+      Promise.all(plan.cekimler.map((c, i) => klipBaslat(env, c, kareler[i], karar.heroVeo, !!plan.seslendirme)))
+    );
+    const toplamMs = plan.cekimler.reduce((t, c) => t + klipSuresiMs(c, karar.heroVeo), 0);
+    const muzikIs = plan.muzik
+      ? await yap(step, `reel-muzik-${r.id}`, TEKRAR, () => muzikBaslat(env, plan.muzik!, toplamMs, !!plan.seslendirme))
+      : null;
+    const ses = plan.seslendirme ? await yap(step, `reel-ses-${r.id}`, TEKRAR, () => seslendir(env, plan.seslendirme!)) : null;
+
+    const hepsi = muzikIs ? [...isler, muzikIs] : isler;
+    const bitti = await this.kuyrukBekle(step, `reel-${r.id}`, hepsi, 30);
+    const klipler = plan.cekimler.map((c, i) => ({ url: klipAdresi(bitti[i]), sureMs: klipSuresiMs(c, karar.heroVeo) }));
+    const muzik = muzikIs ? sesAdresi(bitti[isler.length]) : null;
+
+    // 3) Montaj (+ altyazı).
+    const montajIs = await yap(step, `reel-montaj-${r.id}`, TEKRAR, () => montajBaslat(env, klipler, ses, muzik));
+    let video = montajAdresi((await this.kuyrukBekle(step, `reel-montaj-${r.id}`, [montajIs], 20))[0]);
+    if (ses) {
+      const altIs = await yap(step, `reel-altyazi-${r.id}`, TEKRAR, () => altyaziBaslat(env, video));
+      video = altyaziAdresi((await this.kuyrukBekle(step, `reel-altyazi-${r.id}`, [altIs], 20))[0]);
+    }
+
+    // 4) R2 + defter.
+    await nefes(step, `reel-kaydet-${r.id}`);
+    await yap(step, `reel-kaydet-${r.id}`, { ...TEKRAR, timeout: '10 minutes' as const }, async () => {
+      const anahtar = await r2yeYaz(env, video, `${runId}/${r.id}-reel.mp4`);
+      await env.DB.prepare("UPDATE ideas SET video_anahtar = ?, reel_durum = 'hazir' WHERE id = ?").bind(anahtar, r.id).run();
+      await harcamaYaz(env, runId, 'fal', `reel ${karar.heroVeo ? 'veo+kling' : 'kling'}`, karar.tahmin);
+      return anahtar;
+    });
+  }
+
+  /** fal kuyruk işlerini 20 sn arayla yokla; hepsi bitince sonuç gövdeleri. */
+  private async kuyrukBekle(step: WorkflowStep, ad: string, isler: KuyrukIsi[], maxTur: number): Promise<any[]> {
+    const env = this.env;
+    let sonuc: (any | null)[] = isler.map(() => null);
+    for (let i = 0; i < maxTur; i++) {
+      await step.sleep(`${ad}-bekle-${i}`, '20 seconds');
+      sonuc = await yap(step, `${ad}-yokla-${i}`, TEKRAR, () =>
+        Promise.all(isler.map((is, j) => (sonuc[j] ? Promise.resolve(sonuc[j]) : kuyrukYokla(env, is))))
+      );
+      if (sonuc.every((x) => x)) return sonuc;
+    }
+    throw new Error(`${ad}: fal işleri süresinde bitmedi`);
+  }
+
   /** Manus'u başlatır ve bekler; düşerse ya da süre dolarsa Workers AI. */
   private async beyin(
     step: WorkflowStep,
@@ -472,7 +646,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
     const tur = Math.max(1, Math.round((sureDk ?? (sayi(env.MANUS_SURE_DK) || 20)) * 3)); // 20 sn'de bir
     for (let i = 0; i < tur; i++) {
       await step.sleep(`${ad}-bekle-${i}`, '20 seconds');
-      const y = await yap(step, `${ad}-yokla-${i}`, TEKRAR, () => brainYokla(env, bas.taskId) as Promise<any>);
+      const y = await yap(step, `${ad}-yokla-${i}`, TEKRAR, () => brainYokla(env, bas.taskId, ad) as Promise<any>);
       if (!y.bitti) continue;
       if ('sonuc' in y) return y.sonuc;
       console.error(`Manus ${ad}:`, y.hata);

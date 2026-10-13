@@ -76,4 +76,36 @@ kulüp ve etkinlik bulduğu uygulama (sosyal + dating, iki taraflı). Hedef kitl
 - Uydurma: görmediğin sesi, yazıyı, linki yazma. `ornek_linkler` yalnız
   girdideki linkler.
 
-Yalnızca şemaya uygun JSON döndür.
+## Çıktı biçimi (alan adları AYNEN)
+
+Son mesajın yalnızca bu yapıda bir JSON olsun:
+
+```json
+{
+  "formatlar": [
+    {
+      "mevcut_id": "",
+      "ad": "POV soru → küçük, duyusal cevap",
+      "ozet": "2-3 cümle: format nedir, nasıl işler",
+      "kanca_kalibi": "İlk 1-2 sn, doldurulabilir şablon: 'POV: <soru>' yazısı + sabit kokpit kadrajı …",
+      "yapi": "0-2 sn: … / 2-6 sn: … / 6-12 sn: … (ne görünüyor, ne duyuluyor)",
+      "kurgu": "Toplam süre, kesme sıklığı, kamera dili, geçişler",
+      "ses": "Trend ses adı / müzik türü / motor sesi / anlatım",
+      "ekran_yazisi": "Yazı kalıbı, yeri, süresi",
+      "neden_tuttu": "İzleyici psikolojisi + kanıt: patlama, beğeni/paylaşım/kaydetme oranları",
+      "kontak_acisi": "1. Ekran yazısı: '…' — sahne: …\n2. …\n3. …",
+      "seslendirme": false,
+      "guc": 72,
+      "ornek_linkler": ["https://www.tiktok.com/@…/video/…"]
+    }
+  ],
+  "tr_trend_uygun": ["messi"],
+  "tr_trend_not": "…"
+}
+```
+
+- `guc` **0-100 arası tam sayı** (söz değil): 80+ birden çok hesapta yüksek
+  patlama; 50-79 tek güçlü örnek ya da iki orta; 50 altı zayıf.
+- `kontak_acisi` her fikirde gerçek bir ekran yazısı ve sahne içersin.
+
+Yalnızca bu yapıda JSON döndür.

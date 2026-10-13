@@ -216,6 +216,17 @@ async function api(req: Request, env: Env, url: URL): Promise<Response> {
       : await DB.prepare('SELECT * FROM patlayanlar ORDER BY bulunma DESC, patlama DESC LIMIT 60').all();
     return json(r.results);
   }
+  if (yol === '/api/rota-kartlari' && m === 'GET') {
+    const r = await DB.prepare('SELECT * FROM rota_kartlari ORDER BY olusturma DESC LIMIT 30').all<any>();
+    return json(
+      r.results.map(({ gorsel_anahtar, ...k }) => ({
+        ...k,
+        duraklar: jsonAc(k.duraklar, []),
+        kaynaklar: jsonAc(k.kaynaklar, []),
+        gorsel_url: gorsel_anahtar ? `${medyaOnek}${gorsel_anahtar}` : null,
+      }))
+    );
+  }
   if (yol === '/api/harcamalar' && m === 'GET') {
     const toplam = await DB.prepare('SELECT servis, ROUND(SUM(tutar_usd), 3) AS usd, COUNT(*) AS kalem FROM harcamalar GROUP BY servis').all();
     const bugun = await DB.prepare('SELECT servis, ROUND(SUM(tutar_usd), 3) AS usd FROM harcamalar WHERE zaman >= ? GROUP BY servis')

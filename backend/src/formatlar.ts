@@ -13,6 +13,19 @@ import { dizi, jsonAc, kisaId, metin, sayi, simdiIst, sinirla } from './yardimci
 type Ornek = { link: string; izlenme: number; patlama: number; hesap: string | null };
 
 const SONME_GUN = 10;
+
+/** Güç: sayı (0-100 ya da 0-1) ya da sözel ("yüksek/orta/düşük"). */
+function gucPuani(v: unknown): number {
+  if (typeof v === 'string') {
+    const t = v.toLocaleLowerCase('tr');
+    if (/çok yüksek/.test(t)) return 90;
+    if (/yüksek|güçlü/.test(t)) return 75;
+    if (/orta/.test(t)) return 55;
+    if (/düşük|zayıf/.test(t)) return 30;
+  }
+  const n = sayi(v);
+  return Math.round(sinirla(n > 0 && n <= 1 ? n * 100 : n, 0, 100));
+}
 const ORNEK_SINIRI = 8;
 
 function durumHesapla(gorulme: number, ilk: string, son: string, simdi = Date.now()): string {
@@ -80,17 +93,23 @@ export async function formatlariYaz(env: Env, runId: string, sok: any, secilen: 
       .map((l) => linkler.get(l))
       .filter((a): a is Aday => !!a)
       .map((a) => ({ link: a.link, izlenme: a.izlenme, patlama: a.patlama, hesap: a.hesap }));
-    const guc = Math.round(sinirla(sayi(f?.guc), 0, 100));
+    const guc = gucPuani(f?.guc);
+    // Manus'un ham çıktısında alan adları değişebiliyor (kanca, kontak_fikirleri[],
+    // kurgu_ses_ekran_yazisi …) — ikisini de kabul et.
+    const birlesik = metin(f?.kurgu_ses_ekran_yazisi);
+    const fikirler = Array.isArray(f?.kontak_fikirleri)
+      ? f.kontak_fikirleri.map((x: unknown, i: number) => `${i + 1}. ${metin(x)}`).join('\n')
+      : '';
     const alan = {
-      ozet: metin(f?.ozet).slice(0, 600),
-      kanca_kalibi: metin(f?.kanca_kalibi).slice(0, 400),
-      yapi: metin(f?.yapi).slice(0, 1500),
-      kurgu: metin(f?.kurgu).slice(0, 600),
-      ses: metin(f?.ses).slice(0, 300),
-      ekran_yazisi: metin(f?.ekran_yazisi).slice(0, 400),
-      neden_tuttu: metin(f?.neden_tuttu).slice(0, 600),
-      kontak_acisi: metin(f?.kontak_acisi).slice(0, 1000),
-      seslendirme: f?.seslendirme ? 1 : 0,
+      ozet: metin(f?.ozet).slice(0, 800),
+      kanca_kalibi: metin(f?.kanca_kalibi ?? f?.kanca).slice(0, 600),
+      yapi: metin(f?.yapi).slice(0, 2000),
+      kurgu: metin(f?.kurgu ?? birlesik).slice(0, 900),
+      ses: metin(f?.ses ?? (birlesik ? '' : '')).slice(0, 400),
+      ekran_yazisi: metin(f?.ekran_yazisi).slice(0, 500),
+      neden_tuttu: [metin(f?.neden_tuttu), metin(f?.guc_gerekcesi)].filter(Boolean).join(' — ').slice(0, 900),
+      kontak_acisi: (metin(f?.kontak_acisi) || fikirler).slice(0, 1500),
+      seslendirme: f?.seslendirme === true || f?.seslendirme === 1 || f?.seslendirme === 'evet' ? 1 : 0,
     };
     const eski = mevcut.get(metin(f?.mevcut_id));
     let id: string;

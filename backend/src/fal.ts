@@ -85,7 +85,7 @@ export async function videoYokla(env: Env, is: VideoIsi, anahtar: string): Promi
   return r2yeYaz(env, url, anahtar);
 }
 
-async function r2yeYaz(env: Env, url: string, anahtar: string): Promise<string> {
+export async function r2yeYaz(env: Env, url: string, anahtar: string): Promise<string> {
   const d = await fetch(url);
   if (!d.ok) throw new Error(`fal dosyası indirilemedi ${d.status}`);
   // arrayBuffer: R2 uzunluğu bilinmeyen akışı reddediyor (chunked yanıt).

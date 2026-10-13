@@ -34,6 +34,8 @@ export type Cekim = {
   /** Hareket: kamera + eylem, İngilizce */
   hareket_prompt: string;
   hero: boolean;
+  /** Türkçe ekran yazısı (görüntüye gömülmez; panelde ve paylaşırken) */
+  ekran_yazisi?: string;
 };
 
 export type CekimPlani = {

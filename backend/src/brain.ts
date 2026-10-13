@@ -14,7 +14,10 @@ import type { Env } from './tipler';
 import { jsonCikar } from './yardimci';
 import { PROMPTLAR } from './promptlar.gen';
 
-export type PromptAdi = 'analiz' | 'uretim' | 'haftalik' | 'sok';
+export type PromptAdi = 'analiz' | 'uretim' | 'haftalik' | 'sok' | 'kreatif';
+
+/** Ham Manus çıktısını tanımak için her görevin ana dizisi. */
+const ANA_ALAN: Partial<Record<PromptAdi, string>> = { sok: 'formatlar', kreatif: 'icerikler' };
 
 // ─────────────────────────────────────────────
 // Şemalar. Manus kuralı: her nesnede additionalProperties:false ve
@@ -150,6 +153,62 @@ export const SEMALAR: Record<PromptAdi, Record<string, unknown>> = {
     },
     tr_trend_not: { ...S, description: 'Uygun trendleri Kontak nasıl kullanabilir, tek paragraf' },
   }),
+  /**
+   * KREATİF DİREKTÖR (v2 Faz 2). Derinlik: kök{} → icerikler[] → icerik{} →
+   * cekimler[] → cekim{} = 5 (Manus sınırı). Çekimin içinde dizi YOK;
+   * rota kartında duraklar satır satır metin (dizi değil).
+   */
+  kreatif: nesne({
+    adaylar_ozeti: { ...S, description: '6 adayın adı, formatı ve 50 üzerinden puanı; satır satır' },
+    icerikler: {
+      type: 'array',
+      description: 'Seçilen tam 3 içerik, en az 2 reel, üçü farklı format',
+      items: nesne({
+        format_id: { ...S, description: 'kazanan_formatlar içindeki id' },
+        platform: PLATFORM2,
+        format: { type: 'string', enum: ['kisa_video', 'carousel'] },
+        baslik: S,
+        kanca: { ...S, description: 'İlk 1,5 sn ekran yazısı' },
+        neden_simdi: { ...S, description: 'Bu içerik neden bugün tutar (format kanıtı + açı)' },
+        puan: { ...N, description: '0-50' },
+        puan_gerekce: { ...S, description: 'Durdurma/Trend/Kimlik/Paylaş/Üretilebilirlik puanları ve tek cümle' },
+        senaryo: { ...SD, description: 'Sahne sahne, Türkçe, saniyeli' },
+        aciklama_metni: S,
+        hashtagler: SD,
+        onerilen_ses: { ...S, description: 'Trend ses adı ya da boş string' },
+        seslendirme: { ...S, description: 'Türkçe anlatım metni ya da boş string' },
+        muzik: { ...S, description: 'İngilizce müzik tarifi ya da boş string' },
+        stil: { ...S, description: 'Bütün çekimlerde aynı: sürücü, motor, ışık, renk, lens (İngilizce)' },
+        seri_adi: { ...S, description: 'Seri içeriğiyse seri adı, değilse boş string' },
+        cekimler: {
+          type: 'array',
+          items: nesne({
+            sira: N,
+            sure_sn: { ...N, description: 'hero 6 ya da 8, diğerleri 5' },
+            kare_prompt: { ...S, description: 'İlk kare, İngilizce, somut' },
+            hareket_prompt: { ...S, description: 'Kamera + eylem, İngilizce' },
+            hero: { type: 'boolean' },
+            ekran_yazisi: { ...S, description: 'Bu çekimin Türkçe ekran yazısı ya da boş string' },
+          }),
+        },
+      }),
+    },
+    rota_karti: nesne({
+      ad: S,
+      il: S,
+      baslangic: S,
+      bitis: S,
+      duraklar: { ...S, description: 'Ara duraklar, her biri ayrı satırda' },
+      km: N,
+      sure_dk: N,
+      en_iyi_zaman: S,
+      zorluk: { type: 'string', enum: ['kolay', 'orta', 'zor'] },
+      yol_tipi: S,
+      neden_git: { ...S, description: 'Motorcuya hitap eden kısa, çekici anlatım (2-3 cümle)' },
+      kare_prompt: { ...S, description: 'Rota kartı görseli, İngilizce, gerçek yerin karakteri, tanınabilir tabela yok' },
+      kaynaklar: { ...S, description: 'Doğrulamada bakılan linkler, satır satır' },
+    }),
+  }),
   haftalik: nesne({
     ozet: S,
     kalici: { type: 'array', items: nesne({ baslik: S, ivme: N }) },
@@ -161,6 +220,7 @@ export const SEMALAR: Record<PromptAdi, Record<string, unknown>> = {
 
 // Nida'nın prompts/*.md dosyası yoksa bunlar kullanılır.
 const VARSAYILAN: Record<PromptAdi, string> = {
+  kreatif: `Sen Kontak'ın kreatif direktörüsün. Kazanan formatlardan 6 aday üret, 5 eksende puanla, en iyi 3'ü (en az 2 reel) prodüksiyon planıyla ve 1 gerçek rota kartıyla döndür. Broşür/nasihat dili yasak. Yalnız şemaya uygun JSON döndür.`,
   sok: `Sen kısa video formatlarını söken kıdemli bir kreatif stratejistsin. Ekteki patlayan videoları izle, tekrar kullanılabilir FORMATLARI çıkar (kanca, yapı, kurgu, ses, ekran yazısı, neden tuttu, Kontak açısı). Haber/siyaset/trajedi/suç asla. Yalnız şemaya uygun JSON döndür.`,
   analiz: `Sen Kontak'ın sosyal medya ajanısın. Kontak, Türkiye'de motosiklet kültürü üzerine kurulu tanışma ve topluluk uygulaması.
 Girdi: marka profili, takip listesi, son 48 saatin en güçlü TikTok/Instagram gönderileri ve her hashtag/ses için ivme puanı (0-100; 50 durağan, 75 iki kat büyüme, 100 dört kat).
@@ -216,8 +276,8 @@ export async function brainBaslat(
   return { saglayici: 'workersai', sonuc: await workersAi(env, ad, girdi) };
 }
 
-export async function brainYokla(env: Env, taskId: string): Promise<BrainYoklama> {
-  return manusYokla(env, taskId);
+export async function brainYokla(env: Env, taskId: string, ad?: PromptAdi): Promise<BrainYoklama> {
+  return manusYokla(env, taskId, ad ? ANA_ALAN[ad] : undefined);
 }
 
 export async function workersAi(env: Env, ad: PromptAdi, girdi: unknown): Promise<unknown> {
@@ -289,7 +349,7 @@ async function manusBaslat(env: Env, ad: PromptAdi, girdi: unknown, baslik: stri
   return { saglayici: 'manus', taskId: r.task_id, taskUrl: r.task_url };
 }
 
-async function manusYokla(env: Env, taskId: string): Promise<BrainYoklama> {
+async function manusYokla(env: Env, taskId: string, anaAlan?: string): Promise<BrainYoklama> {
   const d = await manus(env, `/task.detail?task_id=${encodeURIComponent(taskId)}`);
   const durum = d?.task?.status as string;
   if (durum === 'error') return { bitti: true, hata: 'Manus görevi hata verdi' };
@@ -298,6 +358,30 @@ async function manusYokla(env: Env, taskId: string): Promise<BrainYoklama> {
   const m = await manus(env, `/task.listMessages?task_id=${encodeURIComponent(taskId)}&order=desc&limit=30`);
   const olaylar: any[] = Array.isArray(m?.messages) ? m.messages : [];
 
+  /**
+   * ⚠️ HAM ÇIKTI ÖNCE (13 Ekim): Manus'un kendi son mesajı zengin bir JSON
+   *    (kanıt, oranlar, somut fikirler); "structured output" çıkarıcısı onu
+   *    şemaya sıkıştırırken ayrıntıyı öldürüyordu (güç "orta" → 0, fikirler
+   *    tek cümle). Son mesaj geçerli JSON ve beklenen ana diziyi içeriyorsa
+   *    o kullanılıyor; alan adı farkları kaydederken esnekçe eşleniyor.
+   *    Yapısal çıktı yedek.
+   */
+  if (anaAlan) {
+    for (const o of olaylar) {
+      if (o?.type !== 'assistant_message') continue;
+      const icerik = o.assistant_message?.content;
+      if (typeof icerik !== 'string' || icerik.length < 200) continue;
+      try {
+        const ham: any = jsonCikar(icerik);
+        if (ham && typeof ham === 'object' && Array.isArray(ham[anaAlan]) && ham[anaAlan].length) {
+          await manus(env, '/task.stop', { task_id: taskId }).catch(() => undefined);
+          return { bitti: true, sonuc: ham };
+        }
+      } catch {
+        /* JSON değil — sıradakine bak */
+      }
+    }
+  }
   const yapisal = olaylar.find((o) => o?.type === 'structured_output_result');
   if (yapisal) {
     // Sonuç alındı; görevi kapat ki sıradaki görev açılabilsin (yukarıdaki not).

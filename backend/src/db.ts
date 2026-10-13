@@ -67,6 +67,8 @@ export function fikirCikti(i: any, medyaOnek: string) {
       video_url: v ? `${medyaOnek}${v}` : null,
     })),
     rota: jsonAc<unknown>(i.rota, null),
+    // v2: kreatif direktörün çekim planı (studyo.ts CekimPlani).
+    uretim_plani: jsonAc<unknown>(i.uretim_plani, null),
     gorsel_url: gorsel_anahtar ? `${medyaOnek}${gorsel_anahtar}` : null,
     video_url: video_anahtar ? `${medyaOnek}${video_anahtar}` : null,
   };
