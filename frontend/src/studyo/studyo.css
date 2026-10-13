@@ -2077,3 +2077,34 @@
 .st-uretildi b {
   color: var(--metin);
 }
+
+/* Önizleme: sabit açıklama kutusu */
+.st-aciklama-bas {
+  justify-content: space-between;
+  width: 100%;
+}
+.st-aciklama-bas .btn-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.st-aciklama-kutu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--yuzey);
+  border: 1px solid var(--cizgi);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--metin);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.st-etiketler {
+  color: var(--marka);
+  font-weight: 600;
+  font-size: 13px;
+}

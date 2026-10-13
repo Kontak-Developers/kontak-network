@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Download, Pencil, RefreshCw, Sparkles, Type } from 'lucide-react'
+import { Copy, Download, Pencil, RefreshCw, Sparkles, Type } from 'lucide-react'
 import { assetUrl } from '../api'
-import { isTuru, scenesOf, zamanEtiketi } from '../lib'
+import { caption, copyText, isTuru, scenesOf, zamanEtiketi } from '../lib'
 import { useStore } from '../store'
 import type { Idea } from '../types'
 import { studyoApi } from './api'
@@ -104,6 +104,21 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
               <RefreshCw size={14} /> Yeniden üret (~3$)
             </button>
           )}
+        </div>
+      )}
+
+      {(idea.aciklama_metni || idea.hashtagler.length > 0) && (
+        <div className="st-icerik-blok">
+          <span className="st-icerik-baslik st-aciklama-bas">
+            Açıklama
+            <button className="btn btn-sm" onClick={async () => (await copyText(caption(idea))) && toast('Açıklama ve etiketler kopyalandı')}>
+              <Copy size={13} /> Kopyala
+            </button>
+          </span>
+          <div className="st-aciklama-kutu">
+            {idea.aciklama_metni && <p>{idea.aciklama_metni}</p>}
+            {idea.hashtagler.length > 0 && <p className="st-etiketler">{idea.hashtagler.join(' ')}</p>}
+          </div>
         </div>
       )}
 
