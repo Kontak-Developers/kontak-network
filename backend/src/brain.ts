@@ -17,7 +17,7 @@ import { PROMPTLAR } from './promptlar.gen';
 export type PromptAdi = 'analiz' | 'uretim' | 'haftalik' | 'sok' | 'kreatif';
 
 /** Ham Manus çıktısını tanımak için her görevin ana dizisi. */
-const ANA_ALAN: Partial<Record<PromptAdi, string>> = { sok: 'formatlar', kreatif: 'icerikler' };
+const ANA_ALAN: Partial<Record<PromptAdi, string[]>> = { sok: ['formatlar'], kreatif: ['icerikler', 'secilen_icerikler'] };
 
 // ─────────────────────────────────────────────
 // Şemalar. Manus kuralı: her nesnede additionalProperties:false ve
@@ -349,7 +349,7 @@ async function manusBaslat(env: Env, ad: PromptAdi, girdi: unknown, baslik: stri
   return { saglayici: 'manus', taskId: r.task_id, taskUrl: r.task_url };
 }
 
-async function manusYokla(env: Env, taskId: string, anaAlan?: string): Promise<BrainYoklama> {
+async function manusYokla(env: Env, taskId: string, anaAlan?: string[]): Promise<BrainYoklama> {
   const d = await manus(env, `/task.detail?task_id=${encodeURIComponent(taskId)}`);
   const durum = d?.task?.status as string;
   if (durum === 'error') return { bitti: true, hata: 'Manus görevi hata verdi' };
@@ -373,7 +373,7 @@ async function manusYokla(env: Env, taskId: string, anaAlan?: string): Promise<B
       if (typeof icerik !== 'string' || icerik.length < 200) continue;
       try {
         const ham: any = jsonCikar(icerik);
-        if (ham && typeof ham === 'object' && Array.isArray(ham[anaAlan]) && ham[anaAlan].length) {
+        if (ham && typeof ham === 'object' && anaAlan.some((a) => Array.isArray(ham[a]) && ham[a].length)) {
           await manus(env, '/task.stop', { task_id: taskId }).catch(() => undefined);
           return { bitti: true, sonuc: ham };
         }
@@ -381,6 +381,12 @@ async function manusYokla(env: Env, taskId: string, anaAlan?: string): Promise<B
         /* JSON değil — sıradakine bak */
       }
     }
+  }
+  // Ana alanı tanımlı görevlerde (sök, kreatif) yapısal özetleyiciye güvenilmiyor:
+  // Türkçe karakterleri bozup şema açıklamalarını değer diye kopyaladı (13 Ekim).
+  // Ham çıktı yoksa → hata → Workflow yedeğe geçer.
+  if (anaAlan && d?.task?.has_running_background_jobs === false && olaylar.some((o) => o?.type === 'structured_output_result')) {
+    return { bitti: true, hata: 'Manus ham JSON çıktısı yok (yapısal özete güvenilmiyor)' };
   }
   const yapisal = olaylar.find((o) => o?.type === 'structured_output_result');
   if (yapisal) {

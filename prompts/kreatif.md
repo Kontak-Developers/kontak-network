@@ -89,4 +89,48 @@ yol tipi. Uydurma yok; emin olmadığın bilgiyi yazma. `kaynaklar`'a
 baktığın linkleri yaz. İstanbul, Ankara, İzmir, Bursa, Antalya çevresi
 öncelikli; her turda farklı bir rota (`son_icerikler`'e bak).
 
-Yalnızca şemaya uygun JSON döndür.
+## Çıktı biçimi (alan adları AYNEN)
+
+Son mesajın yalnızca bu yapıda bir JSON olsun (Türkçe karakterleri olduğu gibi yaz):
+
+```json
+{
+  "adaylar_ozeti": "aday_01 · Vizörü indirdim; kafamdaki 17 sekme kapandı · 45/50\n…",
+  "icerikler": [
+    {
+      "format_id": "f_…",
+      "platform": "instagram",
+      "format": "kisa_video",
+      "baslik": "Vizör indi, dünya sustu",
+      "kanca": "Vizörü indirdim; kafamdaki 17 sekme kapandı.",
+      "neden_simdi": "Formatın kanıtı + bu açının neden bugün tutacağı",
+      "puan": 45,
+      "puan_gerekce": "durdurma 9 · trend 9 · kimlik 9 · paylaş 9 · üretilebilirlik 9",
+      "senaryo": ["0-5 sn: …", "5-12 sn: …"],
+      "aciklama_metni": "Paylaşım açıklaması",
+      "hashtagler": ["#motosiklet", "#motorcu"],
+      "onerilen_ses": "",
+      "seslendirme": "",
+      "muzik": "Slow darkwave instrumental, ~90 BPM …",
+      "stil": "Rider in matte graphite full-face helmet, olive jacket, black naked bike, night, 35mm …",
+      "seri_adi": "",
+      "cekimler": [
+        { "sira": 1, "sure_sn": 5, "kare_prompt": "…", "hareket_prompt": "…", "hero": false, "ekran_yazisi": "Vizörü indirdim; …" },
+        { "sira": 2, "sure_sn": 8, "kare_prompt": "…", "hareket_prompt": "…", "hero": true, "ekran_yazisi": "" }
+      ]
+    }
+  ],
+  "rota_karti": {
+    "ad": "…", "il": "Ankara", "baslangic": "…", "bitis": "…",
+    "duraklar": "Ayaş\nBeypazarı tarihi merkezi",
+    "km": 200, "sure_dk": 210, "en_iyi_zaman": "…", "zorluk": "orta", "yol_tipi": "…",
+    "neden_git": "…", "kare_prompt": "…",
+    "kaynaklar": "https://…\nhttps://…"
+  }
+}
+```
+
+- `km` ve `sure_dk` **sayı** ve rotanın tamamı (gidiş-dönüşse toplam).
+- `hero` yalnız bir çekimde `true`; hero 6 ya da 8 sn, diğerleri 5 sn.
+
+Yalnızca bu yapıda JSON döndür.

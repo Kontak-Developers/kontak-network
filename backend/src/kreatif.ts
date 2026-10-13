@@ -49,6 +49,84 @@ function planCikar(x: any): CekimPlani {
   };
 }
 
+/**
+ * ⚠️ MANUS HAM ÇIKTISI KENDİ ŞEKLİNDE (13 Ekim): `icerikler` yerine
+ *    `secilen_icerikler` + `adaylar`, ekran yazısı saniyeli dizi, etiketler
+ *    {aktif, deneme}, rota kartında guzergah[] / mesafe{} / kaynaklar[{url}].
+ *    Yapısal özetleyiciye bırakınca Türkçe karakterler bozuldu ve şema
+ *    açıklamaları değer diye kopyalandı ("Kamera + eylem, İngilizce").
+ *    Bu fonksiyon iki şekli de bizim şekle çeviriyor.
+ */
+export function kreatifNormalize(k: any): any {
+  if (!k || typeof k !== 'object') return k;
+  if (Array.isArray(k.icerikler) && k.icerikler.length) return k;
+  const adaylar = new Map<string, any>(dizi<any>(k.adaylar).map((a) => [metin(a?.aday_id), a]));
+  const yazilar = (v: unknown) =>
+    Array.isArray(v) ? v.map((x: any) => (typeof x === 'string' ? x : metin(x?.metin))).filter(Boolean) : [metin(v)].filter(Boolean);
+  const icerikler = dizi<any>(k.secilen_icerikler).map((x) => {
+    const a = adaylar.get(metin(x?.aday_id)) ?? {};
+    const ekran = yazilar(x?.ekran_yazisi);
+    const platformlar = dizi<string>(x?.platformlar).join(' ').toLowerCase();
+    const etiket = x?.etiketler;
+    const hashtagler = Array.isArray(etiket) ? etiket : [...dizi<string>(etiket?.aktif), ...dizi<string>(etiket?.deneme)];
+    const puanlar = a?.puanlar ?? {};
+    return {
+      format_id: x?.format_id ?? a?.format_id,
+      platform: /tiktok/.test(platformlar) && !/instagram/.test(platformlar) ? 'tiktok' : platformlar.includes('instagram') ? 'instagram' : 'tiktok',
+      format: a?.kisa_video === false ? 'carousel' : 'kisa_video',
+      baslik: x?.baslik ?? a?.fikir,
+      kanca: metin(a?.kanca) || ekran[0] || '',
+      neden_simdi: [metin(a?.format_uygulamasi), metin(x?.kurgu)].filter(Boolean).join(' ').slice(0, 600),
+      puan: a?.puan,
+      puan_gerekce: Object.keys(puanlar).length
+        ? Object.entries(puanlar).map(([e, v]) => `${e} ${v}`).join(' · ')
+        : metin(x?.puan_gerekce),
+      senaryo: [
+        ...ekran.map((t, i) => `Ekran yazısı ${i + 1}: ${t}`),
+        metin(x?.kurgu) ? `Kurgu: ${metin(x.kurgu)}` : '',
+        metin(x?.ses_plani) ? `Ses: ${metin(x.ses_plani)}` : '',
+      ].filter(Boolean),
+      aciklama_metni: metin(x?.caption ?? x?.aciklama_metni),
+      hashtagler,
+      onerilen_ses: metin(x?.onerilen_ses),
+      seslendirme: metin(x?.seslendirme),
+      muzik: metin(x?.muzik),
+      stil: metin(x?.stil),
+      seri_adi: metin(x?.seri_adi),
+      cekimler: dizi<any>(x?.cekimler).map((c, i) => ({
+        sira: c?.sira ?? c?.no ?? i + 1,
+        sure_sn: c?.sure_sn,
+        kare_prompt: c?.kare_prompt,
+        hareket_prompt: c?.hareket_prompt,
+        hero: c?.hero === true || Number(x?.hero_cekım_no ?? x?.hero_cekim_no) === (c?.no ?? i + 1),
+        ekran_yazisi: metin(c?.ekran_yazisi),
+      })),
+    };
+  });
+  const r = k.rota_karti ?? {};
+  const guzergah = dizi<string>(r.guzergah).map((g) => metin(g));
+  const kmMetin = typeof r.mesafe === 'object' ? JSON.stringify(r.mesafe) : metin(r.mesafe ?? r.km);
+  const km = Number((kmMetin.match(/(\d+[.,]?\d*)/) ?? [])[1]?.replace(',', '.')) || undefined;
+  const dk = metin(r.tahmini_sure ?? r.sure_dk);
+  const saat = dk.match(/(\d+[.,]?\d*)\s*(?:–|-)?\s*(?:\d+[.,]?\d*)?\s*saat/);
+  const rota = {
+    ad: r.ad ?? r.baslik,
+    il: r.il ?? (metin(r.baslangic).split(/[ ,;—-]/)[0] || ''),
+    baslangic: r.baslangic,
+    bitis: r.bitis ?? guzergah[guzergah.length - 1] ?? '',
+    duraklar: Array.isArray(r.duraklar) ? r.duraklar.join('\n') : metin(r.duraklar) || guzergah.slice(1, -1).join('\n'),
+    km,
+    sure_dk: Number(r.sure_dk) || (saat ? Math.round(Number(saat[1].replace(',', '.')) * 60) : undefined),
+    en_iyi_zaman: r.en_iyi_zaman ?? r.en_iyi_mevsim_ve_saat,
+    zorluk: r.zorluk,
+    yol_tipi: r.yol_tipi,
+    neden_git: r.neden_git ?? [metin(r.durak_notu), metin(r.dogrulama_notu)].filter(Boolean).join(' '),
+    kare_prompt: r.kare_prompt ?? '',
+    kaynaklar: Array.isArray(r.kaynaklar) ? r.kaynaklar.map((x: any) => (typeof x === 'string' ? x : metin(x?.url))).join('\n') : metin(r.kaynaklar),
+  };
+  return { adaylar_ozeti: dizi<any>(k.adaylar).map((a) => `${metin(a?.aday_id)} · ${metin(a?.fikir)} · ${sayi(a?.puan)}/50`).join('\n'), icerikler, rota_karti: rota };
+}
+
 export async function kreatifYaz(env: Env, runId: string, k: any, gecerliFormatlar: string[]): Promise<KreatifIcerik[]> {
   const zaman = simdiIst();
   const stmts: D1PreparedStatement[] = [];

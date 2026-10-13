@@ -16,7 +16,7 @@ import { avAdaylari, avBaslat, avMaliyeti, dokum, falaTasi, indirilenler, indirm
 import { formatlariYaz, harcamaYaz, kazananFormatlar, mevcutFormatlar, patlayanlariYaz, trTrendleriniYaz, uygunTrTrendleri } from './formatlar';
 import { DIKEY_4_5, DIKEY_9_16, gorselUret, r2yeYaz, sahnePromptu, videoBaslat, videoYokla, type Uretilen } from './fal';
 import { gonderileriYaz, markaOku, gonderileriOku } from './db';
-import { kreatifYaz, rotaKartiYaz, sonIcerikler, type KreatifIcerik } from './kreatif';
+import { kreatifNormalize, kreatifYaz, rotaKartiYaz, sonIcerikler, type KreatifIcerik } from './kreatif';
 import {
   altyaziAdresi, altyaziBaslat, bugunkuFal, kareUret, klipAdresi, klipBaslat, kuyrukYokla, maliyetTahmini,
   montajAdresi, montajBaslat, muzikBaslat, sesAdresi, seslendir, type KuyrukIsi,
@@ -492,9 +492,9 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
     const k = (await this.beyin(step, runId, 'kreatif', girdi, [], 30)) as any;
     await nefes(step, 'kreatif-kaydet');
     const icerikler = await yap(step, 'kreatif-kaydet', () =>
-      kreatifYaz(env, runId, k, dizi<any>(uretimGirdi.kazanan_formatlar).map((f) => f.id))
+      kreatifYaz(env, runId, kreatifNormalize(k), dizi<any>(uretimGirdi.kazanan_formatlar).map((f) => f.id))
     );
-    const rota = await yap(step, 'rota-kaydet', () => rotaKartiYaz(env, runId, k?.rota_karti));
+    const rota = await yap(step, 'rota-kaydet', () => rotaKartiYaz(env, runId, kreatifNormalize(k)?.rota_karti));
     if (!env.FAL_KEY) return;
 
     if (rota?.prompt) {
