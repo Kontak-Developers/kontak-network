@@ -1071,3 +1071,60 @@
   justify-content: flex-end;
   gap: 6px;
 }
+
+/* İçerik kartında reel durumu (MediaCard) */
+.mcard-reel {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(8, 10, 40, 0.72);
+  white-space: nowrap;
+}
+.mcard-reel-atlandi,
+.mcard-reel-hata {
+  background: rgba(180, 83, 9, 0.85);
+}
+
+/* Günlük akış rehberi */
+.st-rehber {
+  counter-reset: adim;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+.st-rehber li {
+  counter-increment: adim;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--zemin);
+  font-size: 13px;
+  color: var(--metin-orta);
+}
+.st-rehber li::before {
+  content: counter(adim);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--marka);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.st-rehber b {
+  color: var(--metin);
+  font-size: 13.5px;
+}

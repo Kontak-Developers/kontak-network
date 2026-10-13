@@ -17,7 +17,15 @@ export async function sonIcerikler(env: Env) {
     "SELECT baslik, kanca, format_id, olusturma FROM ideas WHERE durum != 'reddedildi' ORDER BY olusturma DESC LIMIT 45"
   ).all();
   const rotalar = await env.DB.prepare('SELECT ad, il FROM rota_kartlari ORDER BY olusturma DESC LIMIT 10').all();
-  return { icerikler: r.results, rotalar: rotalar.results };
+  // Ekibin panelde reddettikleri: "bu tarza benzeme" sinyali (öğrenme döngüsünün ilk adımı).
+  const reddedilen = await env.DB.prepare(
+    "SELECT baslik, kanca FROM ideas WHERE durum = 'reddedildi' AND uretim_plani IS NOT NULL ORDER BY olusturma DESC LIMIT 20"
+  ).all();
+  // Paylaşılanlar: ekibin beğendiği ton.
+  const paylasilan = await env.DB.prepare(
+    "SELECT baslik, kanca FROM ideas WHERE durum IN ('onaylandi', 'paylasildi') ORDER BY olusturma DESC LIMIT 15"
+  ).all();
+  return { icerikler: r.results, reddedilenler: reddedilen.results, begenilenler: paylasilan.results, rotalar: rotalar.results };
 }
 
 function planCikar(x: any, carousel = false): CekimPlani {

@@ -44,6 +44,11 @@ export function MediaCard({ idea, series }: { idea: Idea; series?: Series }) {
         )}
         <span className="mcard-title">{idea.baslik}</span>
       </span>
+      {idea.format === 'kisa_video' && idea.reel_durum && idea.reel_durum !== 'hazir' && (
+        <span className={`mcard-reel mcard-reel-${idea.reel_durum}`}>
+          {idea.reel_durum === 'uretiliyor' ? 'Üretiliyor' : idea.reel_durum === 'bekliyor' ? 'Sırada' : idea.reel_durum === 'atlandi' ? 'Bütçeden atlandı' : 'Üretilemedi'}
+        </span>
+      )}
       {hasVideo(idea) ? (
         <span className="mcard-media">
           <Play size={10} fill="currentColor" /> {scenesOf(idea).filter((s) => s.video_url).length} klip

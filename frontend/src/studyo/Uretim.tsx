@@ -72,6 +72,31 @@ export default function Uretim({ ozet, yenile }: { ozet: StudyoOzet; yenile: () 
 
   return (
     <>
+      <Bolum baslik="Günlük akış" aciklama="Ajan her sabah 08:00'de trend olmuş videoları avlar, formatları söker ve içerik üretir. Senin işin seçmek, düzeltmek, paylaşmak.">
+        <ol className="st-rehber">
+          <li>
+            <b>İçerikler'e bak</b>
+            Turuncu noktalılar yeni. Karta tıkla, sağda telefonda nasıl görüneceğini gör.
+          </li>
+          <li>
+            <b>Kancayı seç</b>
+            Altta 5 kanca varyantı var. Daha iyisini "Kullan"la seç; yazılı video kendiliğinden yenilenir.
+          </li>
+          <li>
+            <b>Metni düzelt</b>
+            "Metni düzenle" ile açıklama, etiket ve ekran yazılarını değiştir.
+          </li>
+          <li>
+            <b>İndir ve paylaş</b>
+            "Yazılı MP4" ya da yazılı slaytları indir, açıklamayı kopyala, paylaş; panelde paylaşıldı olarak işaretle.
+          </li>
+          <li>
+            <b>Beğenmediğini reddet</b>
+            Reddedilenler ajanın "bunu tekrar etme" listesine girer.
+          </li>
+        </ol>
+      </Bolum>
+
       <Bolum
         baslik="Stok üret"
         aciklama="Tarama ve söküm yapmadan, format kütüphanesindeki trend olmuş kalıplarla art arda içerik turu. Her tur 3 içerik + 1 rota kartı; her tur bir odakla."

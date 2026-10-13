@@ -659,7 +659,9 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
     if (!plan.cekimler.length) return;
     await nefes(step, `reel-butce-${r.id}`);
     const karar = await yap(step, `reel-butce-${r.id}`, async () => {
-      const tavan = tavanUst ?? ayar.butce.fal_gunluk_tavan;
+      // Tavan canlı okunuyor: süren işte panelden tavanı artırmak bir sonraki reelde geçerli.
+      const canli = (await ayarlariOku(env)).butce.fal_gunluk_tavan;
+      const tavan = Math.max(tavanUst ?? 0, canli);
       const harcanan = await bugunkuFal(env, simdiIst().slice(0, 10));
       const k = ayar.butce.maliyet_katsayi;
       let heroVeo = ayar.studyo.hero_veo;

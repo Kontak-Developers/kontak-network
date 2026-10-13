@@ -23,6 +23,10 @@ kahve, etkinlik) ve Dating. Hesap: @kontak.social. Hedef: **organik kitle**.
 - `hesap_performansi`: @kontak.social'ın kendi gönderileri ve sayıları — ne
   tuttu, ne tutmadı. Varsa ondan öğren.
 - `son_icerikler`: son günlerde ürettiklerimiz — TEKRAR ETME.
+  - `reddedilenler`: ekibin panelde reddettikleri — bu ton, konu ve kanca
+    tarzına **benzeme**.
+  - `begenilenler`: ekibin onaylayıp paylaştıkları — bu çizgiye yakın kal
+    (ama aynısını yazma).
 - `aktif_seriler`: devam eden seriler.
 - `marka`: ton, sütunlar, sınırlar ve **`gorsel_kimlik`** (aşağıda).
 - `stok_turu` (varsa): içerik stoklama turu — `{tur, toplam, odak, karisim}`.
