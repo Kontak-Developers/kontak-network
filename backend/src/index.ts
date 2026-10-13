@@ -5,6 +5,7 @@ import type { Env, RunParams } from './tipler';
 import { fikirCikti, haftaCikti, runCikti, seriCikti, trendCikti } from './db';
 import { hata, json, jsonAc, runIdUret, simdiIst } from './yardimci';
 import { cikis, giris, oturum, sifreDegistir } from './hesap';
+import { studyoApi } from './studyoApi';
 import {
   instagramPublish, instagramPublishComplete, instagramPublishPreview, instagramPublishStatus, socialConnectUrl,
   socialOAuthCallback, socialStatus, SocialError,
@@ -91,6 +92,14 @@ async function api(req: Request, env: Env, url: URL): Promise<Response> {
   const medyaOnek = `${onek}/api/medya/`;
   const DB = env.DB;
 
+  // Stüdyo sekmesi (ayarlar, kimlik, promptlar, stok, yazı, kararlar).
+  if (yol.startsWith('/api/studyo') || /^\/api\/(formats|rota-kartlari)\/[^/]+$/.test(yol) || /^\/api\/ideas\/[^/]+\/metin$/.test(yol)) {
+    const jeton = (req.headers.get('authorization') ?? '').slice(7);
+    const kim = jeton.startsWith('ag_') ? (await oturum(env, jeton))?.eposta ?? 'ajan-hesabi' : 'kontak-moderator';
+    const y = await studyoApi(req, env, url, kim, medyaOnek, (ek, ozet) => runBaslat(env, 'manuel', ek, ozet));
+    if (y) return y;
+  }
+
   if (yol === '/api/social/status' && m === 'GET') return json(await socialStatus(env));
   const socialConnect = yol.match(/^\/api\/social\/(instagram|tiktok)\/connect$/);
   if (socialConnect && m === 'POST') {
@@ -151,7 +160,7 @@ async function api(req: Request, env: Env, url: URL): Promise<Response> {
     if (m === 'POST') {
       // Aynı anda tek çalıştırma: üst üste basmak kredi yakar.
       const suren = await DB.prepare(
-        "SELECT * FROM runs WHERE durum = 'calisiyor' AND baslangic > ? ORDER BY baslangic DESC LIMIT 1"
+        "SELECT * FROM runs WHERE durum = 'calisiyor' AND id LIKE 'run_%' AND baslangic > ? ORDER BY baslangic DESC LIMIT 1"
       ).bind(simdiIst(new Date(Date.now() - 45 * 60_000))).first();
       if (suren) return json({ hata: { kod: 'zaten_calisiyor', mesaj: 'Ajan şu an çalışıyor.' }, run: runCikti(suren) }, 409);
       const id = await runBaslat(env, 'manuel');
@@ -309,14 +318,16 @@ async function rotaSenkron(env: Env, yetkiBasligi: string) {
   return { sayi: stmts.length };
 }
 
-async function runBaslat(env: Env, tetik: RunParams['tetik']): Promise<string> {
+async function runBaslat(env: Env, tetik: RunParams['tetik'], ek: Partial<RunParams> = {}, ozet = ''): Promise<string> {
   let id = runIdUret();
+  if (ek.stok) id = id.replace(/^run_/, 'stok_');
+  if (ek.yazi) id = id.replace(/^run_/, 'yazi_');
   if (await env.DB.prepare('SELECT 1 FROM runs WHERE id = ?').bind(id).first()) id += `_${Date.now() % 100000}`;
   await env.DB.prepare(
-    "INSERT INTO runs (id, tetik, durum, adim, baslangic, taranan_gonderi, ozet) VALUES (?, ?, 'calisiyor', 'tara', ?, 0, '')"
-  ).bind(id, tetik, simdiIst()).run();
+    "INSERT INTO runs (id, tetik, durum, adim, baslangic, taranan_gonderi, ozet) VALUES (?, ?, 'calisiyor', ?, ?, 0, ?)"
+  ).bind(id, tetik, ek.stok || ek.yazi ? 'uret' : 'tara', simdiIst(), ozet).run();
   try {
-    const w = await env.AGENT_RUN.create({ id, params: { runId: id, tetik } });
+    const w = await env.AGENT_RUN.create({ id, params: { ...ek, runId: id, tetik } });
     await env.DB.prepare('UPDATE runs SET workflow_id = ? WHERE id = ?').bind(w.id, id).run();
   } catch (e) {
     await env.DB.prepare("UPDATE runs SET durum = 'hata', hata = ?, bitis = ? WHERE id = ?")

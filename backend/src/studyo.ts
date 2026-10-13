@@ -92,7 +92,7 @@ const FIYAT = {
 const GERCEK_KATSAYI = 1.45;
 
 /** Plan için tahmini fal maliyeti (USD). */
-export function maliyetTahmini(plan: CekimPlani, heroVeo = true): number {
+export function maliyetTahmini(plan: CekimPlani, heroVeo = true, katsayi = GERCEK_KATSAYI): number {
   const veoSesli = !plan.seslendirme;
   const toplamSn = plan.cekimler.reduce((t, c) => t + c.sure_sn, 0);
   let usd = plan.cekimler.length * FIYAT.kare;
@@ -100,7 +100,7 @@ export function maliyetTahmini(plan: CekimPlani, heroVeo = true): number {
   if (plan.seslendirme) usd += plan.seslendirme.length * FIYAT.ttsKarakter + FIYAT.altyazi;
   if (plan.muzik) usd += FIYAT.muzik;
   usd += toplamSn * FIYAT.composeSn;
-  return Math.round(usd * GERCEK_KATSAYI * 100) / 100;
+  return Math.round(usd * katsayi * 100) / 100;
 }
 
 async function falSenkron(env: Env, model: string, girdi: unknown): Promise<any> {
@@ -201,10 +201,10 @@ export function klipAdresi(sonuc: any): string {
 }
 
 /** 3) Türkçe seslendirme. Ses adı FAL_SES (varsayılan "Brian": tok, sakin anlatıcı). */
-export async function seslendir(env: Env, metinTr: string): Promise<string> {
+export async function seslendir(env: Env, metinTr: string, ses?: string): Promise<string> {
   const v = await falSenkron(env, 'fal-ai/elevenlabs/tts/eleven-v3', {
     text: metinTr.slice(0, 900),
-    voice: env.FAL_SES || 'Brian',
+    voice: ses || env.FAL_SES || 'Brian',
     language_code: 'tr',
     stability: 0.5,
     apply_text_normalization: 'auto',
@@ -246,6 +246,74 @@ export async function montajBaslat(
   if (ses) tracks.push({ id: 'ses', type: 'audio', keyframes: [{ url: ses, timestamp: 300, duration: Math.max(1000, t - 300) }] });
   if (muzik) tracks.push({ id: 'muzik', type: 'audio', keyframes: [{ url: muzik, timestamp: 0, duration: t }] });
   return falKuyruk(env, 'fal-ai/ffmpeg-api/compose', { tracks });
+}
+
+/** Bayt → fal deposu (herkese açık adres; compose ve modeller okuyabilsin). */
+export async function falaYukle(env: Env, veri: Uint8Array | ArrayBuffer, mime: string, ad: string): Promise<string> {
+  const i = await fetch('https://rest.alpha.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3', {
+    method: 'POST',
+    headers: { Authorization: `Key ${env.FAL_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content_type: mime, file_name: ad }),
+  });
+  if (!i.ok) throw new Error(`fal depo ${i.status}: ${(await i.text()).slice(0, 160)}`);
+  const j: any = await i.json();
+  const p = await fetch(j.upload_url, { method: 'PUT', headers: { 'Content-Type': mime }, body: veri });
+  if (!p.ok) throw new Error(`fal depo yükleme ${p.status}`);
+  return metin(j.file_url);
+}
+
+export type YaziAraligi = { basMs: number; bitMs: number; metin: string };
+
+/**
+ * Ekran yazısı aralıkları: her çekimin yazısı o çekim süresince. Aynı yazı
+ * art arda sahnelerde sürüyorsa tek aralık. Seslendirmeli reelde altyazı
+ * zaten konuşmayı yazıyor; orada yalnız kanca (ilk sahne).
+ */
+export function yaziAraliklari(plan: CekimPlani, sureler: number[]): YaziAraligi[] {
+  const out: YaziAraligi[] = [];
+  let t = 0;
+  plan.cekimler.forEach((c, i) => {
+    const bas = t;
+    t += sureler[i];
+    const yazi = (c.ekran_yazisi ?? '').trim();
+    if (!yazi || (plan.seslendirme && i > 0)) return;
+    const son = out[out.length - 1];
+    if (son && son.metin === yazi && son.bitMs === bas) son.bitMs = t;
+    else out.push({ basMs: bas, bitMs: t, metin: yazi });
+  });
+  return out;
+}
+
+/**
+ * Yazı gömme üç fal adımı (hepsi ffmpeg, kuruşluk):
+ *   1) levhalardan zaman çizelgesi videosu (images-to-video, 30 fps)
+ *   2) reel + çizelge, hardlight karışım (blend-video)
+ *   3) orijinal ses geri (merge-audio-video; karışım sesi taşımıyor olabilir)
+ */
+export const YAZI_FPS = 30;
+
+export function yaziCizelgesiBaslat(env: Env, kareler: { url: string; frames: number }[]): Promise<KuyrukIsi> {
+  return falKuyruk(env, 'fal-ai/ffmpeg-api/images-to-video', { fps: YAZI_FPS, images: kareler });
+}
+
+export function yaziKaristirBaslat(env: Env, videoUrl: string, cizelgeUrl: string): Promise<KuyrukIsi> {
+  return falKuyruk(env, 'fal-ai/workflow-utilities/blend-video', {
+    bottom_video_url: videoUrl,
+    top_video_url: cizelgeUrl,
+    blend_mode: 'hardlight',
+    opacity: 1,
+    shortest: true,
+  });
+}
+
+export function sesGeriBaslat(env: Env, videoUrl: string, sesUrl: string): Promise<KuyrukIsi> {
+  return falKuyruk(env, 'fal-ai/ffmpeg-api/merge-audio-video', { video_url: videoUrl, audio_url: sesUrl });
+}
+
+export function videoAdresi(sonuc: any): string {
+  const url = metin(sonuc?.video?.url ?? sonuc?.video_url);
+  if (!url) throw new Error(`video adresi yok: ${JSON.stringify(sonuc).slice(0, 160)}`);
+  return url;
 }
 
 export function montajAdresi(sonuc: any): string {

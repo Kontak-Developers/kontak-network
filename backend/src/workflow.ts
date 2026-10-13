@@ -19,9 +19,11 @@ import { gonderileriYaz, markaOku, gonderileriOku } from './db';
 import { kreatifNormalize, kreatifYaz, rotaKartiYaz, sonIcerikler, type KreatifIcerik } from './kreatif';
 import {
   altyaziAdresi, altyaziBaslat, bugunkuFal, kareUret, klipAdresi, klipBaslat, kuyrukYokla, maliyetTahmini,
-  montajAdresi, montajBaslat, muzikBaslat, sesAdresi, seslendir, type KuyrukIsi,
-  gorselKimlikEki, kartUret,
+  montajAdresi, montajBaslat, muzikBaslat, sesAdresi, seslendir, type KuyrukIsi, type CekimPlani,
+  gorselKimlikEki, kartUret, falaYukle, yaziAraliklari, yaziCizelgesiBaslat, yaziKaristirBaslat, sesGeriBaslat, videoAdresi, YAZI_FPS,
 } from './studyo';
+import { ayarlariOku, type AjanAyarlari } from './ayarlar';
+import { carouselKarti, reelLevhasi } from './yazi';
 import { syncSocialPerformance } from './social';
 import {
   dizi, hataMetni, isoHafta, jsonAc, kisaId, metin, pazartesiMi, sayi, simdiIst, sinirla,
@@ -65,7 +67,7 @@ const BITMIS_APIFY = new Set(['SUCCEEDED', 'FAILED', 'TIMED-OUT', 'ABORTED']);
 
 export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
   async run(event: WorkflowEvent<RunParams>, step: WorkflowStep) {
-    const { runId, tetik, stok } = event.payload;
+    const { runId, tetik, stok, yazi } = event.payload;
     const env = this.env;
     const adim = (ad: string) =>
       yap(step, `adim-${ad}`, () => env.DB.prepare('UPDATE runs SET adim = ? WHERE id = ?').bind(ad, runId).run().then(() => ad));
@@ -76,6 +78,23 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
      * Tarama ve sökme yok (formatlar zaten taze). Her tur farklı bir odakla
      * ve son_icerikler'e bakarak tekrar etmeden 3 içerik çıkarır.
      */
+    // Panelden yazılan ayarlar (Stüdyo sekmesi); her çalıştırmanın başında bir kez.
+    const ayar = await yap(step, 'ayarlar', () => ayarlariOku(env));
+
+    if (yazi) {
+      try {
+        await this.yaziGom(step, runId, yazi.ids);
+        await yap(step, 'bitir', () =>
+          env.DB.prepare("UPDATE runs SET durum = 'tamamlandi', adim = 'kaydet', bitis = ? WHERE id = ?").bind(simdiIst(), runId).run().then(() => true)
+        );
+      } catch (e) {
+        await yap(step, 'hata-kaydet', () =>
+          env.DB.prepare("UPDATE runs SET durum = 'hata', hata = ?, bitis = ? WHERE id = ?").bind(hataMetni(e).slice(0, 500), simdiIst(), runId).run().then(() => true)
+        );
+      }
+      return;
+    }
+
     if (stok) {
       try {
         await adim('uret');
@@ -97,7 +116,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
         for (let t = 1; t <= tur; t++) {
           const odak = stok.odaklar?.[(t - 1) % stok.odaklar.length] ?? '';
           try {
-            await this.kreatifUret(step, runId, { ...temel, stok_turu: { tur: t, toplam: tur, odak, karisim: stok.karisim ?? '' } }, { onek: `s${t}`, tavan: stok.tavan });
+            await this.kreatifUret(step, runId, { ...temel, stok_turu: { tur: t, toplam: tur, odak, karisim: stok.karisim || ayar.kreatif.karisim } }, { onek: `s${t}`, tavan: stok.tavan, ayar });
           } catch (e) {
             console.error(`stok turu ${t} düştü:`, hataMetni(e));
           }
@@ -143,7 +162,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
           return out;
         });
         const avIsler = await yap(step, 'av-baslat', TEKRAR, () =>
-          avBaslat(env, plan.etiketler.filter((x) => x.platform === 'tiktok').map((x) => x.etiket), sayi(env.GONDERI_PER_ETIKET) || 30)
+          avBaslat(env, plan.etiketler.filter((x) => x.platform === 'tiktok').map((x) => x.etiket), ayar.av)
         );
         for (let i = 0; i < 40; i++) {
           await step.sleep(`apify-bekle-${i}`, '30 seconds');
@@ -180,7 +199,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
             })),
             runId
           );
-          const secilen = patlayanlariSec(adaylar);
+          const secilen = patlayanlariSec(adaylar, ayar.av);
           await patlayanlariYaz(env, runId, secilen);
           await trTrendleriniYaz(env, runId, tr);
           return { toplam: adaylar.length, secilen, tr };
@@ -216,7 +235,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
         ? false
         : await yap(step, 'sok-taze-mi', async () => {
             const r = await env.DB.prepare('SELECT MAX(son_gorulme) AS son FROM formatlar').first<{ son: string | null }>();
-            return !!r?.son && Date.parse(r.son) > Date.now() - 6 * 3600_000;
+            return !!r?.son && Date.parse(r.son) > Date.now() - ayar.sok.taze_saat * 3600_000;
           });
       if (avSonucu && avSonucu.secilen.length && env.FAL_KEY && !tazeSok) {
         try {
@@ -274,7 +293,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
             return out;
           });
           // Manus en fazla 10 ek görüyor (13 Ekim: 11 ekten 10'u). En çok patlayan 10.
-          const linkSirasi = secilen.filter((a) => dosyalar[a.link]).sort((x, y) => y.patlama - x.patlama).slice(0, 10).map((a) => a.link);
+          const linkSirasi = secilen.filter((a) => dosyalar[a.link]).sort((x, y) => y.patlama - x.patlama).slice(0, ayar.sok.izlenecek_video).map((a) => a.link);
           const ekler: BrainEki[] = linkSirasi.map((l, i) => ({ url: dosyalar[l], ad: `video-${i + 1}.mp4`, mime: 'video/mp4' }));
           await nefes(step, 'sok-girdi');
           const sokGirdi = await yap(step, 'sok-girdi', async () => ({
@@ -287,7 +306,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
             mevcut_formatlar: await mevcutFormatlar(env),
             tr_trendleri: avSonucu!.tr.slice(0, 40),
           }));
-          const sok = await this.beyin(step, runId, 'sok', sokGirdi, ekler, 35);
+          const sok = await this.beyin(step, runId, 'sok', sokGirdi, ekler, ayar.sok.sure_dk);
           await nefes(step, 'sok-kaydet');
           await yap(step, 'sok-kaydet', () => formatlariYaz(env, runId, sok, secilen));
         } catch (e) {
@@ -383,7 +402,9 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
        */
       const v2 = dizi((uretimGirdi as any).kazanan_formatlar).length > 0;
       if (v2) {
-        await this.kreatifUret(step, runId, uretimGirdi);
+        const odaklar = ayar.kreatif.odaklar;
+        const odak = odaklar.length ? odaklar[Math.floor(Date.now() / 86400_000) % odaklar.length] : '';
+        await this.kreatifUret(step, runId, odak ? { ...uretimGirdi, stok_turu: { tur: 1, toplam: 1, odak, karisim: ayar.kreatif.karisim } } : uretimGirdi, { ayar });
       } else {
         const uretimHam = (await this.beyin(step, runId, 'uretim', uretimGirdi)) as any;
         // uretim.md kökte 3 elemanlı dizi istiyor; şema {seriler, fikirler}. İkisi de olur.
@@ -524,7 +545,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
    * stüdyoda üretiliyor, carousel'lerin her kartına görsel, rota kartına
    * görsel.
    */
-  private async kreatifUret(step: WorkflowStep, runId: string, uretimGirdi: any, o: { onek?: string; tavan?: number } = {}) {
+  private async kreatifUret(step: WorkflowStep, runId: string, uretimGirdi: any, o: { onek?: string; tavan?: number; ayar: AjanAyarlari }) {
     const env = this.env;
     const p = o.onek ? `${o.onek}-` : '';
     const kimlik = gorselKimlikEki(uretimGirdi.marka);
@@ -538,8 +559,12 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       marka: uretimGirdi.marka,
       son_icerikler: await sonIcerikler(env),
       ...(uretimGirdi.stok_turu ? { stok_turu: uretimGirdi.stok_turu } : {}),
+      ayarlar: {
+        aday: o.ayar.kreatif.aday, secim: o.ayar.kreatif.secim, min_puan: o.ayar.kreatif.min_puan,
+        karisim: o.ayar.kreatif.karisim, ek_talimat: o.ayar.kreatif.ek_talimat,
+      },
     }));
-    const k = (await this.beyin(step, runId, 'kreatif', girdi, [], 30, `${p}kreatif`)) as any;
+    const k = (await this.beyin(step, runId, 'kreatif', girdi, [], o.ayar.kreatif.sure_dk, `${p}kreatif`)) as any;
     await nefes(step, `${p}kreatif-kaydet`);
     const icerikler = await yap(step, `${p}kreatif-kaydet`, () =>
       kreatifYaz(env, runId, kreatifNormalize(k), dizi<any>(uretimGirdi.kazanan_formatlar).map((f) => f.id))
@@ -571,12 +596,15 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
         await harcamaYaz(env, runId, 'fal', 'flux-ultra (carousel)', c.plan.cekimler.length * 0.06);
         return true;
       }).catch((e) => console.error('carousel görselleri', hataMetni(e)));
+      if (o.ayar.studyo.yazi_gom) {
+        await yap(step, `carousel-yazi-${c.id}`, TEKRAR, () => carouselYazilari(env, c.id)).catch((e) => console.error('carousel yazıları', hataMetni(e)));
+      }
     }
 
     const reeller = icerikler.filter((x) => x.format === 'kisa_video').sort((a, b) => b.puan - a.puan);
     for (const r of reeller) {
       try {
-        await this.reelUret(step, runId, { ...r, plan: { ...r.plan, stil: stilli(r.plan.stil) } }, o.tavan);
+        await this.reelUret(step, runId, { ...r, plan: { ...r.plan, stil: stilli(r.plan.stil) } }, o.tavan, o.ayar);
       } catch (e) {
         console.error('reel üretilemedi', r.id, hataMetni(e));
         await yap(step, `reel-hata-${r.id}`, () =>
@@ -587,19 +615,20 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
   }
 
   /** Bir reel: bütçe → kareler → klipler (+ses, müzik) → montaj → altyazı → R2. */
-  private async reelUret(step: WorkflowStep, runId: string, r: KreatifIcerik, tavanUst?: number) {
+  private async reelUret(step: WorkflowStep, runId: string, r: KreatifIcerik, tavanUst: number | undefined, ayar: AjanAyarlari) {
     const env = this.env;
     const plan = r.plan;
     if (!plan.cekimler.length) return;
     await nefes(step, `reel-butce-${r.id}`);
     const karar = await yap(step, `reel-butce-${r.id}`, async () => {
-      const tavan = tavanUst ?? (sayi(env.FAL_GUNLUK_TAVAN) || 3);
+      const tavan = tavanUst ?? ayar.butce.fal_gunluk_tavan;
       const harcanan = await bugunkuFal(env, simdiIst().slice(0, 10));
-      let heroVeo = true;
-      let tahmin = maliyetTahmini(plan, true);
-      if (harcanan + tahmin > tavan) {
+      const k = ayar.butce.maliyet_katsayi;
+      let heroVeo = ayar.studyo.hero_veo;
+      let tahmin = maliyetTahmini(plan, heroVeo, k);
+      if (harcanan + tahmin > tavan && heroVeo) {
         heroVeo = false;
-        tahmin = maliyetTahmini(plan, false);
+        tahmin = maliyetTahmini(plan, false, k);
       }
       const uret = harcanan + tahmin <= tavan;
       await env.DB.prepare('UPDATE ideas SET reel_durum = ?, reel_maliyet = ? WHERE id = ?')
@@ -624,10 +653,10 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       Promise.all(plan.cekimler.map((c, i) => klipBaslat(env, c, kareler[i], karar.heroVeo, !!plan.seslendirme)))
     );
     const toplamMs = plan.cekimler.reduce((t, c) => t + klipSuresiMs(c, karar.heroVeo), 0);
-    const muzikIs = plan.muzik
+    const muzikIs = plan.muzik && ayar.studyo.muzik
       ? await yap(step, `reel-muzik-${r.id}`, TEKRAR, () => muzikBaslat(env, plan.muzik!, toplamMs, !!plan.seslendirme))
       : null;
-    const ses = plan.seslendirme ? await yap(step, `reel-ses-${r.id}`, TEKRAR, () => seslendir(env, plan.seslendirme!)) : null;
+    const ses = plan.seslendirme ? await yap(step, `reel-ses-${r.id}`, TEKRAR, () => seslendir(env, plan.seslendirme!, ayar.studyo.ses)) : null;
 
     const hepsi = muzikIs ? [...isler, muzikIs] : isler;
     const bitti = await this.kuyrukBekle(step, `reel-${r.id}`, hepsi, 30);
@@ -637,7 +666,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
     // 3) Montaj (+ altyazı).
     const montajIs = await yap(step, `reel-montaj-${r.id}`, TEKRAR, () => montajBaslat(env, klipler, ses, muzik));
     let video = montajAdresi((await this.kuyrukBekle(step, `reel-montaj-${r.id}`, [montajIs], 20))[0]);
-    if (ses) {
+    if (ses && ayar.studyo.altyazi) {
       const altIs = await yap(step, `reel-altyazi-${r.id}`, TEKRAR, () => altyaziBaslat(env, video));
       video = altyaziAdresi((await this.kuyrukBekle(step, `reel-altyazi-${r.id}`, [altIs], 20))[0]);
     }
@@ -650,6 +679,86 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
       await harcamaYaz(env, runId, 'fal', `reel ${karar.heroVeo ? 'veo+kling' : 'kling'}`, karar.tahmin);
       return anahtar;
     });
+
+    // 5) Ekran yazısı gömülü kopya (temiz sürüm de kalıyor: uygulamada yazı eklemek isteyen için).
+    if (ayar.studyo.yazi_gom) {
+      const sureler = plan.cekimler.map((c) => klipSuresiMs(c, karar.heroVeo));
+      await this.yaziliReel(step, r.id, video, plan, sureler).catch((e) => console.error('yazılı reel', r.id, hataMetni(e)));
+    }
+  }
+
+  /** Reel'e ekran yazısı göm → R2 `-reel-yazili.mp4` → ideas.yazili_anahtar. Temiz sürüm kalır. */
+  private async yaziliReel(step: WorkflowStep, fikirId: string, videoUrl: string, plan: CekimPlani, sureler: number[]) {
+    const env = this.env;
+    const araliklar = yaziAraliklari(plan, sureler);
+    if (!araliklar.length) return;
+    const toplamMs = sureler.reduce((a, b) => a + b, 0);
+    const cizelgeIs = await yap(step, `yazi-cizelge-${fikirId}`, TEKRAR, async () => {
+      const kare = (ms: number) => Math.max(1, Math.round((ms / 1000) * YAZI_FPS));
+      const gri = await falaYukle(env, await reelLevhasi(null, 1080, 1920), 'image/png', `${fikirId}-gri.png`);
+      const parcalar: { url: string; frames: number }[] = [];
+      let t = 0;
+      for (const [i, a] of araliklar.entries()) {
+        if (a.basMs > t) parcalar.push({ url: gri, frames: kare(a.basMs - t) });
+        parcalar.push({ url: await falaYukle(env, await reelLevhasi(a.metin, 1080, 1920), 'image/png', `${fikirId}-yazi-${i}.png`), frames: kare(a.bitMs - a.basMs) });
+        t = a.bitMs;
+      }
+      if (toplamMs > t) parcalar.push({ url: gri, frames: kare(toplamMs - t) });
+      // images-to-video: görsel başına en fazla 1000 kare
+      return yaziCizelgesiBaslat(env, parcalar.flatMap((p) => (p.frames > 1000 ? [{ ...p, frames: 1000 }, { ...p, frames: p.frames - 1000 }] : [p])));
+    });
+    const cizelge = videoAdresi((await this.kuyrukBekle(step, `yazi-c-${fikirId}`, [cizelgeIs], 20))[0]);
+    const karisimIs = await yap(step, `yazi-karistir-${fikirId}`, TEKRAR, () => yaziKaristirBaslat(env, videoUrl, cizelge));
+    const karisim = videoAdresi((await this.kuyrukBekle(step, `yazi-k-${fikirId}`, [karisimIs], 20))[0]);
+    const sesIs = await yap(step, `yazi-ses-${fikirId}`, TEKRAR, () => sesGeriBaslat(env, karisim, videoUrl));
+    const son = videoAdresi((await this.kuyrukBekle(step, `yazi-s-${fikirId}`, [sesIs], 20))[0]);
+    await yap(step, `yazi-kaydet-${fikirId}`, { ...TEKRAR, timeout: '10 minutes' as const }, async () => {
+      const r = await env.DB.prepare('SELECT run_id FROM ideas WHERE id = ?').bind(fikirId).first<{ run_id: string }>();
+      const anahtar = await r2yeYaz(env, son, `${r?.run_id ?? 'yazili'}/${fikirId}-reel-yazili.mp4`);
+      await env.DB.prepare('UPDATE ideas SET yazili_anahtar = ? WHERE id = ?').bind(anahtar, fikirId).run();
+      await harcamaYaz(env, null, 'fal', 'yazı gömme (ffmpeg)', 0.02);
+      return anahtar;
+    });
+  }
+
+  /**
+   * YAZI MODU: hazır reel ve carousel'lerin yazısız olanlarına ekran yazısı
+   * göm. Panelde "Yazıları göm" ve eski stok için. Reel süreleri planla
+   * aynı mantıkla (hero Veo, diğerleri 5 sn) hesaplanıyor.
+   */
+  private async yaziGom(step: WorkflowStep, runId: string, ids?: string[]) {
+    const env = this.env;
+    await yap(step, 'yazi-adim', () => env.DB.prepare("UPDATE runs SET adim = 'uret' WHERE id = ?").bind(runId).run().then(() => true));
+    const liste = await yap(step, 'yazi-liste', async () => {
+      const r = await env.DB.prepare(
+        `SELECT id, format, video_anahtar, uretim_plani, sahneler FROM ideas
+          WHERE durum != 'reddedildi' AND uretim_plani IS NOT NULL
+            AND ((format = 'kisa_video' AND video_anahtar IS NOT NULL AND yazili_anahtar IS NULL) OR format = 'carousel')
+          ORDER BY olusturma DESC LIMIT 60`
+      ).all<any>();
+      return r.results
+        .filter((x) => !ids?.length || ids.includes(x.id))
+        .filter((x) => x.format === 'kisa_video' || jsonAc<any[]>(x.sahneler, []).some((s) => s.gorsel_anahtar && !s.yazili_anahtar))
+        .map((x) => ({ id: x.id as string, format: x.format as string, video: x.video_anahtar as string | null, plan: jsonAc<CekimPlani | null>(x.uretim_plani, null) }));
+    });
+    for (const x of liste) {
+      try {
+        if (x.format === 'carousel') {
+          await yap(step, `carousel-yazi-${x.id}`, TEKRAR, () => carouselYazilari(env, x.id));
+          continue;
+        }
+        if (!x.plan || !x.video) continue;
+        const plan = x.plan;
+        const url = await yap(step, `yazi-kaynak-${x.id}`, { ...TEKRAR, timeout: '10 minutes' as const }, async () => {
+          const o = await env.MEDYA.get(x.video!);
+          if (!o) throw new Error('reel R2’de yok');
+          return falaYukle(env, await o.arrayBuffer(), 'video/mp4', `${x.id}.mp4`);
+        });
+        await this.yaziliReel(step, x.id, url, plan, plan.cekimler.map((c) => klipSuresiMs(c, true)));
+      } catch (e) {
+        console.error('yazı gömülemedi', x.id, hataMetni(e));
+      }
+    }
   }
 
   /** fal kuyruk işlerini 20 sn arayla yokla; hepsi bitince sonuç gövdeleri. */
@@ -802,6 +911,27 @@ function kareListesi(f: FikirOzet): (string | null)[] {
 }
 
 /** Sahnelerin R2 anahtarlarını sahneler JSON'una işler; kapak = ilk görsel. */
+/** Carousel kartlarına yazı: R2'deki görsel → yazılı PNG → sahneler[i].yazili_anahtar. */
+async function carouselYazilari(env: Env, fikirId: string): Promise<number> {
+  const r = await env.DB.prepare('SELECT sahneler FROM ideas WHERE id = ?').bind(fikirId).first<{ sahneler: string }>();
+  const sahneler = jsonAc<any[]>(r?.sahneler, []);
+  const toplam = sahneler.length;
+  let yazilan = 0;
+  for (let i = 0; i < sahneler.length; i++) {
+    const s = sahneler[i];
+    if (!s.gorsel_anahtar || s.yazili_anahtar) continue;
+    const o = await env.MEDYA.get(s.gorsel_anahtar);
+    if (!o) continue;
+    const png = await carouselKarti(await o.arrayBuffer(), o.httpMetadata?.contentType ?? 'image/jpeg', metin(s.ekran_yazisi), i + 1, toplam);
+    const anahtar = String(s.gorsel_anahtar).replace(/\.(jpe?g|png)$/i, '') + '-yazili.png';
+    await env.MEDYA.put(anahtar, png, { httpMetadata: { contentType: 'image/png' } });
+    s.yazili_anahtar = anahtar;
+    yazilan++;
+  }
+  if (yazilan) await env.DB.prepare('UPDATE ideas SET sahneler = ? WHERE id = ?').bind(JSON.stringify(sahneler), fikirId).run();
+  return yazilan;
+}
+
 async function sahneMedyasiYaz(env: Env, fikirId: string, ekler: { gorsel_anahtar?: string; video_anahtar?: string }[]) {
   const r = await env.DB.prepare('SELECT sahneler, gorsel_anahtar FROM ideas WHERE id = ?').bind(fikirId).first<any>();
   if (!r) return;

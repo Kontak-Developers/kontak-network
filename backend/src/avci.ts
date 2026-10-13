@@ -28,6 +28,9 @@
 import type { Env } from './tipler';
 import { apify } from './apify';
 import { dizi, metin, sayi } from './yardimci';
+import type { AjanAyarlari } from './ayarlar';
+
+type AvAyari = AjanAyarlari['av'];
 
 export type AvKaynak = 'tr_motor' | 'global_motor' | 'tr_trend';
 export type AvIs = { kaynak: AvKaynak; runId: string; datasetId: string };
@@ -52,12 +55,14 @@ export type Aday = {
 
 export type TrTrend = { hashtag: string; sira: number; yon: string | null; gonderi: number; sektor: string };
 
-const GLOBAL_ARAMALAR = ['motorcycle pov', 'biker life', 'motorcycle couple', 'first motorcycle'];
-const VARSAYILAN_TR = ['motosiklet', 'motorcu', 'motovlog', 'motorcuyuz', 'motorcukızlar'];
-
-/** Avın başlangıcı: üç kaynak paralel. TR etiketleri takip listesinden. */
-export async function avBaslat(env: Env, trEtiketler: string[], adet: number): Promise<AvIs[]> {
-  const etiketler = [...new Set([...trEtiketler, ...VARSAYILAN_TR])].slice(0, 10);
+/**
+ * Avın başlangıcı: kaynaklar paralel. Etiket, arama ve eşikler panelden
+ * (Stüdyo → Avcı; ayarlar.ts). TR araması etiketsiz patlayanları da
+ * yakalıyor: Türk motorcuların çoğu etiket koymuyor.
+ */
+export async function avBaslat(env: Env, trEtiketler: string[], av: AvAyari): Promise<AvIs[]> {
+  const etiketler = [...new Set([...av.tr_etiketler, ...trEtiketler])].slice(0, 15);
+  const adet = av.etiket_basi_video;
   const tt = (girdi: Record<string, unknown>, maxItems: number) =>
     apify(env, `/acts/clockworks~tiktok-scraper/runs?maxItems=${maxItems}`, {
       method: 'POST',
@@ -69,16 +74,27 @@ export async function avBaslat(env: Env, trEtiketler: string[], adet: number): P
         shouldDownloadSlideshowImages: false,
       }),
     });
-  const [trMotor, global, trTrend] = await Promise.all([
-    tt({ hashtags: etiketler, resultsPerPage: adet }, etiketler.length * adet),
-    tt({ searchQueries: GLOBAL_ARAMALAR, resultsPerPage: 25, searchSection: '/video' }, GLOBAL_ARAMALAR.length * 25),
-    apify(env, '/acts/data_xplorer~tiktok-trends/runs', {
-      method: 'POST',
-      body: JSON.stringify({ trendType: 'hashtags', countryCode: 'TR', hashtagPeriod: '7', maxItems: 50 }),
-    }),
-  ]);
   const is = (kaynak: AvKaynak, r: any): AvIs => ({ kaynak, runId: r.data.id, datasetId: r.data.defaultDatasetId });
-  return [is('tr_motor', trMotor), is('global_motor', global), is('tr_trend', trTrend)];
+  const isler: Promise<AvIs>[] = [];
+  if (etiketler.length) isler.push(tt({ hashtags: etiketler, resultsPerPage: adet }, etiketler.length * adet).then((r) => is('tr_motor', r)));
+  if (av.tr_aramalar.length)
+    isler.push(
+      tt({ searchQueries: av.tr_aramalar, resultsPerPage: av.arama_basi_video, searchSection: '/video' }, av.tr_aramalar.length * av.arama_basi_video)
+        .then((r) => is('tr_motor', r))
+    );
+  if (av.global_aramalar.length)
+    isler.push(
+      tt({ searchQueries: av.global_aramalar, resultsPerPage: av.arama_basi_video, searchSection: '/video' }, av.global_aramalar.length * av.arama_basi_video)
+        .then((r) => is('global_motor', r))
+    );
+  if (av.creative_center)
+    isler.push(
+      apify(env, '/acts/data_xplorer~tiktok-trends/runs', {
+        method: 'POST',
+        body: JSON.stringify({ trendType: 'hashtags', countryCode: 'TR', hashtagPeriod: '7', maxItems: 50 }),
+      }).then((r) => is('tr_trend', r))
+    );
+  return Promise.all(isler);
 }
 
 /** Apify'ın bildirdiği gerçek maliyet (harcama defteri için). */
@@ -132,19 +148,19 @@ export async function trTrendleri(env: Env, is: AvIs): Promise<TrTrend[]> {
 }
 
 /**
- * Patlayanları seç. Son 14 gün; TR'de en az 15 bin, dünyada 50 bin izlenme;
- * patlama en az 5×. Aynı hesaptan en fazla 2 video (tek hesabın tek
- * tarzı kütüphaneyi domine etmesin). TR ağırlıklı: 9 TR + 4 dünya.
+ * Patlayanları seç (varsayılan: son 14 gün; TR'de en az 15 bin, dünyada 50
+ * bin izlenme; patlama en az 5×; aynı hesaptan en fazla 2 video — tek
+ * hesabın tarzı kütüphaneyi domine etmesin; 9 TR + 4 dünya). Hepsi panelden.
  */
-export function patlayanlariSec(adaylar: Aday[], simdi = Date.now()): Aday[] {
-  const sinir = simdi - 14 * 86400_000;
+export function patlayanlariSec(adaylar: Aday[], av: AvAyari, simdi = Date.now()): Aday[] {
+  const sinir = simdi - av.gun * 86400_000;
   const tekil = new Map<string, Aday>();
   for (const a of adaylar) if (!tekil.has(a.link)) tekil.set(a.link, a);
   const uygun = [...tekil.values()].filter(
     (a) =>
       Date.parse(a.tarih) >= sinir &&
-      a.patlama >= 5 &&
-      a.izlenme >= (a.kaynak === 'tr_motor' ? 15_000 : 50_000)
+      a.patlama >= av.min_patlama &&
+      a.izlenme >= (a.kaynak === 'tr_motor' ? av.min_izlenme_tr : av.min_izlenme_global)
   );
   const sec = (kaynak: Aday['kaynak'], n: number) => {
     const hesapSay = new Map<string, number>();
@@ -155,11 +171,11 @@ export function patlayanlariSec(adaylar: Aday[], simdi = Date.now()): Aday[] {
         const h = a.hesap ?? a.link;
         const s = (hesapSay.get(h) ?? 0) + 1;
         hesapSay.set(h, s);
-        return s <= 2;
+        return s <= av.hesap_basi;
       })
       .slice(0, n);
   };
-  return [...sec('tr_motor', 9), ...sec('global_motor', 4)];
+  return [...sec('tr_motor', av.tr_secim), ...sec('global_motor', av.global_secim)];
 }
 
 /** Seçilenlerin videosunu indir (ayrı Apify işi; yalnız bunlar için ücret). */

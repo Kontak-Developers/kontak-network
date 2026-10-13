@@ -172,8 +172,9 @@ export async function kazananFormatlar(env: Env, adet = 8) {
   const r = await env.DB.prepare(
     `SELECT id, ad, ozet, kanca_kalibi, yapi, kurgu, ses, ekran_yazisi, neden_tuttu, kontak_acisi, seslendirme,
             gorulme, durum, skor, kullanim, ornekler
-       FROM formatlar WHERE durum != 'sonuyor'
-      ORDER BY (durum = 'zirvede') DESC, skor DESC, son_gorulme DESC LIMIT ?`
+       FROM formatlar
+      WHERE COALESCE(panel_karari, '') != 'kapali' AND (durum != 'sonuyor' OR panel_karari = 'sabit')
+      ORDER BY (panel_karari = 'sabit') DESC, (durum = 'zirvede') DESC, skor DESC, son_gorulme DESC LIMIT ?`
   ).bind(adet).all<any>();
   return r.results.map((f) => ({ ...f, seslendirme: f.seslendirme === 1, ornekler: jsonAc(f.ornekler, []) }));
 }

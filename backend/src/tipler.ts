@@ -37,6 +37,8 @@ export type RunParams = {
   tetik: 'cron' | 'manuel';
   /** Stok modu: tarama/sökme yok, kütüphanedeki formatlarla art arda kreatif turları. */
   stok?: { tur: number; tavan: number; odaklar?: string[]; karisim?: string };
+  /** Yazı gömme modu: hazır reel/carousel'lere ekran yazısını göm (ids yoksa eksik olanların hepsi). */
+  yazi?: { ids?: string[] };
 };
 
 export type Platform = 'tiktok' | 'instagram';

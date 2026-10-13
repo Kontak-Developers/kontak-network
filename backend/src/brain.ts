@@ -239,6 +239,12 @@ Görev: haftalık özet. kalici: hafta boyu güçlü kalanlar; yukselen: haftan�
 Yalnız şemaya uygun JSON döndür.`,
 };
 
+/** Panelden yazılmış prompt (Stüdyo → Promptlar) varsa o; yoksa prompts/*.md. */
+export async function promptAl(env: Env, ad: PromptAdi): Promise<string> {
+  const r = await env.DB.prepare('SELECT metin FROM prompt_ozel WHERE ad = ?').bind(ad).first<{ metin: string }>().catch(() => null);
+  return r?.metin && r.metin.trim().length > 40 ? r.metin : promptMetni(ad);
+}
+
 export function promptMetni(ad: PromptAdi): string {
   const dosya = PROMPTLAR[ad];
   return dosya && dosya.trim().length > 40 ? dosya : VARSAYILAN[ad];
@@ -285,7 +291,7 @@ export async function workersAi(env: Env, ad: PromptAdi, girdi: unknown): Promis
   const messages = [
     {
       role: 'system',
-      content: `${promptMetni(ad)}\n\nÇıktı JSON şeması:\n${JSON.stringify(sema)}`,
+      content: `${await promptAl(env, ad)}\n\nÇıktı JSON şeması:\n${JSON.stringify(sema)}`,
     },
     { role: 'user', content: JSON.stringify(girdi) },
   ];
@@ -330,7 +336,7 @@ async function manusBaslat(env: Env, ad: PromptAdi, girdi: unknown, baslik: stri
   const r = await manus(env, '/task.create', {
     message: {
       content: [
-        { type: 'text', text: `${promptMetni(ad)}\n\nGirdi ekteki girdi.json dosyasında.` },
+        { type: 'text', text: `${await promptAl(env, ad)}\n\nGirdi ekteki girdi.json dosyasında.` },
         {
           type: 'file',
           file_data: `data:application/json;base64,${base64Utf8(veri)}`,

@@ -61,8 +61,9 @@ export function fikirCikti(i: any, medyaOnek: string) {
     ...geri,
     senaryo: jsonAc<string[]>(i.senaryo, []),
     hashtagler: jsonAc<string[]>(i.hashtagler, []),
-    sahneler: jsonAc<any[]>(i.sahneler, []).map(({ gorsel_anahtar: g, video_anahtar: v, ...s }) => ({
+    sahneler: jsonAc<any[]>(i.sahneler, []).map(({ gorsel_anahtar: g, video_anahtar: v, yazili_anahtar: y, ...s }) => ({
       ...s,
+      yazili_url: y ? `${medyaOnek}${y}` : null,
       gorsel_url: g ? `${medyaOnek}${g}` : null,
       video_url: v ? `${medyaOnek}${v}` : null,
     })),
