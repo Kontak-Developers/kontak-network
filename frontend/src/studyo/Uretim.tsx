@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Coins, Film, HelpCircle, Images, LoaderCircle, Minus, Plus, Rocket, Type } from 'lucide-react'
 import { useStore } from '../store'
+import { assetUrl } from '../api'
+import { InstagramGlyph, TikTokGlyph } from '../components/bits'
 import { fmtTime } from '../lib'
 import { studyoApi } from './api'
 import type { StudyoOzet } from './tipler'
@@ -40,7 +42,7 @@ function isAdi(id: string, ozet: string) {
 }
 
 export default function Uretim({ ozet, yenile }: { ozet: StudyoOzet; yenile: () => Promise<unknown> }) {
-  const { toast, ideas } = useStore()
+  const { toast, ideas, select } = useStore()
   const a = ozet.ayarlar
   const bugunFal = ozet.harcama.bugun.find((h) => h.servis === 'fal')?.usd ?? 0
   const [tur, setTur] = useState(3)
@@ -56,6 +58,11 @@ export default function Uretim({ ozet, yenile }: { ozet: StudyoOzet; yenile: () 
   const hazirReel = aktif.filter((i) => i.format === 'kisa_video' && i.video_url).length
   const hazirCarousel = aktif.filter((i) => i.format === 'carousel' && i.gorsel_url).length
   const bekleyen = ideas.filter((i) => i.durum === 'yeni').length
+  const sonUretilen = aktif.filter((i) => i.gorsel_url && i.puan != null).slice(0, 10)
+  const ac = (id: string) => {
+    select(id)
+    location.hash = 'icerikler'
+  }
 
   const baslat = async () => {
     setBasliyor(true)
@@ -103,6 +110,21 @@ export default function Uretim({ ozet, yenile }: { ozet: StudyoOzet; yenile: () 
           <b>{usd(bugunFal)}</b>
         </div>
       </div>
+
+      {sonUretilen.length > 0 && (
+        <section className="ur-serit" aria-label="Son üretilenler">
+          {sonUretilen.map((i) => (
+            <button key={i.id} className="ur-kart" onClick={() => ac(i.id)} title={i.baslik}>
+              <img src={assetUrl(i.gorsel_url) ?? undefined} alt="" loading="lazy" />
+              <span className={`av-mini av-mini-${i.platform}`}>{i.platform === 'instagram' ? <InstagramGlyph size={11} /> : <TikTokGlyph size={11} />}</span>
+              <span className="ur-kart-alt">
+                {i.format === 'kisa_video' ? <Film size={12} /> : <Images size={12} />}
+                {i.baslik}
+              </span>
+            </button>
+          ))}
+        </section>
+      )}
 
       <Bolum baslik="Stok üret" aciklama="Trend formatlarla art arda içerik turu. Her tur 3 içerik ve 1 rota kartı.">
         <div className="st-uretim-satir">

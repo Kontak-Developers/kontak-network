@@ -6,6 +6,13 @@ export type AjanAyarlari = {
     tr_aramalar: string[]
     global_aramalar: string[]
     creative_center: boolean
+    tt_hesaplar: string[]
+    ig_aktif: boolean
+    ig_hesaplar: string[]
+    ig_aramalar: string[]
+    ig_hesap_sayisi: number
+    ig_secim: number
+    min_izlenme_ig: number
     etiket_basi_video: number
     arama_basi_video: number
     gun: number
@@ -18,13 +25,13 @@ export type AjanAyarlari = {
   }
   sok: { izlenecek_video: number; sure_dk: number; taze_saat: number }
   kreatif: { aday: number; secim: number; min_puan: number; karisim: string; odaklar: string[]; ek_talimat: string; sure_dk: number }
-  studyo: { ses: string; muzik: boolean; altyazi: boolean; yazi_gom: boolean; hero_veo: boolean; kalite_denetimi: boolean; denetim_modeli: string }
+  studyo: { ses: string; muzik: boolean; altyazi: boolean; yazi_gom: boolean; hero_veo: boolean; kalite_denetimi: boolean; denetim_modeli: string; imza: string }
   butce: { fal_gunluk_tavan: number; maliyet_katsayi: number }
 }
 
 export type PaletRengi = { ad: string; hex: string; kullanim: string }
-export type Karakter = { kod: string; ad: string; tarif_en: string }
-export type AltinPrompt = { tur: string; ne_zaman: string; prompt_en: string }
+export type Karakter = { kod: string; ad: string; tarif_en: string; gorsel_url?: string }
+export type AltinPrompt = { tur: string; ne_zaman: string; prompt_en: string; ornek_url?: string }
 
 export type GorselKimlik = {
   surum?: string
@@ -81,7 +88,7 @@ export type Format = {
 export type Patlayan = {
   link: string
   platform: string
-  kaynak: 'tr_motor' | 'global_motor'
+  kaynak: 'tr_motor' | 'global_motor' | 'ig_motor'
   hesap: string | null
   takipci: number
   izlenme: number
@@ -96,6 +103,7 @@ export type Patlayan = {
   tarih: string
   format_id: string | null
   bulunma: string
+  kapak_url: string | null
 }
 
 export type RotaKarti = {

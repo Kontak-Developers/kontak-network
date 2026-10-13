@@ -125,7 +125,12 @@ export async function avBaslat(env: Env, trEtiketler: string[], av: AvAyari): Pr
         body: JSON.stringify({ trendType: 'hashtags', countryCode: 'TR', hashtagPeriod: '7', maxItems: 50 }),
       }).then((r) => is('tr_trend', r))
     );
-  return Promise.all(isler);
+  // Bir kaynak düşerse (ör. Apify bellek/kota) diğerleri sürsün; hepsi düşerse hata.
+  const sonuc = await Promise.allSettled(isler);
+  const tamam = sonuc.filter((r): r is PromiseFulfilledResult<AvIs> => r.status === 'fulfilled').map((r) => r.value);
+  sonuc.forEach((r) => r.status === 'rejected' && console.error('av kaynağı başlatılamadı:', String(r.reason).slice(0, 200)));
+  if (!tamam.length) throw new Error(`Hiçbir av kaynağı başlatılamadı: ${String((sonuc[0] as PromiseRejectedResult)?.reason).slice(0, 200)}`);
+  return tamam;
 }
 
 /** Apify'ın bildirdiği gerçek maliyet (harcama defteri için). */

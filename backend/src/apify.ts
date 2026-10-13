@@ -26,7 +26,16 @@ const ALANLAR: Record<Platform, string> = {
     'url,ownerUsername,caption,hashtags,likesCount,commentsCount,videoViewCount,videoPlayCount,timestamp,type,musicInfo',
 };
 
+/**
+ * ⚠️ 13 Eki gece: Apify hesabında tüm çalışan aktörler için 16 GB sınır var.
+ *    Instagram aktörleri varsayılan 4 GB alıyor; 9 kaynak paralel başlayınca
+ *    "actor-memory-limit-exceeded" (402) ve bütün av düştü. Her çalıştırma
+ *    1 GB ile başlıyor (bu aktörler için yeterli; 10 iş ≈ 10 GB).
+ */
+const BELLEK_MB = 1024;
+
 export async function apify(env: Env, yol: string, init?: RequestInit): Promise<any> {
+  if (/^\/acts\/[^/]+\/runs/.test(yol) && !/[?&]memory=/.test(yol)) yol += `${yol.includes('?') ? '&' : '?'}memory=${BELLEK_MB}`;
   const y = await fetch(API + yol, {
     ...init,
     headers: {

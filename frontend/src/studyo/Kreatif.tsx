@@ -91,6 +91,13 @@ export default function Kreatif({ ayar, degistir }: { ayar: AjanAyarlari; varsay
             degistir={(v) => st('kalite_denetimi', v)}
           />
           <MetinAlani
+            etiket="Marka imzası"
+            aciklama="Videonun köşesinde ve kartlarda. Boş bırakırsan yok."
+            deger={ayar.studyo.imza}
+            degistir={(v) => st('imza', v)}
+            satir={1}
+          />
+          <MetinAlani
             etiket="Denetim modeli"
             
             deger={ayar.studyo.denetim_modeli}
