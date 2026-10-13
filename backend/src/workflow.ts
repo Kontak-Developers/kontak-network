@@ -97,7 +97,7 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
         for (let t = 1; t <= tur; t++) {
           const odak = stok.odaklar?.[(t - 1) % stok.odaklar.length] ?? '';
           try {
-            await this.kreatifUret(step, runId, { ...temel, stok_turu: { tur: t, toplam: tur, odak } }, { onek: `s${t}`, tavan: stok.tavan });
+            await this.kreatifUret(step, runId, { ...temel, stok_turu: { tur: t, toplam: tur, odak, karisim: stok.karisim ?? '' } }, { onek: `s${t}`, tavan: stok.tavan });
           } catch (e) {
             console.error(`stok turu ${t} düştü:`, hataMetni(e));
           }

@@ -173,7 +173,7 @@ export type WatchItem = {
 export type Decision = {
   id: string
   run_id: string
-  tur: 'hashtag_ekle' | 'hashtag_kalici' | 'hashtag_cikar' | 'seri_ac' | 'bolum_planla' | 'icerik_uret'
+  tur: 'hashtag_ekle' | 'hashtag_kalici' | 'hashtag_cikar' | 'seri_ac' | 'bolum_planla' | 'icerik_uret' | 'adaylar' | (string & {})
   hedef: string
   neden: string
   zaman: string

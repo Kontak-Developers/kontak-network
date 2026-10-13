@@ -6,7 +6,9 @@ import { fmtTime, relDay, runDuration } from '../lib'
 import { PlatformGlyph } from '../components/bits'
 import { api } from '../api'
 
-const DECISION_ICON: Record<Decision['tur'], typeof Plus> = {
+// Bilinmeyen karar türü sayfayı çökertmesin (13 Eki: 'adaylar' beyaz sayfa yaptı).
+const DECISION_ICON: Record<string, typeof Plus> = {
+  adaylar: Sparkles,
   hashtag_ekle: Plus,
   hashtag_kalici: CheckCheck,
   hashtag_cikar: Minus,
@@ -175,7 +177,7 @@ export default function Agent() {
             <h3>{day}</h3>
             <ol className="timeline">
               {list.map((d) => {
-                const Icon = DECISION_ICON[d.tur]
+                const Icon = DECISION_ICON[d.tur] ?? Sparkles
                 return (
                   <li key={d.id} className={`tl tl-${d.tur}`}>
                     <span className="tl-icon">

@@ -128,6 +128,13 @@ export function kreatifNormalize(k: any): any {
   return { adaylar_ozeti: dizi<any>(k.adaylar).map((a) => `${metin(a?.aday_id)} · ${metin(a?.fikir)} · ${sayi(a?.puan)}/50`).join('\n'), icerikler, rota_karti: rota };
 }
 
+function sablonKopyasi(x: any): boolean {
+  const aciklama = metin(x?.aciklama_metni).trim();
+  if (!aciklama || aciklama === 'Paylaşım açıklaması' || aciklama.startsWith('<')) return true;
+  const kareler = dizi<any>(x?.cekimler).map((c) => metin(c?.kare_prompt).trim());
+  return !kareler.length || kareler.some((k) => k.length < 40 || k.includes('…') || k.startsWith('<'));
+}
+
 export async function kreatifYaz(env: Env, runId: string, k: any, gecerliFormatlar: string[]): Promise<KreatifIcerik[]> {
   const zaman = simdiIst();
   const stmts: D1PreparedStatement[] = [];
@@ -141,6 +148,12 @@ export async function kreatifYaz(env: Env, runId: string, k: any, gecerliFormatl
   for (const x of dizi<any>(k?.icerikler).slice(0, 3)) {
     const baslik = metin(x?.baslik).slice(0, 140);
     if (!baslik) continue;
+    // ⚠️ 13 Eki stok: Manus prompttaki örnek JSON'u içerik sanıp kopyaladı
+    //    ("Paylaşım açıklaması", kare_prompt "…"). Şablon kopyası üretime girmez.
+    if (sablonKopyasi(x)) {
+      karar('adaylar', `Şablon kopyası elendi: ${baslik}`, 'Model prompttaki örnek içeriği doldurmadan döndürdü.');
+      continue;
+    }
     const id = kisaId('i');
     const format: KreatifIcerik['format'] = x?.format === 'carousel' ? 'carousel' : 'kisa_video';
     const plan = planCikar(x);

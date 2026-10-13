@@ -41,6 +41,11 @@ kahve, etkinlik) ve Dating. Hesap: @kontak.social. Hedef: **organik kitle**.
    - **Üretilebilirlik** — stüdyomuz bunu yapabilir mi? (aşağıdaki kısıtlar)
    Toplamı 50 üzerinden `puan`. 35 altını seçme.
 3. **En iyi 3'ü seç**, en az 2'si reel (`kisa_video`). Üçü farklı format olsun.
+   `stok_turu.karisim` varsa (ör. "1 reel + 2 carousel") ona uy.
+   **Carousel** = 4-6 kartlık kaydırmalı foto dizisi: her kart bir çekim
+   (`cekimler`), `ekran_yazisi` kartın üstündeki metin; ilk kart kanca, son
+   kart kaydet/etiketle çağrısı. Liste, karşılaştırma, rota, "motor tipine
+   göre…" gibi kaydırtan yapılar için ideal.
 4. Her seçilen için **prodüksiyon planı** yaz.
 5. **1 rota kartı** yaz (aşağıda).
 
@@ -129,40 +134,42 @@ Son mesajın yalnızca bu yapıda bir JSON olsun (Türkçe karakterleri olduğu 
 
 ```json
 {
-  "adaylar_ozeti": "aday_01 · Vizörü indirdim; kafamdaki 17 sekme kapandı · 45/50\n…",
+  "adaylar_ozeti": "<aday_01 · kanca · puan/50, her aday bir satır>",
   "icerikler": [
     {
-      "format_id": "f_…",
-      "platform": "instagram",
-      "format": "kisa_video",
-      "baslik": "Vizör indi, dünya sustu",
-      "kanca": "Vizörü indirdim; kafamdaki 17 sekme kapandı.",
-      "neden_simdi": "Formatın kanıtı + bu açının neden bugün tutacağı",
-      "puan": 45,
-      "puan_gerekce": "durdurma 9 · trend 9 · kimlik 9 · paylaş 9 · üretilebilirlik 9",
-      "senaryo": ["0-5 sn: …", "5-12 sn: …"],
-      "aciklama_metni": "Paylaşım açıklaması",
-      "hashtagler": ["#motosiklet", "#motorcu"],
-      "onerilen_ses": "",
-      "seslendirme": "",
-      "muzik": "Slow darkwave instrumental, ~90 BPM …",
-      "stil": "Rider in matte graphite full-face helmet, olive jacket, black naked bike, night, 35mm …",
+      "format_id": "<kazanan_formatlar'dan id>",
+      "platform": "<instagram | tiktok>",
+      "format": "<kisa_video | carousel>",
+      "baslik": "<kısa iç başlık>",
+      "kanca": "<ilk 1,5 sn ekran yazısı/cümle>",
+      "neden_simdi": "<formatın kanıtı + bu açının neden bugün tutacağı>",
+      "puan": 0,
+      "puan_gerekce": "durdurma <0-10> · trend <0-10> · kimlik <0-10> · paylaş <0-10> · üretilebilirlik <0-10>",
+      "senaryo": ["<0-5 sn: …>", "<5-12 sn: …>"],
+      "aciklama_metni": "<gerçek paylaşım açıklaması, 1-3 cümle, etiketlet/kaydettir>",
+      "hashtagler": ["<5-8 etiket>"],
+      "onerilen_ses": "<trend ses adı ya da boş>",
+      "seslendirme": "<Türkçe 2-3 kısa cümle ya da boş>",
+      "muzik": "<İngilizce müzik tarifi ya da boş>",
+      "stil": "<gorsel_kimlik karakterinin tarif_en'i + saat/hava>",
       "seri_adi": "",
       "cekimler": [
-        { "sira": 1, "sure_sn": 5, "kare_prompt": "…", "hareket_prompt": "…", "hero": false, "ekran_yazisi": "Vizörü indirdim; …" },
-        { "sira": 2, "sure_sn": 8, "kare_prompt": "…", "hareket_prompt": "…", "hero": true, "ekran_yazisi": "" }
+        { "sira": 1, "sure_sn": 5, "kare_prompt": "<İngilizce, somut, 40+ kelime>", "hareket_prompt": "<İngilizce>", "hero": false, "ekran_yazisi": "<Türkçe>" }
       ]
     }
   ],
   "rota_karti": {
-    "ad": "…", "il": "Ankara", "baslangic": "…", "bitis": "…",
-    "duraklar": "Ayaş\nBeypazarı tarihi merkezi",
-    "km": 200, "sure_dk": 210, "en_iyi_zaman": "…", "zorluk": "orta", "yol_tipi": "…",
-    "neden_git": "…", "kare_prompt": "…",
-    "kaynaklar": "https://…\nhttps://…"
+    "ad": "<…>", "il": "<il>", "baslangic": "<…>", "bitis": "<…>",
+    "duraklar": "<durak 1\ndurak 2>",
+    "km": 0, "sure_dk": 0, "en_iyi_zaman": "<…>", "zorluk": "<kolay | orta | zor>", "yol_tipi": "<…>",
+    "neden_git": "<…>", "kare_prompt": "<İngilizce>",
+    "kaynaklar": "<https://…\nhttps://…>"
   }
 }
 ```
+
+- `<…>` olan her yeri **kendin doldur**; bu yalnız şekil. Şablondaki metni
+  aynen döndürürsen içerik elenir.
 
 - `km` ve `sure_dk` **sayı** ve rotanın tamamı (gidiş-dönüşse toplam).
 - `hero` yalnız bir çekimde `true`; hero 6 ya da 8 sn, diğerleri 5 sn.
