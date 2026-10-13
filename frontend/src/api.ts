@@ -14,6 +14,8 @@ const FORCE_MOCK = import.meta.env.VITE_MOCK === '1' || new URLSearchParams(loca
 const FALLBACK = LOCAL
 const BASE = (import.meta.env.VITE_API_URL ?? location.pathname.replace(/\/[^/]*$/, '')).replace(/\/$/, '')
 const JETON_ANAHTAR = 'kontak_panel_jeton'
+// Ajan hesabı (e-posta + şifre) oturumu: 14 gün, sekme kapansa da kalır.
+const AG_JETON_ANAHTAR = 'kontak_ag_jeton'
 
 export class ApiError extends Error {
   status: number
@@ -76,12 +78,53 @@ function mark(endpoint: string, ok: boolean) {
   if (after !== before) mockListeners.forEach((fn) => fn(after))
 }
 
-function token() {
+function agToken() {
   try {
-    return sessionStorage.getItem(JETON_ANAHTAR)
+    return localStorage.getItem(AG_JETON_ANAHTAR)
   } catch {
     return null
   }
+}
+
+/** Kontak moderatör jetonu önce; yoksa ajan hesabı oturumu. */
+function token() {
+  try {
+    return sessionStorage.getItem(JETON_ANAHTAR) ?? agToken()
+  } catch {
+    return agToken()
+  }
+}
+
+/** Ajan hesabıyla mı girildi? (Çıkış düğmesi yalnız bunda.) */
+export function agOturumuMu() {
+  return !!agToken() && token() === agToken()
+}
+
+/** E-posta + şifre ile giriş. Hata mesajı sunucudan gelir. */
+export async function girisYap(eposta: string, sifre: string) {
+  const res = await fetch(BASE + '/api/giris', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ eposta, sifre }),
+  }).catch(() => null)
+  if (!res) throw new ApiError(0, 'baglanti', 'Ajana ulaşılamadı. İnternet bağlantını kontrol et.')
+  const data = await res.json().catch(() => null)
+  if (!res.ok || !data?.jeton) throw new ApiError(res.status, data?.hata?.kod ?? 'hata', data?.hata?.mesaj ?? 'Giriş yapılamadı.')
+  try {
+    localStorage.setItem(AG_JETON_ANAHTAR, data.jeton)
+  } catch {
+    throw new ApiError(0, 'depolama', 'Tarayıcı oturumu saklayamadı. Gizli sekmeden çıkıp tekrar dene.')
+  }
+}
+
+export async function cikisYap() {
+  const t = agToken()
+  try {
+    localStorage.removeItem(AG_JETON_ANAHTAR)
+  } catch {
+    /* zaten yok */
+  }
+  if (t) await fetch(BASE + '/api/cikis', { method: 'POST', headers: { Authorization: `Bearer ${t}` } }).catch(() => null)
 }
 
 /** Uç yok / sunucu yok: yerelde örnek veriye düşülebilir. Yetki ve doğrulama hataları düşmez. */
@@ -114,6 +157,14 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     return data as T
   }
   if (res.status === 401 || res.status === 403) {
+    // Süresi dolmuş ajan oturumu bir dahaki açılışta form göstersin.
+    if (res.status === 401 && agOturumuMu()) {
+      try {
+        localStorage.removeItem(AG_JETON_ANAHTAR)
+      } catch {
+        /* yok say */
+      }
+    }
     authListeners.forEach((fn) => fn(res.status === 401 ? 'giris_yok' : 'yetkisiz'))
     throw new ApiError(res.status, data?.hata?.kod ?? 'yetki', data?.hata?.mesaj ?? 'Panele giriş yap.')
   }

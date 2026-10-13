@@ -2809,6 +2809,61 @@ textarea:focus {
 a.btn {
   text-decoration: none;
 }
+.giris {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(360px, 100%);
+  text-align: left;
+  background: var(--yuzey);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r);
+  padding: 22px;
+  box-shadow: var(--golge);
+}
+.giris .field {
+  margin-top: 0;
+}
+.giris-sifre {
+  position: relative;
+  display: block;
+}
+.giris-sifre input {
+  padding-right: 72px;
+}
+.giris-goster {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: none;
+  color: var(--marka);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+.giris-hata {
+  color: var(--kirmizi) !important;
+  font-size: 13px;
+  margin: 0 !important;
+}
+.giris .btn {
+  width: 100%;
+  justify-content: center;
+}
+.giris-panel {
+  font-size: 13px;
+  color: var(--metin-orta);
+  margin-top: 4px;
+}
+.topbar .cikis {
+  margin-left: auto;
+}
+.topbar .cikis + .mock {
+  margin-left: 0;
+}
 .manus-link {
   display: inline-flex;
   align-items: center;

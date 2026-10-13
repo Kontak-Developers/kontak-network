@@ -4,6 +4,7 @@
 import type { Env, RunParams } from './tipler';
 import { fikirCikti, haftaCikti, runCikti, seriCikti, trendCikti } from './db';
 import { hata, json, jsonAc, runIdUret, simdiIst } from './yardimci';
+import { cikis, giris, oturum, sifreDegistir } from './hesap';
 import {
   instagramPublish, instagramPublishComplete, instagramPublishPreview, instagramPublishStatus, socialConnectUrl,
   socialOAuthCallback, socialStatus, SocialError,
@@ -41,8 +42,33 @@ export default {
         return json({ ok: true, apify: !!env.APIFY_TOKEN, manus: !!env.MANUS_API_KEY, fal: !!env.FAL_KEY });
       }
 
+      // Ajan hesabı girişi (e-posta + şifre). Kontak moderatörleri panel jetonuyla gelir.
+      if (yol === '/api/giris' && req.method === 'POST') {
+        const g = await req.json<{ eposta?: string; sifre?: string }>().catch(() => ({}) as { eposta?: string; sifre?: string });
+        if (!g.eposta || !g.sifre || g.eposta.length > 200 || g.sifre.length > 200) return hata('eksik', 'E-posta ve şifre gir.', 400);
+        const s = await giris(env, g.eposta, g.sifre);
+        if (s.ok) return json({ jeton: s.jeton, ad: s.ad, eposta: s.eposta });
+        if (s.kod === 'cok_deneme') return hata('cok_deneme', 'Çok fazla hatalı deneme. 15 dakika sonra tekrar dene.', 429);
+        return hata('gecersiz', 'E-posta ya da şifre yanlış.', 401);
+      }
+
       const red = await yetki(req, env, url);
       if (red) return red;
+      const jeton = (req.headers.get('authorization') ?? '').slice(7);
+      if (jeton.startsWith('ag_')) {
+        if (yol === '/api/cikis' && req.method === 'POST') {
+          await cikis(env, jeton);
+          return json({ ok: true });
+        }
+        if (yol === '/api/ben') return json(await oturum(env, jeton));
+        if (yol === '/api/sifre' && req.method === 'POST') {
+          const b = await req.json<{ eski?: string; yeni?: string }>().catch(() => ({}) as { eski?: string; yeni?: string });
+          if (!b.yeni || b.yeni.length < 10 || b.yeni.length > 200) return hata('zayif', 'Yeni şifre en az 10 karakter olmalı.', 400);
+          const k = await oturum(env, jeton);
+          if (!k || !(await sifreDegistir(env, k.id, b.eski ?? '', b.yeni))) return hata('gecersiz', 'Mevcut şifre yanlış.', 400);
+          return json({ ok: true });
+        }
+      }
       return await api(req, env, url);
     } catch (e) {
       if (e instanceof SocialError) return hata(e.code, e.message, e.status);
@@ -343,6 +369,10 @@ async function yetki(req: Request, env: Env, url: URL): Promise<Response | null>
 
   const baslik = req.headers.get('authorization') ?? '';
   if (!baslik.startsWith('Bearer ') || baslik.length > 4096) return hata('oturum_yok', 'Panele giriş yap.', 401);
+  // Ajan hesabı oturumu: Kontak API'ye hiç gitmez, D1'den doğrulanır.
+  if (baslik.startsWith('Bearer ag_')) {
+    return (await oturum(env, baslik.slice(7))) ? null : hata('oturum_dustu', 'Oturum süresi doldu, tekrar giriş yap.', 401);
+  }
 
   const ozet = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(baslik))))
     .map((b) => b.toString(16).padStart(2, '0')).join('');

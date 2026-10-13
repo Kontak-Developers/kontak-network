@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { PANEL_URL, mockLevel, mockedEndpoints, onMockChange } from './api'
+import { PANEL_URL, agOturumuMu, cikisYap, girisYap, mockLevel, mockedEndpoints, onMockChange } from './api'
 import { StoreProvider, useStore } from './store'
 import Sidebar, { BottomNav, NAV } from './components/Sidebar'
 import type { Tab } from './components/Sidebar'
@@ -64,19 +64,15 @@ function Shell() {
     window.scrollTo(0, 0)
   }
 
-  if (auth !== 'tamam')
+  if (auth === 'yetkisiz')
     return (
       <div className="gate">
         <span className="gate-mark" />
-        <h1>{auth === 'yetkisiz' ? 'Bu bölüm moderatörlere açık' : 'Panele giriş yap'}</h1>
-        <p>{auth === 'yetkisiz' ? 'Hesabının Büyüme Ajanı yetkisi yok.' : 'Büyüme Ajanı Kontak yönetim paneli girişini kullanır.'}</p>
-        {PANEL_URL && (
-          <a className="btn btn-primary btn-lg" href={PANEL_URL}>
-            Yönetim paneline git
-          </a>
-        )}
+        <h1>Bu bölüm moderatörlere açık</h1>
+        <p>Hesabının Büyüme Ajanı yetkisi yok.</p>
       </div>
     )
+  if (auth !== 'tamam') return <Giris />
 
   if (error && !ready)
     return (
@@ -107,6 +103,17 @@ function Shell() {
             <Avatar brand={brand} size={30} />
           </span>
           <h1>{TITLES[tab]}</h1>
+          {agOturumuMu() && (
+            <button
+              className="btn btn-sm cikis"
+              onClick={async () => {
+                await cikisYap()
+                location.reload()
+              }}
+            >
+              Çıkış yap
+            </button>
+          )}
           {mock !== 'yok' && (
             <span
               className="mock"
@@ -146,6 +153,79 @@ function Shell() {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+/** E-posta + şifre girişi (ajan hesapları). Moderatörler Kontak panelinden gelir. */
+function Giris() {
+  const [eposta, setEposta] = useState('')
+  const [sifre, setSifre] = useState('')
+  const [goster, setGoster] = useState(false)
+  const [bekliyor, setBekliyor] = useState(false)
+  const [hataMesaji, setHataMesaji] = useState('')
+
+  const gonder = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setBekliyor(true)
+    setHataMesaji('')
+    try {
+      await girisYap(eposta, sifre)
+      location.reload()
+    } catch (err) {
+      setHataMesaji(err instanceof Error ? err.message : 'Giriş yapılamadı.')
+      setBekliyor(false)
+    }
+  }
+
+  return (
+    <div className="gate">
+      <span className="gate-mark" />
+      <h1>Büyüme Ajanı</h1>
+      <p>Hesabınla giriş yap.</p>
+      <form className="giris" onSubmit={gonder}>
+        <label className="field" htmlFor="giris-eposta">
+          E-posta
+          <input
+            id="giris-eposta"
+            type="email"
+            autoComplete="username"
+            required
+            autoFocus
+            value={eposta}
+            onChange={(e) => setEposta(e.target.value)}
+          />
+        </label>
+        <label className="field" htmlFor="giris-sifre">
+          Şifre
+          <span className="giris-sifre">
+            <input
+              id="giris-sifre"
+              type={goster ? 'text' : 'password'}
+              autoComplete="current-password"
+              required
+              value={sifre}
+              onChange={(e) => setSifre(e.target.value)}
+            />
+            <button type="button" className="giris-goster" onClick={() => setGoster(!goster)}>
+              {goster ? 'Gizle' : 'Göster'}
+            </button>
+          </span>
+        </label>
+        {hataMesaji && (
+          <p className="giris-hata" role="alert">
+            {hataMesaji}
+          </p>
+        )}
+        <button className="btn btn-primary btn-lg" type="submit" disabled={bekliyor}>
+          {bekliyor ? 'Giriş yapılıyor…' : 'Giriş yap'}
+        </button>
+      </form>
+      {PANEL_URL && (
+        <a className="giris-panel" href={PANEL_URL}>
+          Kontak moderatörüysen yönetim panelinden gir
+        </a>
+      )}
     </div>
   )
 }
