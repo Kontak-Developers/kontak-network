@@ -35,7 +35,7 @@ export default function Rotalar() {
   return (
     <Bolum
       baslik="Rota kartları"
-      aciklama="Kreatif direktörün her turda araştırıp kaynaklarıyla yazdığı gerçek motor rotaları. Onaylananlar uygulamanın Rotalar bölümüne 'Kontak önerisi' olarak girecek; yer adlarını ve km'yi kaynaktan doğrula."
+      aciklama="Onaylananlar uygulamaya 'Kontak önerisi' olarak girer. Km ve yerleri kaynaktan doğrula."
       sag={
         <div className="st-secenekler" role="tablist" aria-label="Rota durumu">
           {FILTRE.map((f) => (

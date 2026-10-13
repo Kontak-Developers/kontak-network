@@ -29,7 +29,7 @@ export default function Formatlar() {
   return (
     <Bolum
       baslik="Format kütüphanesi"
-      aciklama="Patlayan videolardan sökülmüş, tekrar üretilebilir kalıplar. Kreatif direktöre en güçlü 8'i gider. Sabitlediğin her turda gider, kapattığın hiç gitmez."
+      aciklama="Patlayan videolardan sökülen kalıplar. Sabitle: her turda kullanılır. Kapat: hiç."
     >
       {hata && <p className="st-sessiz">{hata}</p>}
       {!liste && !hata && <div className="st-yukleniyor kucuk" aria-busy="true" />}

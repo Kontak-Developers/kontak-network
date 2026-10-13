@@ -28,10 +28,15 @@ export function MediaCard({ idea, series }: { idea: Idea; series?: Series }) {
       )}
       <span className="mcard-shade" />
       <span className="mcard-top">
-        <span className="mcard-chip">
-          <PlatformGlyph platform={idea.platform} size={12} />
-          <FormatIcon format={idea.format} size={12} />
-          {FORMAT_LABEL[idea.format]}
+        <span className="mcard-chips">
+          <span className={`mcard-plat mcard-plat-${idea.platform}`}>
+            <PlatformGlyph platform={idea.platform} size={12} />
+            {idea.platform === 'instagram' ? 'Instagram' : 'TikTok'}
+          </span>
+          <span className="mcard-chip">
+            <FormatIcon format={idea.format} size={12} />
+            {FORMAT_LABEL[idea.format]}
+          </span>
         </span>
         <span className={`dot dot-${idea.durum}`} title={STATUS_LABEL[idea.durum]} />
       </span>

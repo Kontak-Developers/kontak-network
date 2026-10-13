@@ -28,6 +28,8 @@ const GROUPS: { id: WatchStatus; label: string }[] = [
 export default function Agent() {
   const { brand, watchlist, decisions, runs, setWatch, toast } = useStore()
   const [menu, setMenu] = useState<string | null>(null)
+  const [tumKararlar, setTumKararlar] = useState(false)
+  const [acikKarar, setAcikKarar] = useState<string | null>(null)
   const [social, setSocial] = useState<SocialStatus | null>(null)
   const [socialError, setSocialError] = useState<string | null>(null)
   const [connecting, setConnecting] = useState<'instagram' | 'tiktok' | null>(null)
@@ -71,9 +73,11 @@ export default function Agent() {
     toast(msg)
   }
 
-  // kararları güne göre grupla
+  // kararları güne göre grupla; varsayılan son 8 karar (liste yüzlerce satıra uzuyordu)
+  const KISA = 8
+  const gorunenKararlar = tumKararlar ? decisions : decisions.slice(0, KISA)
   const byDay = new Map<string, Decision[]>()
-  decisions.forEach((d) => {
+  gorunenKararlar.forEach((d) => {
     const k = relDay(d.zaman)
     byDay.set(k, [...(byDay.get(k) ?? []), d])
   })
@@ -89,6 +93,8 @@ export default function Agent() {
           <SocialConnection platform="instagram" title="Instagram" status={social?.instagram} connecting={connecting === 'instagram'} onConnect={() => connectSocial('instagram')} />
           <SocialConnection platform="tiktok" title="TikTok" status={social?.tiktok} connecting={connecting === 'tiktok'} onConnect={() => connectSocial('tiktok')} />
         </div>
+        <details className="social-howto">
+          <summary>Paylaşım nasıl yapılır?</summary>
         <div className="social-workflow-grid">
           <article className="social-workflow">
             <h3 className="social-workflow-title"><PlatformGlyph platform="instagram" size={15} /> Instagram · panelden onaylı yayın</h3>
@@ -110,6 +116,7 @@ export default function Agent() {
             <p>TikTok API bağlantısı yalnız kendi gönderi metriklerini okumak içindir; manuel paylaşım için gerekmez ve panel otomatik gönderi yüklemez.</p>
           </article>
         </div>
+        </details>
         {socialError && <p className="social-error">Bağlantı durumu alınamadı: {socialError}</p>}
         {social && !social.instagram.configured && (
           <p className="social-setup">Instagram’da panelden yayın için Meta hesabı bağlantısı gerekir. TikTok ve Instagram gündem taraması ile TikTok’ta elle dosya paylaşımı hesap bağlantısından bağımsızdır.</p>
@@ -178,15 +185,16 @@ export default function Agent() {
             <ol className="timeline">
               {list.map((d) => {
                 const Icon = DECISION_ICON[d.tur] ?? Sparkles
+                const acik = acikKarar === d.id
                 return (
                   <li key={d.id} className={`tl tl-${d.tur}`}>
                     <span className="tl-icon">
                       <Icon size={14} />
                     </span>
-                    <span className="tl-body">
+                    <button className={`tl-body tl-toggle ${acik ? 'acik' : ''}`} onClick={() => setAcikKarar(acik ? null : d.id)} aria-expanded={acik}>
                       <b>{d.hedef}</b>
                       <span>{d.neden}</span>
-                    </span>
+                    </button>
                     <time>{fmtTime(d.zaman)}</time>
                   </li>
                 )
@@ -194,6 +202,11 @@ export default function Agent() {
             </ol>
           </div>
         ))}
+        {decisions.length > KISA && (
+          <button className="btn btn-sm tl-more" onClick={() => setTumKararlar((v) => !v)}>
+            {tumKararlar ? 'Daha az göster' : `Tüm kararlar (${decisions.length})`}
+          </button>
+        )}
       </section>
 
       <section className="panel panel-wide">

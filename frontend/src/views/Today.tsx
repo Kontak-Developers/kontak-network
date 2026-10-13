@@ -48,7 +48,7 @@ export default function Today({ openAgent }: { openAgent: () => void }) {
                     ? `${relDay(shown.baslangic)} ${fmtTime(shown.baslangic)}`
                     : 'Henüz çalışmadı'}
             </span>
-            <h1>
+            <h1 title={shown?.ozet ?? ''}>
               {running
                 ? 'Gündem taranıyor…'
                 : failed && !shown

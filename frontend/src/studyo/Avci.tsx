@@ -15,11 +15,11 @@ export default function Avci({ ayar, varsayilan, degistir }: { ayar: AjanAyarlar
     <>
       <Bolum
         baslik="Nereye bakıyor"
-        aciklama="Her sabah 08:00'de TikTok'ta bu etiket ve aramalarla videolar toplanıyor; trend etiket değil, algoritmanın şu an ödüllendirdiği videolar aranıyor."
+        aciklama="Her sabah 08:00'de TikTok'ta taranan kaynaklar."
       >
         <ListeAlani
           etiket="TR etiketleri"
-          aciklama="Takip listesindeki etiketlere ek; en fazla 15."
+          
           onEk="#"
           degerler={av.tr_etiketler}
           degistir={(v) => a('tr_etiketler', v)}
@@ -28,7 +28,7 @@ export default function Avci({ ayar, varsayilan, degistir }: { ayar: AjanAyarlar
         />
         <ListeAlani
           etiket="TR aramaları"
-          aciklama="Etiket koymayan Türk motorcuları da yakalar. Arama başına en fazla video aşağıda."
+          
           degerler={av.tr_aramalar}
           degistir={(v) => a('tr_aramalar', v)}
           yerTutucu="ör. motor pov"
@@ -36,7 +36,7 @@ export default function Avci({ ayar, varsayilan, degistir }: { ayar: AjanAyarlar
         />
         <ListeAlani
           etiket="Dünya aramaları"
-          aciklama="Format ilhamı: dünyada patlayan kalıplar Türkiye'ye 2-4 hafta sonra geliyor."
+          
           degerler={av.global_aramalar}
           degistir={(v) => a('global_aramalar', v)}
           yerTutucu="ör. motorcycle date"
@@ -44,31 +44,31 @@ export default function Avci({ ayar, varsayilan, degistir }: { ayar: AjanAyarlar
         />
         <Anahtar
           etiket="TikTok Creative Center Türkiye trendleri"
-          aciklama="Son 7 günün TR trend etiketleri. Haber/trajedi ağırlıklı; ajan yalnız markaya uygun olanları kullanır."
+          aciklama="Son 7 gün; ajan yalnız markaya uygunları kullanır."
           acik={av.creative_center}
           degistir={(v) => a('creative_center', v)}
         />
       </Bolum>
 
-      <Bolum baslik="Neye 'patlamış' der" aciklama="Patlama = izlenme ÷ takipçi (en az 1000). 449 takipçili hesabın 175 bin izlenmesi 175×: içerik kendi başına tutmuş.">
+      <Bolum baslik="Neye 'patlamış' der" aciklama="Patlama = izlenme ÷ takipçi. 449 takipçili hesapta 175 bin izlenme = 175×.">
         <div className="st-izgara st-izgara-4">
           <SayiAlani etiket="En az patlama" deger={av.min_patlama} degistir={(n) => a('min_patlama', n)} min={1} max={1000} birim="×" />
           <SayiAlani etiket="Son kaç gün" deger={av.gun} degistir={(n) => a('gun', n)} min={2} max={60} birim="gün" />
           <SayiAlani etiket="TR en az izlenme" deger={av.min_izlenme_tr} degistir={(n) => a('min_izlenme_tr', n)} min={0} max={10_000_000} adim={1000} />
           <SayiAlani etiket="Dünya en az izlenme" deger={av.min_izlenme_global} degistir={(n) => a('min_izlenme_global', n)} min={0} max={50_000_000} adim={1000} />
-          <SayiAlani etiket="TR'den seçilen" deger={av.tr_secim} degistir={(n) => a('tr_secim', n)} min={0} max={15} aciklama="En çok patlayanlar" />
+          <SayiAlani etiket="TR'den seçilen" deger={av.tr_secim} degistir={(n) => a('tr_secim', n)} min={0} max={15}  />
           <SayiAlani etiket="Dünyadan seçilen" deger={av.global_secim} degistir={(n) => a('global_secim', n)} min={0} max={10} />
-          <SayiAlani etiket="Hesap başına en fazla" deger={av.hesap_basi} degistir={(n) => a('hesap_basi', n)} min={1} max={5} aciklama="Tek hesap kütüphaneyi domine etmesin" />
-          <SayiAlani etiket="Etiket başına video" deger={av.etiket_basi_video} degistir={(n) => a('etiket_basi_video', n)} min={5} max={100} aciklama="Apify maliyeti bununla artar" />
+          <SayiAlani etiket="Hesap başına en fazla" deger={av.hesap_basi} degistir={(n) => a('hesap_basi', n)} min={1} max={5}  />
+          <SayiAlani etiket="Etiket başına video" deger={av.etiket_basi_video} degistir={(n) => a('etiket_basi_video', n)} min={5} max={100}  />
         </div>
         <div className="st-izgara st-izgara-4">
           <SayiAlani etiket="Arama başına video" deger={av.arama_basi_video} degistir={(n) => a('arama_basi_video', n)} min={5} max={100} />
         </div>
       </Bolum>
 
-      <Bolum baslik="Söküm" aciklama="Seçilen videoları Manus baştan sona izleyip tekrar üretilebilir formata çeviriyor (kanca, saniyeli yapı, kurgu, ses).">
+      <Bolum baslik="Söküm" aciklama="Manus seçilen videoları izleyip formata çevirir.">
         <div className="st-izgara st-izgara-4">
-          <SayiAlani etiket="İzlenen video" deger={ayar.sok.izlenecek_video} degistir={(n) => s('izlenecek_video', n)} min={1} max={10} aciklama="Manus en fazla 10 ek görüyor" />
+          <SayiAlani etiket="İzlenen video" deger={ayar.sok.izlenecek_video} degistir={(n) => s('izlenecek_video', n)} min={1} max={10}  />
           <SayiAlani etiket="Manus süresi" deger={ayar.sok.sure_dk} degistir={(n) => s('sure_dk', n)} min={10} max={60} birim="dk" />
           <SayiAlani
             etiket="Tazelik"
@@ -77,7 +77,7 @@ export default function Avci({ ayar, varsayilan, degistir }: { ayar: AjanAyarlar
             min={0}
             max={72}
             birim="saat"
-            aciklama="Elle çalıştırmada bu kadar saatte söküm yapıldıysa atla (Manus kredisi)"
+            
           />
         </div>
       </Bolum>
@@ -94,7 +94,7 @@ function Patlayanlar() {
     studyoApi.patlayanlar().then(setListe, (e) => setHata(e instanceof Error ? e.message : 'Yüklenemedi'))
   }, [])
   return (
-    <Bolum baslik="Son bulunan patlayanlar" aciklama="Ajanın son avlarında seçtiği videolar. Linke tıkla, ne izlediğini sen de gör.">
+    <Bolum baslik="Son bulunan patlayanlar" >
       {hata && <p className="st-sessiz">{hata}</p>}
       {!liste && !hata && <div className="st-yukleniyor kucuk" aria-busy="true" />}
       {liste && (

@@ -1528,14 +1528,17 @@ textarea:focus {
   position: sticky;
   top: 0;
   height: 100vh;
-  padding: 18px 22px 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding: 18px 22px 28px;
   background:
     radial-gradient(80% 50% at 50% 45%, color-mix(in srgb, var(--marka) 10%, transparent), transparent 70%),
     var(--zemin-2);
   border-left: 1px solid var(--cizgi);
 }
 .preview {
-  height: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1568,10 +1571,12 @@ textarea:focus {
   text-transform: uppercase;
   color: var(--marka);
 }
+/* Telefon sabit ve büyük; altındaki araçlar aşağı akar, panel kayar (13 Eki revize:
+   telefon 'kalan yer kadar' iken alttaki içerik büyüyünce küçülüp kayboluyordu). */
 .phone-host {
   position: relative;
-  flex: 1;
-  min-height: 0;
+  flex: none;
+  height: clamp(540px, calc(100vh - 210px), 716px);
 }
 .phone-sizer {
   position: absolute;
@@ -2508,6 +2513,7 @@ textarea:focus {
   position: fixed;
   z-index: 50;
   inset: 0;
+  overflow-y: auto;
   padding: max(14px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom));
   background: var(--zemin-2);
   animation: sheet 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);

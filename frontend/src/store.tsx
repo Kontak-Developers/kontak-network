@@ -113,7 +113,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return off
   }, [loadAll])
 
-  const latest = runs[0] ?? null
+  // Yalnız tarama çalıştırmaları (run_*). Stok/yazı/reel işleri Stüdyo'da izleniyor; burada
+  // sayılırsa Bugün sayfası boşalıyor ve "tamamlandı" bildirimi döngüye giriyordu (13 Eki).
+  const latest = runs.find((r) => r.id.startsWith('run_')) ?? null
 
   // Ajan çalışırken durumu izle, bitince her şeyi yenile
   useEffect(() => {
@@ -220,5 +222,5 @@ function normalizeBrand(b: Brand): Brand {
 /** Ekranda gösterilecek "bugünkü" çalıştırma: çalışan varsa son tamamlanan */
 export function useShownRun() {
   const { runs } = useStore()
-  return runs.find((r) => r.durum === 'tamamlandi') ?? null
+  return runs.find((r) => r.durum === 'tamamlandi' && r.id.startsWith('run_')) ?? null
 }

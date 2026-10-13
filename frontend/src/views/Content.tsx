@@ -20,10 +20,28 @@ export default function Content() {
     return c
   }, [ideas])
 
-  const shown = ideas.filter((i) => (filter === 'hepsi' || i.durum === filter) && (pf === 'hepsi' || i.platform === pf))
+  const durumda = ideas.filter((i) => filter === 'hepsi' || i.durum === filter)
+  const pSay = { hepsi: durumda.length, instagram: durumda.filter((i) => i.platform === 'instagram').length, tiktok: durumda.filter((i) => i.platform === 'tiktok').length }
+  const shown = durumda.filter((i) => pf === 'hepsi' || i.platform === pf)
+  const gruplar: { p: 'instagram' | 'tiktok'; ad: string; liste: typeof shown }[] = [
+    { p: 'instagram', ad: 'Instagram', liste: shown.filter((i) => i.platform === 'instagram') },
+    { p: 'tiktok', ad: 'TikTok', liste: shown.filter((i) => i.platform === 'tiktok') },
+  ]
 
   return (
     <div className="page">
+      {/* Platform birincil ayrım (13 Eki, Nida: "yalnız kartın üstünde minnacık yazıyor") */}
+      <div className="plat-sekmeler" role="tablist" aria-label="Platform">
+        <button role="tab" aria-selected={pf === 'hepsi'} className={pf === 'hepsi' ? 'on' : ''} onClick={() => setPf('hepsi')}>
+          Tümü <span>{pSay.hepsi}</span>
+        </button>
+        <button role="tab" aria-selected={pf === 'instagram'} className={`plat-ig ${pf === 'instagram' ? 'on' : ''}`} onClick={() => setPf('instagram')}>
+          <InstagramGlyph size={17} /> Instagram <span>{pSay.instagram}</span>
+        </button>
+        <button role="tab" aria-selected={pf === 'tiktok'} className={`plat-tt ${pf === 'tiktok' ? 'on' : ''}`} onClick={() => setPf('tiktok')}>
+          <TikTokGlyph size={17} /> TikTok <span>{pSay.tiktok}</span>
+        </button>
+      </div>
       <div className="toolbar">
         <div className="tabs-pill" role="tablist">
           {FILTERS.map((f) => (
@@ -33,19 +51,25 @@ export default function Content() {
             </button>
           ))}
         </div>
-        <div className="seg seg-sm" role="tablist" aria-label="Platform">
-          <button className={pf === 'hepsi' ? 'on' : ''} onClick={() => setPf('hepsi')}>
-            Tümü
-          </button>
-          <button className={pf === 'instagram' ? 'on' : ''} onClick={() => setPf('instagram')} aria-label="Instagram">
-            <InstagramGlyph size={15} />
-          </button>
-          <button className={pf === 'tiktok' ? 'on' : ''} onClick={() => setPf('tiktok')} aria-label="TikTok">
-            <TikTokGlyph size={15} />
-          </button>
-        </div>
       </div>
-      {shown.length ? <MediaGrid ideas={shown} /> : <p className="empty">Bu filtrede içerik yok.</p>}
+      {!shown.length ? (
+        <p className="empty">Bu filtrede içerik yok.</p>
+      ) : pf !== 'hepsi' ? (
+        <MediaGrid ideas={shown} />
+      ) : (
+        gruplar
+          .filter((g) => g.liste.length)
+          .map((g) => (
+            <section key={g.p} className="plat-grup">
+              <h2 className={`plat-baslik plat-baslik-${g.p}`}>
+                {g.p === 'instagram' ? <InstagramGlyph size={18} /> : <TikTokGlyph size={18} />}
+                {g.ad}
+                <span>{g.liste.length}</span>
+              </h2>
+              <MediaGrid ideas={g.liste} />
+            </section>
+          ))
+      )}
     </div>
   )
 }

@@ -169,7 +169,8 @@ async function api(req: Request, env: Env, url: URL): Promise<Response> {
   }
 
   if (yol === '/api/runs/latest' && m === 'GET') {
-    const r = await DB.prepare('SELECT * FROM runs ORDER BY baslangic DESC LIMIT 1').first();
+    // Yalnız tarama çalıştırmaları (run_*): stok/yazı/reel işleri Bugün sayfasını boşaltmasın; onlar Stüdyo'da.
+    const r = await DB.prepare("SELECT * FROM runs WHERE id LIKE 'run_%' ORDER BY baslangic DESC LIMIT 1").first();
     return json(r ? runCikti(r) : null);
   }
 

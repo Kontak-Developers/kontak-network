@@ -49,13 +49,13 @@ export default function Kimlik({ kimlik, kaydedildi }: { kimlik: GorselKimlik | 
     <>
       <Bolum
         baslik="Kimliğin özü"
-        aciklama="Bütün reel ve carousel'ler tek bir hesabın işi gibi görünsün diye her karenin uyduğu kurallar. Kreatif direktör bunları okur; stil eki her kareye kelimesi kelimesine eklenir."
+        aciklama="Her karenin uyduğu kurallar."
       >
         <MetinAlani etiket="Özet" deger={k.ozet} degistir={(v) => d('ozet', v)} satir={3} />
         <MetinAlani
           etiket="Stil eki"
           ingilizce
-          aciklama="Her karenin sonuna eklenen ortak dil (ışık, lens, renk, gerçekçilik). Olumlu tarif et: 'no plates' gibi olumsuz kelimeler o şeyi kareye sokar."
+          aciklama="Her kareye eklenir. Olumlu tarif et; 'no plates' gibi olumsuzlar o şeyi kareye sokar."
           deger={k.stil_eki}
           degistir={(v) => d('stil_eki', v)}
           satir={4}
@@ -70,7 +70,7 @@ export default function Kimlik({ kimlik, kaydedildi }: { kimlik: GorselKimlik | 
 
       <Bolum
         baslik="Palet"
-        aciklama="Renklerin nerede ve ne kadar kullanılacağı. Lacivert yalnız vurgu."
+        
         sag={
           <button className="btn btn-sm" onClick={() => d('palet', [...k.palet, { ad: 'Yeni renk', hex: '#888888', kullanim: '' }])}>
             <Plus size={14} /> Renk
@@ -98,7 +98,7 @@ export default function Kimlik({ kimlik, kaydedildi }: { kimlik: GorselKimlik | 
 
       <Bolum
         baslik="Sabit karakterler"
-        aciklama="Kreatif direktör her içerikte bunlardan birini seçer ve tarifini değiştirmeden kullanır. Yüz yok: vizör hep kapalı."
+        aciklama="Her içerikte biri, tarifi değişmeden."
         sag={
           <button
             className="btn btn-sm"
@@ -125,17 +125,17 @@ export default function Kimlik({ kimlik, kaydedildi }: { kimlik: GorselKimlik | 
       </Bolum>
 
       <div className="st-izgara st-izgara-2">
-        <Bolum baslik="Mekânlar" aciklama="Gerçek Türkiye yerleri; kreatif direktör bunlardan ya da aynı ruhta yerlerden seçer.">
+        <Bolum baslik="Mekânlar" >
           <ListeAlani etiket="Mekân" degerler={k.mekanlar} degistir={(v) => d('mekanlar', v)} yerTutucu="ör. Şile sahil yolu, sisli sabah" />
         </Bolum>
-        <Bolum baslik="Asla" aciklama="Hiçbir karede olmayacaklar. Kreatif direktör okur; prompta yazılmaz (yazılırsa model çizebiliyor).">
+        <Bolum baslik="Asla" aciklama="Kreatif direktör okur; kareye yazılmaz.">
           <ListeAlani etiket="Yasak" degerler={k.asla} degistir={(v) => d('asla', v)} yerTutucu="ör. Görünen yüz" />
         </Bolum>
       </div>
 
       <Bolum
         baslik="Altın promptlar"
-        aciklama="Her çekim türünün örnek karesi. Kreatif direktör kare promptlarını bu yoğunlukta ve dilde yazar. 'Dene' bu kimlikle tek kare üretir (~0,06$)."
+        aciklama="Her çekim türünün örnek karesi. 'Dene' tek kare üretir (~0,06$)."
         sag={
           <button className="btn btn-sm" onClick={() => d('altin_promptlar', [...k.altin_promptlar, { tur: 'yeni_tur', ne_zaman: '', prompt_en: '' }])}>
             <Plus size={14} /> Prompt
