@@ -97,7 +97,7 @@ export const VARSAYILAN_AYARLAR: AjanAyarlari = {
     ig_aktif: true,
     // Aynı kişiler çoğunlukla Instagram'da da aynı adla; olmayanlar sessizce atlanır.
     ig_hesaplar: ['bihter.eysan', 'alenayavas', 'cansu.ozturkk34', 'katyaalmaz', 'ekipmotosikletkulubu', 'motomate.com.tr'],
-    ig_aramalar: ['motosiklet', 'motorcu', 'moto vlog'],
+    ig_aramalar: ['motorcu kız', 'motovlog', 'motorcu'],
     ig_hesap_sayisi: 25,
     ig_secim: 4,
     min_izlenme_ig: 20_000,

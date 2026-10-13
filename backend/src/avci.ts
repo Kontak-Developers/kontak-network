@@ -148,6 +148,9 @@ export async function avMaliyeti(env: Env, runId: string): Promise<number> {
  */
 export type IgHesap = { kullanici: string; takipci: number };
 
+const ISLETME =
+  /(bayi|servis|satış|satis|yetkili|resmi|official|aksesuar|yedek parça|tamir|kiralama|galeri|ekspertiz|\+90|0\d{3} ?\d{3}|dealer|shop|store|vehicle|tente|kask satış|motor ?market)/i;
+
 export async function igHesaplari(env: Env, isler: AvIs[], av: AvAyari): Promise<IgHesap[]> {
   const gorulen = new Map<string, IgHesap>();
   for (const is of isler.filter((x) => x.kaynak === 'ig_kesif')) {
@@ -155,6 +158,9 @@ export async function igHesaplari(env: Env, isler: AvIs[], av: AvAyari): Promise
     for (const x of ham) {
       const k = metin(x?.username).toLowerCase();
       if (!k || x?.private === true || x?.isPrivate === true) continue;
+      // 13 Eki: "motosiklet" araması çoğunlukla bayi, servis, resmi marka döndürdü; içerik üreticisi değil.
+      const bio = `${metin(x?.biography)} ${metin(x?.businessCategoryName)} ${metin(x?.fullName)}`.toLocaleLowerCase('tr');
+      if (ISLETME.test(bio) || ISLETME.test(k)) continue;
       gorulen.set(k, { kullanici: k, takipci: sayi(x?.followersCount) });
     }
   }
