@@ -81,18 +81,36 @@ export default function Agent() {
       <section className="panel panel-wide">
         <div className="sec-head">
           <h2>Sosyal hesap bağlantıları</h2>
-          <span className="muted">Günlük okuma · yayın onaylı</span>
+          <span className="muted">Instagram: panelden onaylı yayın · TikTok: indir ve elle yükle</span>
         </div>
         <div className="social-grid">
           <SocialConnection platform="instagram" title="Instagram" status={social?.instagram} connecting={connecting === 'instagram'} onConnect={() => connectSocial('instagram')} />
           <SocialConnection platform="tiktok" title="TikTok" status={social?.tiktok} connecting={connecting === 'tiktok'} onConnect={() => connectSocial('tiktok')} />
         </div>
-        <p className="social-note">
-          Instagram’da içerik yalnızca önizlemede son kez onayladığında yayımlanır. TikTok’ta yalnızca kendi herkese açık videoların ve metriklerin okunur; dışa aktarılan içerik TikTok uygulamasında elle paylaşılır.
-        </p>
+        <div className="social-workflow-grid">
+          <article className="social-workflow">
+            <h3 className="social-workflow-title"><PlatformGlyph platform="instagram" size={15} /> Instagram · panelden onaylı yayın</h3>
+            <ol>
+              <li>Fikri açıp hedef hesabı, gerçek medya dosyasını ve açıklamayı kontrol et.</li>
+              <li>Önce medyayı taslak olarak hazırla; bu adım herkese açık paylaşım yapmaz.</li>
+              <li>Medya hazır olduğunda ayrı <b>“Evet, Instagram’da yayımla”</b> onayını ver.</li>
+            </ol>
+            <p>{social?.instagram.connected ? 'Hesap bağlı. Yayın izni olsa bile her gönderide ayrı son onay gerekir.' : 'Panelden Instagram yayını için hesabı bağla; yayın önizlemesi her içeriğin hazır olup olmadığını ayrıca denetler.'}</p>
+          </article>
+          <article className="social-workflow">
+            <h3 className="social-workflow-title"><PlatformGlyph platform="tiktok" size={15} /> TikTok · indir ve elle yükle</h3>
+            <ol>
+              <li>Fikri onayla; yalnız hazır dosyalar için indirme düğmeleri açılır.</li>
+              <li>Gerçek video hazırsa MP4’ü; carousel ise JPG slaytlarını indir.</li>
+              <li>Dosyayı TikTok veya TikTok Studio’ya kendin yükle, açıklamayı kopyala.</li>
+              <li>Paylaşım tamamlanınca panelde <b>“TikTok’ta paylaştım”</b> olarak kaydet.</li>
+            </ol>
+            <p>TikTok API bağlantısı yalnız kendi gönderi metriklerini okumak içindir; manuel paylaşım için gerekmez ve panel otomatik gönderi yüklemez.</p>
+          </article>
+        </div>
         {socialError && <p className="social-error">Bağlantı durumu alınamadı: {socialError}</p>}
-        {!social?.instagram.configured && !social?.tiktok.configured && (
-          <p className="social-setup">Bağlamak için Meta ve TikTok Developer uygulama bilgileri ile token şifreleme anahtarı Cloudflare Worker Secret olarak eklenmeli.</p>
+        {social && !social.instagram.configured && (
+          <p className="social-setup">Instagram’da panelden yayın için Meta hesabı bağlantısı gerekir. TikTok ve Instagram gündem taraması ile TikTok’ta elle dosya paylaşımı hesap bağlantısından bağımsızdır.</p>
         )}
       </section>
 
@@ -214,12 +232,15 @@ function SocialConnection({
   const connected = !!status?.connected
   const configured = !!status?.configured
   const needsReconnect = !!status?.needs_reconnect
+  const hasPublishPermission = platform === 'instagram' && !!status?.scopes.includes('instagram_business_content_publish')
   return (
     <article className={`social-card ${connected ? 'social-connected' : ''}`}>
       <div className="social-card-title"><PlatformGlyph platform={platform} size={17} /><b>{title}</b><span className={`social-dot ${connected ? 'on' : ''}`} /></div>
-      <p>{connected ? `${status?.username ?? 'Hesap bağlı'} · ${status?.posts_read ?? 0} gönderi okundu` : needsReconnect ? 'Yetki yenilenmeli' : configured ? 'Henüz bağlanmadı' : 'Developer uygulama ayarı bekleniyor'}</p>
+      <p>{connected ? `${status?.username ?? 'Hesap bağlı'} · ${status?.posts_read ?? 0} gönderi okundu` : needsReconnect ? 'Yetki yenilenmeli' : configured ? platform === 'tiktok' ? 'Kendi TikTok metrikleri bağlı değil' : 'Instagram hesabı bağlı değil' : platform === 'tiktok' ? 'TikTok hesap metriği ayarı bekleniyor' : 'Meta Developer uygulama ayarı bekleniyor'}</p>
+      {connected && platform === 'instagram' && <small>{hasPublishPermission ? 'Instagram yayın izni bağlı; son onay her gönderide ayrı alınır.' : 'Hesap okuma bağlantısı var; yayın izni bağlı değil.'}</small>}
+      {connected && platform === 'tiktok' && <small>Bu bağlantı yalnızca kendi hesap metriklerini okur; paylaşım yapmaz.</small>}
       {connected && status?.last_sync && <small>Son okuma: {relDay(status.last_sync)} {fmtTime(status.last_sync)}</small>}
-      {configured && <button className="btn" onClick={onConnect} disabled={connecting}>{connecting ? 'Bağlanıyor…' : connected || needsReconnect ? 'Yetkiyi yeniden bağla' : 'Hesabı bağla'}</button>}
+      {configured && <button className="btn" onClick={onConnect} disabled={connecting}>{connecting ? 'Bağlanıyor…' : connected || needsReconnect ? 'Yetkiyi yeniden bağla' : platform === 'tiktok' ? 'Kendi metriklerini bağla · isteğe bağlı' : 'Instagram’ı bağla'}</button>}
     </article>
   )
 }

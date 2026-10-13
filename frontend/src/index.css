@@ -3297,7 +3297,14 @@ a.btn {
 .social-note, .social-setup, .social-error { margin: 12px 0 0; color: var(--soluk, #6e7078); font-size: 12px; line-height: 1.5; }
 .social-setup { color: #67520a; }
 .social-error { color: #a12e2e; }
+.social-workflow-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.social-workflow { min-width: 0; padding: 14px; border: 1px solid var(--cizgi, #e7e7eb); border-radius: 14px; background: #fff; }
+.social-workflow-title { display: flex; align-items: center; gap: 7px; font-size: 12px; }
+.social-workflow ol { margin: 10px 0 0; padding-left: 19px; color: #555761; font-size: 11px; line-height: 1.5; }
+.social-workflow li + li { margin-top: 4px; }
+.social-workflow p { margin: 10px 0 0; color: var(--soluk, #6e7078); font-size: 11px; line-height: 1.45; }
 .publish-hint, .publish-status { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: #f4f4f7; color: #4d4f58; font-size: 12px; line-height: 1.45; }
+.tiktok-manual-hint { border: 1px solid #dbeafe; background: #eff6ff; color: #1e3a8a; }
 .publish-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .publish-overlay { position: fixed; z-index: 120; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(13, 14, 20, .64); }
 .publish-modal { position: relative; width: min(560px, 100%); max-height: min(92vh, 850px); overflow: auto; padding: 26px; border-radius: 20px; background: #fff; color: #1c1d22; box-shadow: 0 24px 80px rgba(0,0,0,.28); }
@@ -3316,6 +3323,7 @@ a.btn {
 .publish-small { margin: 12px 0 0; color: #777983; font-size: 10px; line-height: 1.45; }
 @media (max-width: 680px) {
   .social-grid { grid-template-columns: 1fr; }
+  .social-workflow-grid { grid-template-columns: 1fr; }
   .publish-overlay { padding: 10px; }
   .publish-modal { max-height: 94vh; padding: 22px 16px 18px; border-radius: 16px; }
   .publish-modal h2 { font-size: 19px; }

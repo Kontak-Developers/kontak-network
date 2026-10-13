@@ -144,7 +144,7 @@ export default function Preview({ onClose }: { onClose?: () => void }) {
   }
 
   const approveTikTokExport = async () => {
-    await act('onaylandi', 'Onaylandı; medyayı indirip TikTok uygulamasında elle paylaşabilirsin.')
+    await act('onaylandi', 'Onaylandı; hazır MP4/JPG dosyalarını indirip TikTok’ta elle paylaşabilirsin.')
     setConfirmTikTok(false)
   }
 
@@ -156,7 +156,7 @@ export default function Preview({ onClose }: { onClose?: () => void }) {
             <div className="preview-title">
               {ser && <span className="preview-series">{ser.ad} · Bölüm {idea.bolum_no}</span>}
               <b>{idea.baslik}</b>
-              {idea.format === 'kisa_video' && !hasVideo(idea) && <span className="preview-note">Video klibi yok · görsel önizleme</span>}
+              {idea.format === 'kisa_video' && !hasVideo(idea) && <span className="preview-note">Gerçek MP4 hazır değil · video indirilemez</span>}
             </div>
             <div className="seg" role="tablist" aria-label="Platform önizlemesi">
               {(['instagram', 'tiktok'] as Platform[]).map((p) => (
@@ -197,12 +197,12 @@ export default function Preview({ onClose }: { onClose?: () => void }) {
             )}
             {idea.platform === 'tiktok' && idea.durum === 'onaylandi' && manualExportReady && manualAssets.map((asset, index) => (
               <a key={`${idea.id}-${index}`} className="btn" href={assetUrl(asset) ?? undefined} download={`kontak-${idea.id}${idea.format === 'carousel' ? `-slayt-${index + 1}` : ''}.${idea.format === 'kisa_video' ? 'mp4' : 'jpg'}`}>
-                <Download size={16} /> {idea.format === 'carousel' ? `Slayt ${index + 1}` : 'Medyayı indir'}
+                <Download size={16} /> {idea.format === 'kisa_video' ? 'MP4 indir' : idea.format === 'carousel' ? `Slayt ${index + 1} indir` : 'JPG indir'}
               </a>
             ))}
             {idea.platform === 'tiktok' && idea.durum === 'onaylandi' && (
-              <button className="btn btn-primary" onClick={() => act('paylasildi', 'TikTok’ta paylaşıldı olarak işaretlendi')} disabled={!manualExportReady}>
-                <Check size={17} /> Paylaşıldı
+              <button className="btn btn-primary" onClick={() => act('paylasildi', 'TikTok’taki manuel paylaşım panele kaydedildi')} disabled={!manualExportReady}>
+                <Check size={17} /> TikTok’ta paylaştım
               </button>
             )}
             {idea.durum === 'reddedildi' && <button className="btn" onClick={() => act('yeni', 'Karar geri alındı')}><Undo2 size={16} /> Geri al</button>}
@@ -210,6 +210,9 @@ export default function Preview({ onClose }: { onClose?: () => void }) {
 
           {idea.platform === 'tiktok' && idea.durum === 'onaylandi' && !manualExportReady && (
             <p className="publish-hint">{idea.format === 'kisa_video' ? 'Video dosyası henüz üretilmedi; gerçek bir klip hazır olmadan dışa aktarılamaz.' : idea.format === 'carousel' ? 'Carousel onayı için en az iki görselin her slayt için ayrı ayrı hazır olması gerekiyor.' : 'Gönderi görseli henüz hazır değil.'}</p>
+          )}
+          {idea.platform === 'tiktok' && idea.durum === 'onaylandi' && manualExportReady && (
+            <p className="publish-hint tiktok-manual-hint"><b>Elle paylaşım:</b> {idea.format === 'kisa_video' ? 'MP4’ü indir → TikTok/TikTok Studio’ya yükle → açıklamayı kopyala → ardından “TikTok’ta paylaştım” olarak kaydet.' : idea.format === 'carousel' ? 'JPG slaytlarını sırayla indir → TikTok’a elle yükle → açıklamayı kopyala → ardından paylaşımı panelde kaydet.' : 'JPG’yi indir → TikTok’a elle yükle → açıklamayı kopyala → ardından paylaşımı panelde kaydet.'}</p>
           )}
           {publishState && publishState !== 'published' && <div className="publish-status"><span>{publishMessage ?? (publishState === 'ready' ? 'Instagram medyası hazır; insanın son onayı bekleniyor.' : `Yayın durumu: ${publishState}`)}</span>{(publishState === 'processing' || publishState === 'publishing') && <button className="btn" onClick={checkInstagramStatus} disabled={publishBusy}>{publishBusy ? 'Kontrol ediliyor…' : 'Durumu kontrol et'}</button>}</div>}
 
@@ -281,9 +284,9 @@ export default function Preview({ onClose }: { onClose?: () => void }) {
             {!manualExportReady && <p className="publish-block">{idea.format === 'kisa_video' ? 'Gerçek video dosyası henüz üretilmedi.' : idea.format === 'carousel' ? 'Tüm carousel slaytlarının ayrı görsel dosyası hazır değil.' : 'Gönderi görseli henüz hazır değil.'}</p>}
             <div className="publish-actions">
               <button className="btn" onClick={() => setConfirmTikTok(false)}>İptal</button>
-              <button className="btn btn-primary" onClick={approveTikTokExport} disabled={!manualExportReady}><Check size={16} /> Onayla ve dışa aktar</button>
+              <button className="btn btn-primary" onClick={approveTikTokExport} disabled={!manualExportReady}><Check size={16} /> Onayla, indirme düğmelerini aç</button>
             </div>
-            <p className="publish-small">Onay yalnızca panel durumunu değiştirir; TikTok’a gönderi yüklemez.</p>
+            <p className="publish-small">Onay yalnızca panel durumunu değiştirir. Sonraki ekranda hazır MP4/JPG’yi indirip TikTok’a kendin yükle; panel otomatik paylaşmaz.</p>
           </div>
         </div>
       )}
