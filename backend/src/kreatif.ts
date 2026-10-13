@@ -140,7 +140,8 @@ function sablonKopyasi(x: any): boolean {
   const aciklama = metin(x?.aciklama_metni).trim();
   if (!aciklama || aciklama === 'Paylaşım açıklaması' || aciklama.startsWith('<')) return true;
   const kareler = dizi<any>(x?.cekimler).map((c) => metin(c?.kare_prompt).trim());
-  return !kareler.length || kareler.some((k) => k.length < 40 || k.includes('…') || k.startsWith('<'));
+  // "…" tek başına ya da kısa yer tutucuysa şablon; uzun gerçek promptta üç nokta olabilir.
+  return !kareler.length || kareler.some((k) => k.length < 40 || k.startsWith('<') || k.startsWith('…'));
 }
 
 export async function kreatifYaz(env: Env, runId: string, k: any, gecerliFormatlar: string[]): Promise<KreatifIcerik[]> {
