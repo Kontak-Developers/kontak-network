@@ -46,7 +46,7 @@ export default function Kreatif({ ayar, degistir }: { ayar: AjanAyarlari; varsay
         </div>
         <ListeAlani
           etiket="Günlük odak döngüsü"
-          aciklama="Her sabah sıradaki odak. Boşsa ajan seçer."
+          aciklama="Her taramada sıradaki odak (gün gün döner). Boşsa ajan seçer."
           degerler={k.odaklar}
           degistir={(v) => kr('odaklar', v)}
           yerTutucu="ör. Kadın sürücüler"

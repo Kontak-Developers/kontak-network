@@ -58,7 +58,7 @@ export default function Avci({ ayar, varsayilan, degistir }: { ayar: AjanAyarlar
 
   return (
     <>
-      <Bolum baslik="Nereye bakıyor" aciklama="Her sabah 08:00. Bir kaynağa tıkla, düzenle.">
+      <Bolum baslik="Nereye bakıyor" aciklama="Her taramada bakılan yerler. Bir kaynağa tıkla, düzenle.">
         <div className="av-kaynaklar">
           {KAYNAKLAR.map((k) => {
             const anahtarli = k.id === 'creative_center'

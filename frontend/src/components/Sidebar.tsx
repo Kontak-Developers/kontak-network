@@ -83,7 +83,7 @@ export default function Sidebar({ tab, go }: { tab: Tab; go: (t: Tab) => void })
                   : 'Gündem taranıyor…'
               : latest?.durum === 'hata'
                 ? 'Son tarama hata verdi'
-                : `Sonraki: yarın 08:00${latest?.bitis ? ` · son ${fmtTime(latest.bitis)}` : ''}`}
+                : `Elle çalışır${latest?.bitis ? ` · son ${fmtTime(latest.bitis)}` : ''}`}
           </small>
         </span>
       </div>

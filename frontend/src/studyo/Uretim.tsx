@@ -189,7 +189,7 @@ export default function Uretim({ ozet, yenile }: { ozet: StudyoOzet; yenile: () 
         }
       >
         {ozet.suren.length === 0 ? (
-          <p className="st-sessiz">Şu an süren iş yok. Ajan her sabah 08:00'de kendiliğinden çalışır.</p>
+          <p className="st-sessiz">Şu an süren iş yok. Ajan yalnız siz başlatınca çalışır: Bugün → "Şimdi tara" ya da yukarıdan üretim.</p>
         ) : (
           <ul className="st-isler">
             {ozet.suren.map((s) => (

@@ -212,7 +212,7 @@ export default function Agent() {
       <section className="panel panel-wide">
         <div className="sec-head">
           <h2>Çalıştırmalar</h2>
-          <span className="muted">Her gün 08:00</span>
+          <span className="muted">Elle başlatılır</span>
         </div>
         <div className="runs">
           {runs.slice(0, 8).map((r) => (

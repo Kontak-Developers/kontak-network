@@ -68,9 +68,11 @@ service = "kontak-api"
 binding = "KONTAK_API_ROTA"
 service = "kontak-api-dev"
 
-# Her gün 08:00 İstanbul (05:00 UTC). Pazartesi ayrıca haftalık özet.
+# 13 Ekim (Burak): otomatik sabah çalışması KAPALI; ajan yalnız panelden elle
+# çalışıyor ("Şimdi tara" / Stüdyo → Üretim). Boş dizi Cloudflare'deki cron'u
+# siler. Geri açmak için: crons = ["0 5 * * *"]  (08:00 İstanbul)
 [triggers]
-crons = ["0 5 * * *"]
+crons = []
 
 [vars]
 # Hashtag başına çekilecek gönderi (Apify ücreti sonuç başına).
