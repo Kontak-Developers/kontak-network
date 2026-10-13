@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Check, ChevronDown, Copy, Download, Info, MapPin, Music2, Send, Undo2, X } from 'lucide-react'
 import { api, assetUrl } from '../api'
 import type { InstagramPublishPreview, InstagramPublishResult } from '../types'
@@ -230,7 +231,7 @@ export default function Preview({ onClose }: { onClose?: () => void }) {
         </div>
       )}
 
-      {confirmInstagram && idea && instagramPreview && (
+      {confirmInstagram && idea && instagramPreview && createPortal(
         <div className="publish-overlay" role="dialog" aria-modal="true" aria-labelledby="ig-publish-title">
           <div className="publish-modal">
             <button className="icon-btn publish-close" onClick={() => setConfirmInstagram(false)} aria-label="Kapat"><X size={18} /></button>
@@ -264,10 +265,11 @@ export default function Preview({ onClose }: { onClose?: () => void }) {
             </div>
             <p className="publish-small">Medya hazırlama özel bir taslak oluşturur; herkese açık paylaşım ancak hazır olduktan sonra bu ekrandaki ayrı son onayla yapılır. Yanıt belirsiz kalırsa çift paylaşımı önlemek için otomatik tekrar yapılmaz.</p>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
-      {confirmTikTok && idea && (
+      {confirmTikTok && idea && createPortal(
         <div className="publish-overlay" role="dialog" aria-modal="true" aria-labelledby="tt-export-title">
           <div className="publish-modal">
             <button className="icon-btn publish-close" onClick={() => setConfirmTikTok(false)} aria-label="Kapat"><X size={18} /></button>
@@ -288,7 +290,8 @@ export default function Preview({ onClose }: { onClose?: () => void }) {
             </div>
             <p className="publish-small">Onay yalnızca panel durumunu değiştirir. Sonraki ekranda hazır MP4/JPG’yi indirip TikTok’a kendin yükle; panel otomatik paylaşmaz.</p>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {!idea && <p className="preview-hint">Bir içeriğe tıkla, paylaşıldığında nasıl görüneceğini burada gör.</p>}
