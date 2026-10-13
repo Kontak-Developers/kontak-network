@@ -6,6 +6,7 @@ import type { InstagramPublishPreview, InstagramPublishResult } from '../types'
 import { useStore } from '../store'
 import { STATUS_LABEL, caption, copyText, hasVideo, scenesOf } from '../lib'
 import { FeedView, PhoneFrame, ProfileView, ReelsView, TikTokView } from './Phone'
+import IcerikAraclari from '../studyo/IcerikAraclari'
 
 type Platform = 'instagram' | 'tiktok'
 
@@ -216,6 +217,8 @@ export default function Preview({ onClose }: { onClose?: () => void }) {
             <p className="publish-hint tiktok-manual-hint"><b>Elle paylaşım:</b> {idea.format === 'kisa_video' ? 'MP4’ü indir → TikTok/TikTok Studio’ya yükle → açıklamayı kopyala → ardından “TikTok’ta paylaştım” olarak kaydet.' : idea.format === 'carousel' ? 'JPG slaytlarını sırayla indir → TikTok’a elle yükle → açıklamayı kopyala → ardından paylaşımı panelde kaydet.' : 'JPG’yi indir → TikTok’a elle yükle → açıklamayı kopyala → ardından paylaşımı panelde kaydet.'}</p>
           )}
           {publishState && publishState !== 'published' && <div className="publish-status"><span>{publishMessage ?? (publishState === 'ready' ? 'Instagram medyası hazır; insanın son onayı bekleniyor.' : `Yayın durumu: ${publishState}`)}</span>{(publishState === 'processing' || publishState === 'publishing') && <button className="btn" onClick={checkInstagramStatus} disabled={publishBusy}>{publishBusy ? 'Kontrol ediliyor…' : 'Durumu kontrol et'}</button>}</div>}
+
+          <IcerikAraclari idea={idea} />
 
           {details && (
             <div className="details">

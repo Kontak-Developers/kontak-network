@@ -130,7 +130,7 @@ export async function cikisYap() {
 /** Uç yok / sunucu yok: yerelde örnek veriye düşülebilir. Yetki ve doğrulama hataları düşmez. */
 const isMissing = (status: number) => status === 404 || status >= 500
 
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+export async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   if (FORCE_MOCK) return (await mockRequest(method, path, body)) as T
   const ep = endpointOf(method, path)
   const headers: Record<string, string> = {}

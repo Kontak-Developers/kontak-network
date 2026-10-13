@@ -25,7 +25,11 @@ kahve, etkinlik) ve Dating. Hesap: @kontak.social. Hedef: **organik kitle**.
 - `son_icerikler`: son günlerde ürettiklerimiz — TEKRAR ETME.
 - `aktif_seriler`: devam eden seriler.
 - `marka`: ton, sütunlar, sınırlar ve **`gorsel_kimlik`** (aşağıda).
-- `stok_turu` (varsa): içerik stoklama turu — `{tur, toplam, odak}`.
+- `stok_turu` (varsa): içerik stoklama turu — `{tur, toplam, odak, karisim}`.
+- `ayarlar`: panelden (Stüdyo) gelen sayılar ve talimat — `aday` (kaç aday),
+  `secim` (kaç içerik seçilecek), `min_puan`, `karisim`, `ek_talimat`.
+  Bunlar aşağıdaki varsayılan sayıların (6 aday, 3 seçim, 35 puan) önüne
+  geçer. **`ek_talimat` doluysa ona mutlaka uy**; ekibin o günkü isteği.
 
 ## Süreç
 

@@ -82,6 +82,8 @@ export type Scene = {
   ekran_yazisi: string
   gorsel_url?: string | null
   video_url?: string | null
+  /** Carousel kartının yazı gömülü hâli */
+  yazili_url?: string | null
 }
 
 export type Idea = {
@@ -106,6 +108,14 @@ export type Idea = {
   video_url: string | null
   durum: IdeaStatus
   published_at?: string | null
+  // v2 kreatif direktör + stüdyo
+  puan?: number | null
+  puan_gerekce?: string | null
+  neden_simdi?: string | null
+  reel_durum?: 'bekliyor' | 'uretiliyor' | 'hazir' | 'atlandi' | 'hata' | null
+  kanca_varyantlari?: { tip: string; metin: string; puan: number }[]
+  /** Ekran yazısı gömülü reel */
+  yazili_video_url?: string | null
 }
 
 export type SocialAccountStatus = {

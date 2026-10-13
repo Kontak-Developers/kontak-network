@@ -10,11 +10,13 @@ import Content from './views/Content'
 import SeriesView from './views/SeriesView'
 import Agent from './views/Agent'
 import BrandView from './views/BrandView'
+import Studyo from './studyo/Studyo'
 
 const TITLES: Record<Tab, string> = {
   bugun: 'Bugün',
   icerikler: 'İçerikler',
   seriler: 'Seriler',
+  studyo: 'Stüdyo',
   ajan: 'Ajan',
   marka: 'Marka',
 }
@@ -94,7 +96,7 @@ function Shell() {
     )
 
   return (
-    <div className="shell">
+    <div className={`shell ${tab === 'studyo' ? 'shell-genis' : ''}`}>
       <Sidebar tab={tab} go={go} />
 
       <div className="center">
@@ -127,12 +129,13 @@ function Shell() {
           {tab === 'bugun' && <Today openAgent={() => go('ajan')} />}
           {tab === 'icerikler' && <Content />}
           {tab === 'seriler' && <SeriesView />}
+          {tab === 'studyo' && <Studyo />}
           {tab === 'ajan' && <Agent />}
           {tab === 'marka' && <BrandView />}
         </main>
       </div>
 
-      {!narrow && (
+      {!narrow && tab !== 'studyo' && (
         <aside className="right">
           <Preview />
         </aside>

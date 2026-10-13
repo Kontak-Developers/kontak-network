@@ -26,6 +26,8 @@ type Store = {
   setWatch: (id: string, durum: WatchStatus) => Promise<void>
   startRun: () => Promise<void>
   saveBrand: (b: Brand) => Promise<void>
+  /** İçerik listesini tazele (Stüdyo: metin düzenleme, yazı gömme sonrası) */
+  refreshIdeas: () => Promise<void>
   toast: (text: string) => void
   toasts: Toast[]
 }
@@ -46,6 +48,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [runs, setRuns] = useState<Run[]>([])
   const [trends, setTrends] = useState<Trend[]>([])
   const [ideas, setIdeas] = useState<Idea[]>([])
+  const ideasRef = useRef<Idea[]>([])
+  ideasRef.current = ideas
   const [series, setSeries] = useState<Series[]>([])
   const [watchlist, setWatchlist] = useState<WatchItem[]>([])
   const [decisions, setDecisions] = useState<Decision[]>([])
@@ -166,6 +170,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setBrand(normalizeBrand(await api.saveBrand(b)))
   }, [])
 
+  const refreshIdeas = useCallback(async () => {
+    setIdeas(await api.ideas().catch(() => ideasRef.current))
+  }, [])
+
   const value = useMemo<Store>(
     () => ({
       ready,
@@ -187,10 +195,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setWatch,
       startRun,
       saveBrand,
+      refreshIdeas,
       toast,
       toasts,
     }),
-    [ready, error, auth, brand, runs, latest, trends, ideas, series, watchlist, decisions, weekly, kontakRotalar, selectedId, setIdeaStatus, setWatch, startRun, saveBrand, toast, toasts],
+    [ready, error, auth, brand, runs, latest, trends, ideas, series, watchlist, decisions, weekly, kontakRotalar, selectedId, setIdeaStatus, setWatch, startRun, saveBrand, refreshIdeas, toast, toasts],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

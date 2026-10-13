@@ -1,15 +1,16 @@
 import { useState } from 'react'
-import { Bot, Check, ChevronsUpDown, LayoutGrid, Layers, Palette, Plus, Sun } from 'lucide-react'
+import { Bot, Check, ChevronsUpDown, Clapperboard, LayoutGrid, Layers, Palette, Plus, Sun } from 'lucide-react'
 import { useStore } from '../store'
 import { fmtTime } from '../lib'
 import { Avatar } from './Phone'
 
-export type Tab = 'bugun' | 'icerikler' | 'seriler' | 'ajan' | 'marka'
+export type Tab = 'bugun' | 'icerikler' | 'seriler' | 'studyo' | 'ajan' | 'marka'
 
 export const NAV: { id: Tab; label: string; icon: typeof Sun }[] = [
   { id: 'bugun', label: 'Bugün', icon: Sun },
   { id: 'icerikler', label: 'İçerikler', icon: LayoutGrid },
   { id: 'seriler', label: 'Seriler', icon: Layers },
+  { id: 'studyo', label: 'Stüdyo', icon: Clapperboard },
   { id: 'ajan', label: 'Ajan', icon: Bot },
   { id: 'marka', label: 'Marka', icon: Palette },
 ]
