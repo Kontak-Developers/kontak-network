@@ -53,6 +53,7 @@ export async function studyoApi(
       ayarlar,
       varsayilan: VARSAYILAN_AYARLAR,
       kimlik: (marka as any).gorsel_kimlik ?? null,
+      rehber: (marka as any).rehber ?? null,
       promptlar: PROMPTLAR.map((ad) => ({
         ad,
         ozel: ozelMap.has(ad),
@@ -81,6 +82,19 @@ export async function studyoApi(
     marka.gorsel_kimlik = { ...b, surum: simdiIst().slice(0, 10), guncelleyen: kim };
     await DB.prepare("UPDATE brands SET veri = ?, guncelleme = ? WHERE id = 'kontak'").bind(JSON.stringify(marka), simdiIst()).run();
     return json(marka.gorsel_kimlik);
+  }
+
+  // Marka rehberi (Şevval): üreticilerin ve ajanın uyduğu yazılı kurallar. Kreatif girdisine `marka.rehber` olarak gider.
+  if (yol === '/api/studyo/rehber' && m === 'PUT') {
+    const b = await govde();
+    const yeni = metin(b?.metin).trim();
+    if (yeni.length < 200) return hata('gecersiz', 'Rehber çok kısa görünüyor; tamamını yapıştır.', 400);
+    if (yeni.length > 30_000) return hata('buyuk', 'Rehber çok uzun (en fazla 30.000 karakter).', 413);
+    const r = await DB.prepare("SELECT veri FROM brands WHERE id = 'kontak'").first<{ veri: string }>();
+    const marka = jsonAc<any>(r?.veri, { id: 'kontak', ad: 'Kontak' });
+    marka.rehber = { metin: yeni, surum: simdiIst().slice(0, 10), guncelleyen: kim };
+    await DB.prepare("UPDATE brands SET veri = ?, guncelleme = ? WHERE id = 'kontak'").bind(JSON.stringify(marka), simdiIst()).run();
+    return json(marka.rehber);
   }
 
   // Kimliği tek karede dene (Flux Ultra, ~0,06$): kimlik düzenlerken sonucu görmek için.

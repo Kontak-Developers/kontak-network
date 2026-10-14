@@ -54,6 +54,8 @@ export type GorselKimlik = {
 
 export type UygulamaEkrani = { id: string; ad: string; aciklama: string; anahtar: string }
 
+export type MarkaRehberi = { metin: string; surum: string; guncelleyen: string }
+
 export type PromptOzet = { ad: string; ozel: boolean; guncelleme: string | null; guncelleyen: string | null }
 export type Harcama = { servis: string; usd: number }
 export type SurenIs = { id: string; ozet: string; adim: string; baslangic: string; icerik: number; hazir: number }
@@ -62,6 +64,7 @@ export type StudyoOzet = {
   ayarlar: AjanAyarlari
   varsayilan: AjanAyarlari
   kimlik: GorselKimlik | null
+  rehber: MarkaRehberi | null
   promptlar: PromptOzet[]
   harcama: { bugun: Harcama[]; toplam: Harcama[]; tavan: number }
   suren: SurenIs[]

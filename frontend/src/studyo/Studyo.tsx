@@ -6,6 +6,7 @@ import type { AjanAyarlari, StudyoOzet } from './tipler'
 import { KaydetCubugu } from './parcalar'
 import Uretim from './Uretim'
 import Kimlik from './Kimlik'
+import Rehber from './Rehber'
 import Avci from './Avci'
 import Formatlar from './Formatlar'
 import Kreatif from './Kreatif'
@@ -17,7 +18,7 @@ export type AyarDegistir = (f: (a: AjanAyarlari) => AjanAyarlari) => void
 
 const BOLUMLER = [
   { id: 'uretim', label: 'Üretim', icon: Rocket },
-  { id: 'kimlik', label: 'Görsel kimlik', icon: Palette },
+  { id: 'kimlik', label: 'Marka & kimlik', icon: Palette },
   { id: 'avci', label: 'Avcı', icon: Radar },
   { id: 'formatlar', label: 'Formatlar', icon: Shapes },
   { id: 'kreatif', label: 'Kreatif & stüdyo', icon: Clapperboard },
@@ -122,6 +123,7 @@ export default function Studyo() {
       </nav>
 
       {bolum === 'uretim' && <Uretim ozet={ozet} yenile={yukle} />}
+      {bolum === 'kimlik' && <Rehber rehber={ozet.rehber} kaydedildi={(r) => setOzet({ ...ozet, rehber: r })} />}
       {bolum === 'kimlik' && <Kimlik kimlik={ozet.kimlik} kaydedildi={(k) => setOzet({ ...ozet, kimlik: k })} />}
       {bolum === 'avci' && <Avci ayar={taslak} varsayilan={ozet.varsayilan} degistir={ayarDegistir} />}
       {bolum === 'formatlar' && <Formatlar />}

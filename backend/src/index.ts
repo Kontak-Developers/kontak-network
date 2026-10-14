@@ -148,10 +148,11 @@ async function api(req: Request, env: Env, url: URL): Promise<Response> {
         return hata('gecersiz', 'Profilde en az "ad" olmalı.', 400);
       }
       b.id = 'kontak';
-      // Görsel kimlik panel formunda yok; kayıt onu silmesin.
-      if (!b.gorsel_kimlik) {
+      // Görsel kimlik ve marka rehberi panel formunda yok; kayıt onları silmesin.
+      if (!b.gorsel_kimlik || !b.rehber) {
         const eski = jsonAc<any>((await DB.prepare("SELECT veri FROM brands WHERE id = 'kontak'").first<{ veri: string }>())?.veri, {});
-        if (eski.gorsel_kimlik) b.gorsel_kimlik = eski.gorsel_kimlik;
+        if (!b.gorsel_kimlik && eski.gorsel_kimlik) b.gorsel_kimlik = eski.gorsel_kimlik;
+        if (!b.rehber && eski.rehber) b.rehber = eski.rehber;
       }
       await DB.prepare("INSERT INTO brands (id, veri, guncelleme) VALUES ('kontak', ?, ?) ON CONFLICT(id) DO UPDATE SET veri = excluded.veri, guncelleme = excluded.guncelleme")
         .bind(JSON.stringify(b), simdiIst()).run();

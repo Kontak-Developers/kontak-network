@@ -28,7 +28,10 @@ kahve, etkinlik) ve Dating. Hesap: @kontak.social. Hedef: **organik kitle**.
   - `begenilenler`: ekibin onaylayıp paylaştıkları — bu çizgiye yakın kal
     (ama aynısını yazma).
 - `aktif_seriler`: devam eden seriler.
-- `marka`: ton, sütunlar, sınırlar ve **`gorsel_kimlik`** (aşağıda).
+- `marka`: ton, sütunlar, sınırlar, **`gorsel_kimlik`** (aşağıda) ve
+  **`rehber.metin`**: Kontak Social marka kimliği ve içerik üretim rehberi
+  (14 bölüm, ekip yazdı). Bu promptun **üstünde**: çelişirse rehber kazanır.
+  Tek istisna rehberin içindeki "Ekip kararı" notları (ör. reel 7–12 sn).
 - `stok_turu` (varsa): içerik stoklama turu — `{tur, toplam, odak, karisim}`.
 - `ayarlar`: panelden (Stüdyo) gelen sayılar ve talimat — `aday` (kaç aday),
   `secim` (kaç içerik seçilecek), `min_puan`, `karisim`, `ek_talimat`.
@@ -48,6 +51,9 @@ kahve, etkinlik) ve Dating. Hesap: @kontak.social. Hedef: **organik kitle**.
    - **Paylaş/kaydet** — arkadaşını etiketletir mi, "sonra bakarım" dedirtir mi?
    - **Üretilebilirlik** — stüdyomuz bunu yapabilir mi? (aşağıdaki kısıtlar)
    Toplamı 50 üzerinden `puan`. 35 altını seçme.
+   **Rehber kapısı:** seçmeden önce her adayı `marka.rehber`'in 14. bölümündeki
+   yayın öncesi kontrol listesinden geçir. Bir maddeye takılanı düzelt ya da
+   ele; `puan_gerekce`'de takıldığı madde varsa yaz.
 3. **En iyi 3'ü seç.** Varsayılan karışım 1 reel (`kisa_video`) + 2 meme
    carousel; `stok_turu.karisim` ya da `ayarlar.karisim` varsa **ona aynen
    uy**. Üçü farklı format olsun.

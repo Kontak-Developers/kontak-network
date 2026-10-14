@@ -2226,3 +2226,53 @@
   opacity: 0.55;
   cursor: progress;
 }
+
+/* Marka rehberi (Kimlik sekmesi) */
+.st-rehber-bolumler {
+  list-style: none;
+  counter-reset: rb;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.st-rehber-bolumler li {
+  counter-increment: rb;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--marka-soft);
+}
+.st-rehber-bolumler li::before {
+  content: counter(rb) ' · ';
+  font-variant-numeric: tabular-nums;
+  color: var(--metin-soluk);
+}
+.st-rehber-metin {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 78ch;
+  font-size: 14px;
+  line-height: 1.6;
+  padding-top: 8px;
+}
+.st-rehber-metin h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-top: 14px;
+}
+.st-rehber-metin h4 {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+.st-rehber-madde {
+  padding-left: 14px;
+}
+.st-rehber-not {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--marka-soft);
+  font-weight: 600;
+}

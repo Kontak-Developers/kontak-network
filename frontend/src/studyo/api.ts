@@ -1,5 +1,5 @@
 import { API_TABAN, ApiError, request, yetkiBasligi } from '../api'
-import type { AjanAyarlari, Format, GorselKimlik, Patlayan, RotaKarti, StudyoOzet, UygulamaEkrani } from './tipler'
+import type { AjanAyarlari, Format, GorselKimlik, MarkaRehberi, Patlayan, RotaKarti, StudyoOzet, UygulamaEkrani } from './tipler'
 
 const e = encodeURIComponent
 
@@ -21,6 +21,7 @@ export const studyoApi = {
   ekranSil: (id: string) => request<{ ok: true }>('DELETE', `/api/studyo/ekran/${e(id)}`),
   ozet: () => request<StudyoOzet>('GET', '/api/studyo'),
   ayarlariKaydet: (a: AjanAyarlari) => request<AjanAyarlari>('PUT', '/api/studyo/ayarlar', a),
+  rehberKaydet: (metin: string) => request<MarkaRehberi>('PUT', '/api/studyo/rehber', { metin }),
   kimlikKaydet: (k: GorselKimlik) => request<GorselKimlik>('PUT', '/api/studyo/kimlik', k),
   kimlikDene: (prompt: string, karakter: string, kimlik: GorselKimlik) =>
     request<{ url: string }>('POST', '/api/studyo/kimlik/dene', { prompt, karakter, kimlik }),
