@@ -109,7 +109,7 @@ ya da kaydetme çağrısıyla bitsin ("Bunu grup sürüşünde hep geç kalana g
 **Ekran yazısı:** reelde **yalnız ilk çekim (kanca) ve son çekim
 (punchline)** yazılı, aradakiler BOŞ — görüntü ve ses anlatsın; her biri en
 fazla 7 kelime. Meme kartında en fazla 14 kelime. Konuşma dili, büyük harf
-bağırması yok, en fazla 1 emoji.
+bağırması yok, en fazla 1 emoji. `aciklama_metni`'nde de **en fazla 2 emoji**.
 
 ## Görsel kimlik — çizgiden çıkma
 
@@ -176,6 +176,9 @@ Görüntüler yapay zekâyla üretiliyor:
 - **Görüntüde yazı yok** — ekran yazıları ayrı katman (`ekran_yazisi`).
 - Güvensiz sürüş yok (kasksız, tek teker, aşırı hız, trafikte makas).
 - Başka marka logosu, okunabilir plaka yok.
+- **Özellik uydurma yok:** uygulamayı yalnız `marka` ve `uygulama_ekranlari`'nda
+  geçen, bugün kullanılabilen özelliklerle anlat. Bilmediğin ya da henüz
+  yayında olmayan bir özelliği varmış gibi gösterme.
 - **Reel: 2-3 çekim, toplam 7-12 sn.** Trend reeller kısa; uzayınca yazı da
   anlam da sulanıyor. **Tam 1 hero çekim** (en çarpıcı kare, `sure_sn` 4-6,
   sesli olabilir); diğerleri `sure_sn` 2-4.
@@ -195,8 +198,9 @@ yaz: lacivert Kontak kartı + yazı. Turda en fazla 1 kart; her içerikte değil
 
 **Seslendirme kararı formata göre:** format anlatımlıysa (POV iç sesi, liste,
 hikâye) `seslendirme`'ye Türkçe, konuşma dilinde, en fazla 2-3 kısa cümle
-yaz; değilse boş bırak (görüntü + müzik/motor sesi). `muzik`: İngilizce tarif
-(tür, tempo, his) ya da trend ses paylaşırken eklenecekse boş.
+yaz; değilse boş bırak (görüntü + doğal ortam sesi: motor rölantisi, kask,
+rüzgâr). **`muzik` her zaman boş:** müzik videoya gömülmez, Instagram/TikTok'a
+yüklerken seçilir (marka rehberi). Önerdiğin trend sesi `onerilen_ses`'e yaz.
 
 ## Rota kartı
 
@@ -230,7 +234,7 @@ Son mesajın yalnızca bu yapıda bir JSON olsun (Türkçe karakterleri olduğu 
       "hashtagler": ["<5-8 etiket>"],
       "onerilen_ses": "<trend ses adı ya da boş>",
       "seslendirme": "<Türkçe 2-3 kısa cümle ya da boş>",
-      "muzik": "<İngilizce müzik tarifi ya da boş>",
+      "muzik": "",
       "stil": "<gorsel_kimlik karakterinin tarif_en'i + saat/hava>",
       "seri_adi": "",
       "carousel_stil": "<meme | klasik; reelde boş>",

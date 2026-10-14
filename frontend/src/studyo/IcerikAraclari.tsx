@@ -40,6 +40,18 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
   const [yazilar, setYazilar] = useState(sahneler.map((s) => s.ekran_yazisi ?? ''))
   const [kaydediliyor, setKaydediliyor] = useState(false)
   const [yenilenen, setYenilenen] = useState<number | null>(null)
+  const [gomuluyor, setGomuluyor] = useState(false)
+  const yaziGom = async () => {
+    setGomuluyor(true)
+    try {
+      await studyoApi.yaziGom([idea.id])
+      toast('Yazılı sürüm hazırlanıyor (~2 dk); bitince Dosyalar\'da görünür')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Başlatılamadı')
+    } finally {
+      setGomuluyor(false)
+    }
+  }
   const plan = (idea as Idea & { uretim_plani?: { cekimler?: { uygulama_ekrani?: string }[] } | null }).uretim_plani
   const kartYenile = async (i: number) => {
     setYenilenen(i)
@@ -146,8 +158,8 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
               </a>
             )}
             {idea.format === 'kisa_video' && idea.video_url && (
-              <a className="btn btn-sm" href={assetUrl(idea.video_url) ?? undefined} download={dosyaAdi('.mp4')}>
-                <Download size={14} /> Temiz MP4
+              <a className={`btn btn-sm${idea.yazili_video_url ? '' : ' btn-primary'}`} href={assetUrl(idea.video_url) ?? undefined} download={dosyaAdi('.mp4')}>
+                <Download size={14} /> Yazısız MP4
               </a>
             )}
             {idea.format !== 'kisa_video' &&
@@ -156,16 +168,42 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
                   <Download size={14} /> {i + 1}
                 </a>
               ))}
-            {idea.format !== 'kisa_video' && yaziliSlaytlar.length === 0 && temizSlaytlar.length > 0 && (
-              <span className="st-sessiz">Yazılı slaytlar yok; Stüdyo → Üretim → "Eksik yazıları göm".</span>
-            )}
             {idea.format !== 'kisa_video' &&
               temizSlaytlar.map((u, i) => (
-                <a key={u} className="btn btn-sm" href={assetUrl(u) ?? undefined} download={dosyaAdi(`-${i + 1}-temiz.jpg`)} title="Yazısız">
-                  <Download size={14} /> {i + 1} temiz
+                <a key={u} className={`btn btn-sm${yaziliSlaytlar.length ? '' : ' btn-primary'}`} href={assetUrl(u) ?? undefined} download={dosyaAdi(`-${i + 1}-temiz.jpg`)} title="Yazısız">
+                  <Download size={14} /> {i + 1}{yaziliSlaytlar.length ? ' yazısız' : ''}
                 </a>
               ))}
           </div>
+        </div>
+      )}
+
+      {sahneler.some((s) => s.ekran_yazisi?.trim()) && (
+        <div className="st-icerik-blok">
+          <span className="st-icerik-baslik st-aciklama-bas">
+            <span>
+              <Type size={13} /> Ekran yazıları
+            </span>
+            {!(idea.yazili_video_url || yaziliSlaytlar.length) && (
+              <button className="btn btn-sm" onClick={yaziGom} disabled={gomuluyor} title="Bu yazıları Kontak yazı tipiyle dosyaya göm (~0,02$)">
+                <Type size={13} /> {gomuluyor ? 'Başlatılıyor…' : 'Yazıyı dosyaya uygula'}
+              </button>
+            )}
+          </span>
+          <p className="st-sessiz">Dosyalar yazısız; yazıyı Instagram/TikTok'ta ekle ya da tek tuşla uygula. Değiştirmek için "Metni düzenle".</p>
+          <ul className="st-yazilar">
+            {sahneler.map((s, i) =>
+              s.ekran_yazisi?.trim() ? (
+                <li key={i}>
+                  <span className="st-varyant-tip">{idea.format === 'carousel' ? `${i + 1}. kart` : i === 0 ? 'Açılış' : i === sahneler.length - 1 ? 'Kapanış' : `${i + 1}. sahne`}</span>
+                  <span className="st-varyant-metin">{s.ekran_yazisi}</span>
+                  <button className="btn btn-sm" aria-label={`${i + 1}. yazıyı kopyala`} onClick={async () => (await copyText(s.ekran_yazisi!)) && toast('Yazı kopyalandı')}>
+                    <Copy size={13} />
+                  </button>
+                </li>
+              ) : null
+            )}
+          </ul>
         </div>
       )}
 
@@ -264,7 +302,7 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
                 <span className="st-etiket">
                   <Type size={13} /> Ekran yazıları
                 </span>
-                <p className="st-aciklama">Değiştirirsen yazılı dosya yeniden hazırlanır.</p>
+                <p className="st-aciklama">Yazılı sürümü varsa o da yeni yazıyla yeniden hazırlanır.</p>
                 {yazilar.map((y, i) => (
                   <input
                     key={i}

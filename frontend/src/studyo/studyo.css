@@ -1052,6 +1052,24 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+.st-yazilar {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.st-yazilar li {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 8px;
+  border-radius: 10px;
+  background: var(--marka-soft);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.st-yazilar .btn-sm,
 .st-varyantlar .btn-sm {
   padding: 4px 9px;
   font-size: 12px;

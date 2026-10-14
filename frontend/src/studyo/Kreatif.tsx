@@ -71,8 +71,8 @@ export default function Kreatif({ ayar, degistir }: { ayar: AjanAyarlari; varsay
       <Bolum baslik="Stüdyo" aciklama="Flux Ultra → Veo 3.1 / Kling 2.5 → ElevenLabs → montaj">
         <div className="st-izgara st-izgara-2">
           <Anahtar
-            etiket="Ekran yazısını göm"
-            aciklama="Sora yazı tipiyle; temiz sürüm de kalır."
+            etiket="Ekran yazısını otomatik göm"
+            aciklama="Marka rehberi: kapalı. Dosyalar yazısız çıkar; yazı içerikte ayrı durur, istersen tek tuşla uygularsın."
             acik={ayar.studyo.yazi_gom}
             degistir={(v) => st('yazi_gom', v)}
           />
@@ -82,8 +82,18 @@ export default function Kreatif({ ayar, degistir }: { ayar: AjanAyarlari; varsay
             acik={ayar.studyo.hero_veo}
             degistir={(v) => st('hero_veo', v)}
           />
-          <Anahtar etiket="Müzik üret" aciklama="Telifsiz enstrümantal." acik={ayar.studyo.muzik} degistir={(v) => st('muzik', v)} />
-          <Anahtar etiket="Seslendirmeye altyazı"  acik={ayar.studyo.altyazi} degistir={(v) => st('altyazi', v)} />
+          <Anahtar
+            etiket="Müzik üret ve göm"
+            aciklama="Marka rehberi: kapalı. Müzik paylaşırken Instagram/TikTok'ta seçilir; videoda yalnız doğal ortam sesi."
+            acik={ayar.studyo.muzik}
+            degistir={(v) => st('muzik', v)}
+          />
+          <Anahtar
+            etiket="Seslendirmeye altyazı göm"
+            aciklama="Marka rehberi: kapalı (videoya gömülü yazı)."
+            acik={ayar.studyo.altyazi}
+            degistir={(v) => st('altyazi', v)}
+          />
           <Anahtar
             etiket="Ham fotoğraf (raw)"
             aciklama="Parlatılmamış, telefonla çekilmiş gibi gerçek doku. Yapay zekâ hissini en çok azaltan ayar."

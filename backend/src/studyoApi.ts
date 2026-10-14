@@ -235,7 +235,8 @@ export async function studyoApi(
     await DB.prepare('UPDATE ideas SET sahneler = ?, gorsel_anahtar = CASE WHEN ? = 0 THEN ? ELSE gorsel_anahtar END WHERE id = ?')
       .bind(JSON.stringify(sahneler), i, anahtar, fikirId).run();
     await harcamaYaz(env, r.run_id, 'fal', 'kart yeniden üretim (panel)', x.deneme * 0.06);
-    if (ayar.studyo.yazi_gom) await carouselYazilari(env, fikirId, ayar.studyo.imza);
+    // Kart önceden yazılıysa seri tutarlı kalsın diye yeniden gömülür; yazısız içerik yazısız kalır.
+    if (ayar.studyo.yazi_gom || yazili_anahtar) await carouselYazilari(env, fikirId, ayar.studyo.imza);
     return json({ ok: true, deneme: x.deneme, temiz: x.denetim?.temiz ?? true, sorunlar: x.denetim?.sorunlar ?? [] });
   }
 
@@ -324,7 +325,9 @@ export async function studyoApi(
       `UPDATE ideas SET kanca = ?, aciklama_metni = ?, hashtagler = ?, sahneler = ?, uretim_plani = ?,
          yazili_anahtar = CASE WHEN ? THEN NULL ELSE yazili_anahtar END WHERE id = ? RETURNING id`
     ).bind(kanca, aciklama, etiketler, JSON.stringify(sahneler), plan ? JSON.stringify(plan) : null, yaziDegisti ? 1 : 0, r.id).first();
-    return json({ ok: !!g, yazi_yeniden_gomulmeli: yaziDegisti });
+    // Yalnız önceden yazılı sürümü olan içerik yeniden gömülür; yazısız akışta (rehber) metin sadece katman olarak değişir.
+    const yaziliVardi = !!r.yazili_anahtar || jsonAc<any[]>(r.sahneler, []).some((s) => s.yazili_anahtar);
+    return json({ ok: !!g, yazi_yeniden_gomulmeli: yaziDegisti && yaziliVardi });
   }
 
   return null;

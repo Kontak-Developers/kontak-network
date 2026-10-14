@@ -65,10 +65,11 @@ export type AjanAyarlari = {
   studyo: {
     /** ElevenLabs v3 ses adı */
     ses: string;
+    /** Müzik üret ve göm. Marka rehberi (Şevval, 14 Eki): müzik gömülmez, paylaşırken seçilir → kapalı. */
     muzik: boolean;
-    /** Seslendirmeli reelde otomatik altyazı */
+    /** Seslendirmeli reelde otomatik altyazı (videoya gömülü yazı → rehber gereği kapalı) */
     altyazi: boolean;
-    /** Ekran yazısını videoya / carousel kartına göm */
+    /** Ekran yazısını üretimde otomatik göm. Rehber: kapalı; yazı panelde ayrı katman, istenince tek tuşla gömülür. */
     yazi_gom: boolean;
     /** Hero çekim Veo 3.1 Fast (sesli, pahalı) mı, Kling mi */
     hero_veo: boolean;
@@ -117,7 +118,7 @@ export const VARSAYILAN_AYARLAR: AjanAyarlari = {
   },
   sok: { izlenecek_video: 10, sure_dk: 35, taze_saat: 6 },
   kreatif: { aday: 6, secim: 3, min_puan: 35, karisim: '1 reel + 2 meme carousel', odaklar: [], ek_talimat: '', sure_dk: 30 },
-  studyo: { ses: 'Brian', muzik: true, altyazi: true, yazi_gom: true, hero_veo: true, kalite_denetimi: true, denetim_modeli: 'google/gemini-2.5-flash', imza: 'kontak.social', ham_foto: true, video_denetimi: true },
+  studyo: { ses: 'Brian', muzik: false, altyazi: false, yazi_gom: false, hero_veo: true, kalite_denetimi: true, denetim_modeli: 'google/gemini-2.5-flash', imza: 'kontak.social', ham_foto: true, video_denetimi: true },
   butce: { fal_gunluk_tavan: 3, maliyet_katsayi: 1.45 },
 };
 

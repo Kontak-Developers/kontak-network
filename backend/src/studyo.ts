@@ -276,7 +276,8 @@ export async function klipBaslat(env: Env, c: Cekim, kare: string, heroVeo: bool
   if (c.hero && heroVeo) {
     const sure = c.sure_sn >= 8 ? '8s' : c.sure_sn >= 6 ? '6s' : '4s';
     return falKuyruk(env, 'fal-ai/veo3.1/fast/image-to-video', {
-      prompt,
+      // Rehber: müzik gömülmez; yalnız doğal ortam sesi (motor, rüzgâr, kask, çevre).
+      prompt: seslendirmeVar ? prompt : `${prompt} Audio: natural ambient sound only (engine idle, wind, footsteps, street), no music, no singing, no speech.`,
       image_url: kare,
       aspect_ratio: '9:16',
       duration: sure,
