@@ -28,6 +28,9 @@ export async function sonIcerikler(env: Env) {
   return { icerikler: r.results, reddedilenler: reddedilen.results, begenilenler: paylasilan.results, rotalar: rotalar.results };
 }
 
+/** Reel toplam süre tavanı (sn). */
+export const REEL_TAVAN_SN = 12;
+
 function planCikar(x: any, carousel = false): CekimPlani {
   const cekimler = dizi<any>(x?.cekimler)
     .slice(0, carousel ? 6 : 3)
@@ -53,6 +56,17 @@ function planCikar(x: any, carousel = false): CekimPlani {
   }
   // Carousel'de hero yok (yukarıdaki tek-hero kuralı reel için).
   if (carousel) cekimler.forEach((c) => (c.hero = false));
+  // Reel süresi kod tavanı (14 Eki, Şevval: "uzadıkça saçmalıyor"): prompt 7–12 sn diyor ama model
+  // uymazsa da toplam 12 sn'yi geçmez. Önce hero dışı çekimler 2 sn'ye, sonra hero 4 sn'ye kadar kısalır.
+  if (!carousel) {
+    const toplam = () => cekimler.reduce((t, c) => t + c.sure_sn, 0);
+    while (toplam() > REEL_TAVAN_SN) {
+      const aday = cekimler.filter((c) => !c.hero && c.sure_sn > 2).sort((a, b) => b.sure_sn - a.sure_sn)[0]
+        ?? cekimler.find((c) => c.hero && c.sure_sn > 4);
+      if (!aday) break;
+      aday.sure_sn -= 1;
+    }
+  }
   return {
     cekimler,
     stil: metin(x?.stil).slice(0, 600),
