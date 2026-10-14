@@ -215,7 +215,11 @@ export async function studyoApi(
     if (!ids.length) return hata('gecersiz', 'En az bir reel seç.', 400);
     const ayar = await ayarlariOku(env);
     const tavan = Math.min(200, sayi(b?.tavan) || Math.max(ayar.butce.fal_gunluk_tavan, 60));
-    await DB.prepare(`UPDATE ideas SET reel_durum = 'bekliyor' WHERE id IN (${ids.map(() => '?').join(',')}) AND COALESCE(reel_durum, '') != 'hazir'`).bind(...ids).run();
+    // yeniden: true → hazır reel de yeni kurallarla baştan üretilir; eski yazılı sürüm düşer (yazı artık panelde katman).
+    const yeniden = b?.yeniden === true;
+    await DB.prepare(
+      `UPDATE ideas SET reel_durum = 'bekliyor'${yeniden ? ', yazili_anahtar = NULL' : ''} WHERE id IN (${ids.map(() => '?').join(',')})${yeniden ? '' : " AND COALESCE(reel_durum, '') != 'hazir'"}`
+    ).bind(...ids).run();
     const id = await runBaslat({ reel: { ids, tavan } }, `Reel yeniden üretim: ${ids.length} reel`);
     return json({ id }, 202);
   }

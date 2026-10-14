@@ -16,7 +16,7 @@ import { avAdaylari, avBaslat, avMaliyeti, dokum, falaTasi, igAdaylari, igHesapl
 import { formatlariYaz, harcamaYaz, kazananFormatlar, mevcutFormatlar, patlayanlariYaz, trTrendleriniYaz, uygunTrTrendleri } from './formatlar';
 import { DIKEY_4_5, DIKEY_9_16, gorselUret, r2yeYaz, sahnePromptu, videoBaslat, videoYokla, type Uretilen } from './fal';
 import { gonderileriYaz, markaOku, gonderileriOku } from './db';
-import { kreatifNormalize, kreatifYaz, rotaKartiYaz, sonIcerikler, type KreatifIcerik } from './kreatif';
+import { kreatifNormalize, kreatifYaz, reelSuresiniSinirla, rotaKartiYaz, sonIcerikler, type KreatifIcerik } from './kreatif';
 import {
   altyaziAdresi, altyaziBaslat, bugunkuFal, kareUret, klipAdresi, klipBaslat, kuyrukYokla, maliyetTahmini,
   montajAdresi, montajBaslat, muzikBaslat, sesAdresi, seslendir, type KuyrukIsi, type CekimPlani,
@@ -99,7 +99,10 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
           ).bind(...reel.ids).all<any>();
           return r.results.map((x) => {
             const plan = jsonAc<CekimPlani>(x.uretim_plani, { cekimler: [], stil: '', seslendirme: null, muzik: null });
-            return { id: x.id as string, format: 'kisa_video' as const, puan: Number(x.puan) || 0, plan: { ...plan, stil: [plan.stil, kimlik].filter(Boolean).join('. ') } };
+            // Eski planlar (13 Eki öncesi 3-4 çekim, 17-23 sn) yeni kurallara girer: ≤3 çekim, ≤12 sn, müzik yok.
+            reelSuresiniSinirla(plan.cekimler);
+            plan.cekimler.forEach((c, i) => (c.sira = i + 1));
+            return { id: x.id as string, format: 'kisa_video' as const, puan: Number(x.puan) || 0, plan: { ...plan, muzik: null, stil: [plan.stil, kimlik].filter(Boolean).join('. ') } };
           });
         });
         for (const r of liste) {

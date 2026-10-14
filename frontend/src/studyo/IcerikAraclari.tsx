@@ -96,11 +96,12 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
     }
   }
 
-  const yenidenUret = async () => {
+  const yenidenUret = async (hazirOlan = false) => {
+    if (hazirOlan && !window.confirm('Bu reel yeni kurallarla baştan üretilsin mi? (en fazla 12 sn, müziksiz, yazısız; ~2–3$)\nMevcut video yenisi gelene kadar kalır.')) return
     setKaydediliyor(true)
     try {
-      await studyoApi.reelUret([idea.id])
-      toast('Reel yeniden üretiliyor (~5 dk)')
+      await studyoApi.reelUret([idea.id], hazirOlan)
+      toast('Reel yeni kurallarla yeniden üretiliyor (~5 dk)')
       await refreshIdeas()
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Başlatılamadı')
@@ -126,7 +127,7 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
         <div className="st-icerik-not">
           <span>{REEL_DURUM[idea.reel_durum]}</span>
           {(idea.reel_durum === 'atlandi' || idea.reel_durum === 'hata') && (
-            <button className="btn btn-sm" onClick={yenidenUret} disabled={kaydediliyor}>
+            <button className="btn btn-sm" onClick={() => yenidenUret()} disabled={kaydediliyor}>
               <RefreshCw size={14} /> Yeniden üret (~3$)
             </button>
           )}
@@ -156,6 +157,11 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
               <a className="btn btn-sm btn-primary" href={assetUrl(idea.yazili_video_url) ?? undefined} download={dosyaAdi('-yazili.mp4')}>
                 <Download size={14} /> Yazılı MP4
               </a>
+            )}
+            {idea.format === 'kisa_video' && idea.reel_durum === 'hazir' && (
+              <button className="btn btn-sm" onClick={() => yenidenUret(true)} disabled={kaydediliyor} title="En fazla 12 sn, müziksiz, yazısız; eski plan yeni kurallara sokulur">
+                <RefreshCw size={14} /> Yeni kurallarla yeniden üret
+              </button>
             )}
             {idea.format === 'kisa_video' && idea.video_url && (
               <a className={`btn btn-sm${idea.yazili_video_url ? '' : ' btn-primary'}`} href={assetUrl(idea.video_url) ?? undefined} download={dosyaAdi('.mp4')}>
