@@ -12,7 +12,7 @@ import type { Env } from './tipler';
 // Olumlu tarif (bkz. studyo.ts KURALLAR notu): "no plates/text" plakayı kareye sokuyor.
 const KURALLAR =
   'photorealistic candid smartphone photo, natural colors, neutral white balance, clean frame free of typography and watermarks, ' +
-  'motorcycles seen from the front or the side, plain unbranded bikes, plain building walls, ' +
+  'motorcycles seen from the front or the side, plain unbranded bikes, background of open sea, sky, park trees or plain painted walls, ' +
   'riders wearing closed full-face helmets with visors down, calm safe riding';
 
 const VIDEO_NEGATIF =

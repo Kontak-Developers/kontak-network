@@ -132,6 +132,10 @@ carousel'ler tek bir hesabın işi gibi görünmeli.
   arkadaşın telefonla çektiği story gibi.
 - **Asla sahneye koyma:** telefon/tablet ekranı, uygulama arayüzü, tabela,
   vitrin ya da cephe yazısı yakın planı (model yazı ve arayüz uyduruyor).
+- **Arka plan:** deniz, gökyüzü, park ağaçları ya da sade boyalı duvar. Kafe
+  ve mola sahneleri **sahilde açık havada, arkada deniz**; dükkân sırası,
+  vitrin, cadde cephesi arka plana girmesin (model tabela uyduruyor).
+  `kare_prompt`'ta arka planı bu şekilde olumlu tarif et.
   Ürünü göstermek istiyorsan `uygulama_ekrani` kullan (aşağıda).
 - **`asla` listesindeki hiçbir şey** kare ya da hareket promptunda geçmesin —
   "olmasın" diye bile yazma (model kelimeyi görünce çizebiliyor); onun

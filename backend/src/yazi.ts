@@ -27,18 +27,50 @@ const temizle = (s: string) =>
  */
 function satirla(metin: string, puntoPx: number, genislikPx: number): string[] {
   const sinir = Math.max(8, Math.floor(genislikPx / (puntoPx * 0.62)));
-  const satirlar: string[] = [];
-  let satir = '';
-  for (const kelime of temizle(metin).split(' ')) {
-    if (!satir) satir = kelime;
-    else if ((satir + ' ' + kelime).length <= sinir) satir += ' ' + kelime;
-    else {
-      satirlar.push(satir);
-      satir = kelime;
+  const kelimeler = temizle(metin).split(' ').filter(Boolean);
+  const sar = (limit: number) => {
+    const satirlar: string[] = [];
+    let satir = '';
+    for (const kelime of kelimeler) {
+      if (!satir) satir = kelime;
+      else if ((satir + ' ' + kelime).length <= limit) satir += ' ' + kelime;
+      else {
+        satirlar.push(satir);
+        satir = kelime;
+      }
+    }
+    if (satir) satirlar.push(satir);
+    return satirlar;
+  };
+  // 14 Eki (Şevval/Burak: "çay mı, kahve / mi?"): açgözlü kaydırma son satıra tek
+  // kelime düşürüyordu. Aynı satır sayısını koruyan bütün kırılımları dene; puan:
+  // satır uzunlukları dengeli, kırılım noktalamadan sonra, soru eki ve bağlaç
+  // (mı/mi/da/de/ki) satır başına düşmesin.
+  const ilk = sar(sinir);
+  if (ilk.length < 2) return ilk;
+  const enUzunKelime = Math.max(...kelimeler.map((k) => k.length), 1);
+  const EK = /^(m[ıiuü](s[ıiuü]n)?|m[ıiuü]y[ıiuü]m|d[ae]|t[ae]|ki|ile|ve|ya)[,.?!;:]?$/i;
+  const puan = (satirlar: string[]) => {
+    const u = satirlar.map((x) => x.length);
+    let p = Math.max(...u) - Math.min(...u);
+    for (let i = 1; i < satirlar.length; i++) {
+      if (EK.test(satirlar[i].split(' ')[0])) p += 20;
+      if (!/[,.;:?!—]$/.test(satirlar[i - 1])) p += 4;
+    }
+    return p;
+  };
+  let enIyi = ilk;
+  let enIyiPuan = puan(ilk);
+  for (let limit = enUzunKelime; limit <= sinir; limit++) {
+    const deneme = sar(limit);
+    if (deneme.length !== ilk.length) continue;
+    const pd = puan(deneme);
+    if (pd < enIyiPuan) {
+      enIyi = deneme;
+      enIyiPuan = pd;
     }
   }
-  if (satir) satirlar.push(satir);
-  return satirlar;
+  return enIyi;
 }
 
 async function ciz(svg: string, genislik: number): Promise<Uint8Array> {

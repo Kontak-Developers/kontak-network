@@ -60,11 +60,12 @@
   ],
   "mekanlar": [
     "İstanbul sahil yolu, gündüz, açık deniz ve gökyüzü",
-    "Şehir içi sokak, öğle, sıradan hayat (tabelasız cepheler)",
     "Orman yolu, bulutlu sabah",
-    "Sahil kafesi önü, gündüz, deniz manzarası",
     "Benzin istasyonu molası, gündüz (logosuz)",
-    "Otoban kenarı mola yeri, açık hava"
+    "Otoban kenarı mola yeri, açık hava",
+    "Sahil parkı, gündüz, deniz ve ağaçlar arkada",
+    "Sahilde açık hava kafe masası, arkada yalnız deniz ve gökyüzü",
+    "Sade boyalı duvar önü (dükkân cephesi yok)"
   ],
   "asla": [
     "Görünen yüz (kask vizörü hep kapalı ya da arkadan/uzaktan)",
@@ -79,10 +80,11 @@
     "Stok fotoğraf pozları, kameraya el sallama, başparmak yukarı",
     "Telefon, tablet ya da uygulama ekranı (gerçek ekran görüntüsü ayrı kart olarak eklenir)",
     "Tabela, vitrin ya da cephe yakın planı (yazı uyduruyor)",
-    "Sarı/turuncu renk dökümü, film filtresi, gece ağırlığı"
+    "Sarı/turuncu renk dökümü, film filtresi, gece ağırlığı",
+    "Dükkân sırası, vitrin, kafe cephesi arka planı (tabela uyduruyor; kafe sahnesi sahilde, arkada deniz)"
   ],
   "asla_en": "visible faces, open-face helmets, raised visors, readable license plates, any text or letters on signs, screens or clothing, brand logos or badges on bikes, helmets, clothing or gas stations, riding without a helmet, wheelies, speeding, lane splitting, crashes, alcohol, cigarettes, flags or political and religious symbols, neon cyberpunk lighting, oversaturated HDR look, CGI or video-game look, deformed motorcycle geometry, extra wheels, melted rims, floating riders, children or pets on motorcycles, stock-photo poses, thumbs up, waving at camera",
-  "stil_eki": "Candid smartphone photo look: shot on a phone wide lens, everything in focus, natural daylight or soft overcast light, neutral white balance, true-to-life colors, clean whites and real blues, medium saturation, no color cast, no film grain, everyday documentary realism like a friend's Instagram story, real Turkish locations. Motorcycles seen from the front or the side; plain unbranded bikes and gear; plain building walls; open uncluttered background",
+  "stil_eki": "Candid smartphone photo look: shot on a phone wide lens, everything in focus, natural daylight or soft overcast light, neutral white balance, true-to-life colors, clean whites and real blues, medium saturation, no color cast, no film grain, everyday documentary realism like a friend's Instagram story, real Turkish locations. Motorcycles seen from the front or the side; plain unbranded bikes and gear; background of open sea, sky, park trees or plain painted walls; open uncluttered background",
   "altin_promptlar": [
     {
       "tur": "hero_sinematik",

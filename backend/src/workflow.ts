@@ -818,7 +818,10 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
     const karisimIs = await yap(step, `yazi-karistir-${fikirId}`, TEKRAR, () => yaziKaristirBaslat(env, videoUrl, cizelge));
     const karisim = videoAdresi((await this.kuyrukBekle(step, `yazi-k-${fikirId}`, [karisimIs], 20))[0]);
     const sesIs = await yap(step, `yazi-ses-${fikirId}`, TEKRAR, () => sesGeriBaslat(env, karisim, videoUrl));
-    const son = videoAdresi((await this.kuyrukBekle(step, `yazi-s-${fikirId}`, [sesIs], 20))[0]);
+    // ⚠️ 14 Eki: trend ses önerilen reel bilerek sessiz (ses TikTok'ta eklenir); ses kanalı yokken
+    //    merge-audio-video "Stream map '' matches no streams" veriyor → sessiz karışımı kullan.
+    const sesSonuc = (await this.kuyrukBekle(step, `yazi-s-${fikirId}`, [sesIs], 20))[0];
+    const son = metin(sesSonuc?.video?.url) || karisim;
     await yap(step, `yazi-kaydet-${fikirId}`, { ...TEKRAR, timeout: '10 minutes' as const }, async () => {
       const r = await env.DB.prepare('SELECT run_id FROM ideas WHERE id = ?').bind(fikirId).first<{ run_id: string }>();
       const anahtar = await r2yeYaz(env, son, `${r?.run_id ?? 'yazili'}/${fikirId}-reel-yazili.mp4`);

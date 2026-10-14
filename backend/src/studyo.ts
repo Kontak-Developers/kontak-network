@@ -61,7 +61,7 @@ export type CekimPlani = {
 // 13 Eki gece (Şevval): "her şey sarı filtreli, yapay zekâ hissi". Sinematik → gündelik telefon çekimi.
 const KURALLAR =
   'photorealistic candid smartphone photo, natural colors, neutral white balance, clean frame free of typography and watermarks, ' +
-  'motorcycles seen from the front or the side, plain unbranded bikes, plain building walls, hands holding helmets or handlebars rather than phones, ' +
+  'motorcycles seen from the front or the side, plain unbranded bikes, background of open sea, sky, park trees or plain painted walls, hands holding helmets or handlebars rather than phones, ' +
   'riders wearing closed full-face helmets with visors down, calm safe riding';
 
 /**
@@ -195,7 +195,7 @@ export type Denetim = { temiz: boolean; sorunlar: string[] };
 const DENETIM_PROMPTU = `You inspect AI-generated images for a motorcycle brand's TikTok/Instagram, viewed full-screen on a phone.
 Flag ONLY defects a normal viewer would clearly notice at phone size. Ignore tiny, blurry, partial or ambiguous marks.
 Defects:
-1. A legible word or number a viewer can actually read: shop sign, street sign, license plate characters, screen text, big printed text. Gibberish that is clearly readable as letters ALSO counts.
+1. A legible word or number a viewer can actually read: shop sign, street sign, license plate characters, screen text, big printed text. Gibberish that is clearly readable as letters ALSO counts. Shop signs and storefront lettering in the background count even when only partly readable.
 2. A clearly visible human face (eyes/nose/mouth recognizable). Closed-visor helmets, backs of heads, tiny distant people are fine.
 3. Someone riding or sitting on a motorcycle without a helmet.
 4. A clearly readable brand name or famous logo (e.g. Honda wordmark). Small emblems or abstract shapes are fine.
@@ -252,11 +252,22 @@ export async function denetliUret(
   const d1 = await kareDenetle(env, ilk, denetim.model);
   if (d1.temiz) return { url: ilk, denetim: d1, deneme: 1 };
   // Sorunu olumlu tarifle düzelt (olumsuz kelime yazmadan).
-  const ek = 'Every surface plain and blank, storefront awnings plain fabric, all riders in closed full-face helmets with dark visors down, background people far and out of focus';
+  const ek = 'Every surface plain and blank, all riders in closed full-face helmets with dark visors down, background people far and out of focus';
   const ikinci = await uret(ek);
   const d2 = await kareDenetle(env, ikinci, denetim.model);
-  if (d2.temiz || d2.sorunlar.length <= d1.sorunlar.length) return { url: ikinci, denetim: d2, deneme: 2 };
-  return { url: ilk, denetim: d1, deneme: 2 };
+  if (d2.temiz) return { url: ikinci, denetim: d2, deneme: 2 };
+  // 14 Eki: kafe/sokak sahnesinde dükkân cepheleri tabela uyduruyordu ("ROYOONCUTEAS").
+  // Üçüncü deneme arka planı tamamen açık alana çeviriyor: bina cephesi yok.
+  const ek3 = 'Background is only open seafront, sky and park trees, no buildings behind the subject; everything plain; all riders in closed full-face helmets with visors down';
+  const ucuncu = await uret(ek3);
+  const d3 = await kareDenetle(env, ucuncu, denetim.model);
+  const adaylar = [
+    { url: ilk, denetim: d1 },
+    { url: ikinci, denetim: d2 },
+    { url: ucuncu, denetim: d3 },
+  ];
+  const enIyi = d3.temiz ? adaylar[2] : adaylar.sort((a, b) => a.denetim.sorunlar.length - b.denetim.sorunlar.length)[0];
+  return { ...enIyi, deneme: 3 };
 }
 
 /** 2) Klip kuyruğa. Hero → Veo 3.1 Fast (seslendirme yoksa sesli); diğer → Kling. */
