@@ -6,6 +6,8 @@ export interface Env {
   AI: Ai;
   AGENT_RUN: Workflow<RunParams>;
   KONTAK_API: Fetcher;
+  /** "1" değilse zamanlayıcı tetiklense bile tarama başlamaz (elle çalışma) */
+  OTOMATIK_TARAMA?: string;
   /** Rota kartı → uygulama (şimdilik kontak-api-dev) */
   KONTAK_API_ROTA: Fetcher;
   /** kontak-api AJAN_SERVIS_ANAHTARI ile aynı */

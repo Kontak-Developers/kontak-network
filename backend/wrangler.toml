@@ -75,6 +75,8 @@ service = "kontak-api-dev"
 crons = []
 
 [vars]
+# Otomatik sabah taraması kilidi: "1" yapılmadıkça zamanlayıcı tarama başlatmaz.
+OTOMATIK_TARAMA = "0"
 # Hashtag başına çekilecek gönderi (Apify ücreti sonuç başına).
 GONDERI_PER_ETIKET = "30"
 # standard | lite | max. Kredi için lite yeterli olabilir.

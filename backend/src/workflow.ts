@@ -426,7 +426,8 @@ export class AgentRun extends WorkflowEntrypoint<Env, RunParams> {
           // Model link uydurmasın: yalnız taranan gönderilerden.
           ornek_linkler: dizi<string>(t?.ornek_linkler).filter((l) => gecerliLink.has(l)).slice(0, 4),
         })).filter((t) => t.baslik);
-        await env.DB.batch(
+        // ⚠️ 14 Eki 08:00: analiz 0 gündem döndürünce boş batch "No SQL statements detected" ile bütün çalıştırmayı düşürdü.
+        if (satirlar.length) await env.DB.batch(
           satirlar.map((t) =>
             env.DB.prepare(
               'INSERT INTO trends (id, run_id, tip, baslik, aciklama, platform, ivme, ornek_linkler) VALUES (?,?,?,?,?,?,?,?)'

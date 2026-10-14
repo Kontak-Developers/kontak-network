@@ -79,6 +79,13 @@ export default {
   },
 
   async scheduled(_c: ScheduledController, env: Env, ctx: ExecutionContext) {
+    // ⚠️ 14 Eki: wrangler.toml'da crons = [] olmasına rağmen 08:00'de bir kez tetiklendi
+    //    (Cloudflare'de silinmesi gecikti). Otomatik tarama yalnız OTOMATIK_TARAMA = "1" iken;
+    //    Burak: "ajan yalnız biz basınca çalışsın".
+    if (env.OTOMATIK_TARAMA !== '1') {
+      console.log('zamanlayıcı tetiklendi ama otomatik tarama kapalı; atlandı');
+      return;
+    }
     ctx.waitUntil(runBaslat(env, 'cron').then(() => undefined));
   },
 } satisfies ExportedHandler<Env>;
