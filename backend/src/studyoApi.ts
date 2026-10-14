@@ -8,7 +8,8 @@ import type { Env, RunParams } from './tipler';
 import { ayarlariOku, ayarlariYaz, VARSAYILAN_AYARLAR } from './ayarlar';
 import { promptAl, promptMetni, type PromptAdi } from './brain';
 import { markaOku } from './db';
-import { gorselKimlikEki, kareDenetle, kartUret } from './studyo';
+import { denetliUret, gorselKimlikEki, hamFotoAyarla, kareDenetle, kartUret, type CekimPlani } from './studyo';
+import { carouselYazilari } from './workflow';
 import { sahnePromptu, r2yeYaz } from './fal';
 import { harcamaYaz } from './formatlar';
 import { dizi, hata, json, jsonAc, kisaId, metin, sayi, simdiIst } from './yardimci';
@@ -203,6 +204,39 @@ export async function studyoApi(
     await DB.prepare(`UPDATE ideas SET reel_durum = 'bekliyor' WHERE id IN (${ids.map(() => '?').join(',')}) AND COALESCE(reel_durum, '') != 'hazir'`).bind(...ids).run();
     const id = await runBaslat({ reel: { ids, tavan } }, `Reel yeniden üretim: ${ids.length} reel`);
     return json({ id }, 202);
+  }
+
+  // ── Tek carousel kartını yeniden üret (14 Eki: tabela kaçan kart) ──
+  // Yeni kimlik ve kurallarla (denetimli, 3 denemeye kadar), sonra yazı yeniden gömülür.
+  const kart = yol.match(/^\/api\/studyo\/kart\/([A-Za-z0-9_-]{1,40})\/(\d{1,2})$/);
+  if (kart && m === 'POST') {
+    const [, fikirId, sira] = kart;
+    const i = Number(sira);
+    const r = await DB.prepare("SELECT run_id, format, sahneler, uretim_plani FROM ideas WHERE id = ?").bind(fikirId).first<any>();
+    if (!r || r.format !== 'carousel') return hata('yok', 'Carousel bulunamadı.', 404);
+    const plan = jsonAc<CekimPlani | null>(r.uretim_plani, null);
+    const sahneler = jsonAc<any[]>(r.sahneler, []);
+    const ck = plan?.cekimler?.[i];
+    if (!ck || !sahneler[i]) return hata('yok', 'Kart bulunamadı.', 404);
+    if (ck.uygulama_ekrani) return hata('gecersiz', 'Bu kart gerçek uygulama ekranı; yeniden üretilmez.', 400);
+    if (!ck.kare_prompt) return hata('gecersiz', 'Kartın görsel tarifi yok.', 400);
+    const ayar = await ayarlariOku(env);
+    hamFotoAyarla(ayar.studyo.ham_foto);
+    const kimlik = gorselKimlikEki(await markaOku(env));
+    const stil = [plan!.stil, kimlik].filter(Boolean).join('. ');
+    const x = await denetliUret(
+      env,
+      (ek) => kartUret(env, sahnePromptu(ek ? `${ck.kare_prompt}. ${ek}` : ck.kare_prompt, stil)),
+      { acik: ayar.studyo.kalite_denetimi, model: ayar.studyo.denetim_modeli }
+    );
+    const anahtar = await r2yeYaz(env, x.url, `${r.run_id}/${fikirId}-${i + 1}-v${Date.now().toString(36)}.jpg`);
+    const { yazili_anahtar, ...geri } = sahneler[i];
+    sahneler[i] = { ...geri, gorsel_anahtar: anahtar };
+    await DB.prepare('UPDATE ideas SET sahneler = ?, gorsel_anahtar = CASE WHEN ? = 0 THEN ? ELSE gorsel_anahtar END WHERE id = ?')
+      .bind(JSON.stringify(sahneler), i, anahtar, fikirId).run();
+    await harcamaYaz(env, r.run_id, 'fal', 'kart yeniden üretim (panel)', x.deneme * 0.06);
+    if (ayar.studyo.yazi_gom) await carouselYazilari(env, fikirId, ayar.studyo.imza);
+    return json({ ok: true, deneme: x.deneme, temiz: x.denetim?.temiz ?? true, sorunlar: x.denetim?.sorunlar ?? [] });
   }
 
   // ── Format kararı ──

@@ -2168,3 +2168,43 @@
   opacity: 0.6;
   pointer-events: none;
 }
+
+/* Önizleme: carousel kartları + tek kart yeniden üret */
+.st-kartlar-serit {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.st-kart-kucuk {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.st-kart-kucuk img,
+.st-kart-bos {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--zemin-2);
+  display: block;
+}
+.st-kart-yenile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid var(--cizgi);
+  background: var(--yuzey);
+  border-radius: 8px;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--marka);
+  cursor: pointer;
+}
+.st-kart-yenile:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}

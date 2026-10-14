@@ -39,6 +39,20 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
   const [etiketler, setEtiketler] = useState(idea.hashtagler.join(' '))
   const [yazilar, setYazilar] = useState(sahneler.map((s) => s.ekran_yazisi ?? ''))
   const [kaydediliyor, setKaydediliyor] = useState(false)
+  const [yenilenen, setYenilenen] = useState<number | null>(null)
+  const plan = (idea as Idea & { uretim_plani?: { cekimler?: { uygulama_ekrani?: string }[] } | null }).uretim_plani
+  const kartYenile = async (i: number) => {
+    setYenilenen(i)
+    try {
+      const r = await studyoApi.kartYenidenUret(idea.id, i)
+      await refreshIdeas()
+      toast(r.temiz ? `${i + 1}. kart yenilendi` : `${i + 1}. kart yenilendi ama küçük kusur kalmış olabilir: ${r.sorunlar.join(', ')}`)
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Kart yenilenemedi')
+    } finally {
+      setYenilenen(null)
+    }
+  }
 
   useEffect(() => {
     setDuzenle(false)
@@ -151,6 +165,33 @@ export default function IcerikAraclari({ idea }: { idea: Idea }) {
                   <Download size={14} /> {i + 1} temiz
                 </a>
               ))}
+          </div>
+        </div>
+      )}
+
+      {idea.format === 'carousel' && sahneler.length > 0 && (
+        <div className="st-icerik-blok">
+          <span className="st-icerik-baslik">Kartlar</span>
+          <div className="st-kartlar-serit">
+            {sahneler.map((s, i) => {
+              const gorsel = s.yazili_url ?? s.gorsel_url
+              const urun = !!plan?.cekimler?.[i]?.uygulama_ekrani
+              return (
+                <div key={i} className="st-kart-kucuk">
+                  {gorsel ? <img src={assetUrl(gorsel) ?? undefined} alt={`${i + 1}. kart`} loading="lazy" /> : <span className="st-kart-bos" />}
+                  {!urun && (
+                    <button
+                      className="st-kart-yenile"
+                      onClick={() => kartYenile(i)}
+                      disabled={yenilenen !== null}
+                      title="Bu kartın görselini yeni kurallarla yeniden üret (~0,06–0,18$)"
+                    >
+                      <RefreshCw size={12} className={yenilenen === i ? 'st-don' : ''} /> {yenilenen === i ? 'Üretiliyor…' : 'Yeniden üret'}
+                    </button>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

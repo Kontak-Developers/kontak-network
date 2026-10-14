@@ -1033,7 +1033,7 @@ async function platformOzeti(env: Env) {
 }
 
 /** Carousel kartlarına yazı: R2'deki görsel → yazılı PNG → sahneler[i].yazili_anahtar. */
-async function carouselYazilari(env: Env, fikirId: string, imza = ''): Promise<number> {
+export async function carouselYazilari(env: Env, fikirId: string, imza = ''): Promise<number> {
   const r = await env.DB.prepare('SELECT sahneler, uretim_plani FROM ideas WHERE id = ?').bind(fikirId).first<{ sahneler: string; uretim_plani: string }>();
   const sahneler = jsonAc<any[]>(r?.sahneler, []);
   const plan = jsonAc<CekimPlani | null>(r?.uretim_plani, null);
